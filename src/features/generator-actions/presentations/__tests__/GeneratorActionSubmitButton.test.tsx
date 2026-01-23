@@ -14,13 +14,20 @@ vi.mock('@heroui/react', () => ({
   Button: ({
     children,
     isDisabled,
-    type
+    type,
+    onPress
   }: {
     children: React.ReactNode
     isDisabled?: boolean
     type?: 'submit' | 'reset' | 'button'
+    onPress?: VoidFunction
   }) => (
-    <button type={type} disabled={isDisabled} data-testid="submit-button">
+    <button
+      type={type}
+      disabled={isDisabled}
+      data-testid="submit-button"
+      onClick={onPress}
+    >
       {children}
     </button>
   )
@@ -52,7 +59,7 @@ describe('GeneratorActionSubmitButton', () => {
     // Act
     render(
       <FormProviderWrapper>
-        <GeneratorActionSubmitButton />
+        <GeneratorActionSubmitButton onPress={vi.fn()} />
       </FormProviderWrapper>
     )
 
@@ -74,7 +81,7 @@ describe('GeneratorActionSubmitButton', () => {
     // Act
     render(
       <FormProviderWrapper>
-        <GeneratorActionSubmitButton />
+        <GeneratorActionSubmitButton onPress={vi.fn()} />
       </FormProviderWrapper>
     )
 
@@ -109,7 +116,7 @@ describe('GeneratorActionSubmitButton', () => {
     // Act
     render(
       <CustomFormProviderWrapper>
-        <GeneratorActionSubmitButton />
+        <GeneratorActionSubmitButton onPress={vi.fn()} />
       </CustomFormProviderWrapper>
     )
 

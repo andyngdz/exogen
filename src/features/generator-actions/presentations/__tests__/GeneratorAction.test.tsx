@@ -88,7 +88,7 @@ describe('GeneratorAction', () => {
 
   it('should render the component with submit button and view selector', () => {
     // Arrange & Act
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
 
     // Assert
     expect(screen.getByTestId('submit-button-mock')).toBeInTheDocument()
@@ -104,7 +104,7 @@ describe('GeneratorAction', () => {
 
   it('should have the correct CSS classes and attributes', () => {
     // Arrange & Act
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
 
     // Assert
     expect(screen.getByTestId('select-mock')).toHaveClass('max-w-32')
@@ -116,7 +116,7 @@ describe('GeneratorAction', () => {
 
   it('should change view mode when selection changes', async () => {
     // Arrange
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
     const select = screen.getByTestId('select-mock')
 
     // Act
