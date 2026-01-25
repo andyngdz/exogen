@@ -5,17 +5,30 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageInput } from '../ImageInput'
 
 vi.mock('@heroui/react', () => ({
+  Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CardHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CardBody: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   Button: ({
     children,
-    onPress
+    onPress,
+    as
   }: {
     children: ReactNode
     onPress?: VoidFunction
-  }) => (
-    <button type="button" onClick={onPress}>
-      {children}
-    </button>
-  )
+    as?: string
+  }) =>
+    // Allow rendering as a label to support nested <input type="file" />.
+    as === 'label' ? (
+      <label>
+        {children}
+        <span onClick={onPress} />
+      </label>
+    ) : (
+      <button type="button" onClick={onPress}>
+        {children}
+      </button>
+    ),
+  Spinner: () => <div />
 }))
 
 class MockFileReader {

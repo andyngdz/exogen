@@ -1,91 +1,30 @@
 'use client'
 
 import { useImage2ImageConfigStore } from '@/features/generators'
-import { Button } from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Spinner } from '@heroui/react'
 import clsx from 'clsx'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-const readFileAsDataUrl = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') {
-        reject(new Error('Failed to read file'))
-        return
-      }
-      resolve(reader.result)
-    }
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
-const pickFirstImageFile = (files: FileList | null): File | undefined => {
-  if (!files?.length) return
-
-  const file = files[0]
-  if (!file) return
-  if (!file.type.startsWith('image/')) return
-
-  return file
-}
+import { useMemo, useRef } from 'react'
+import { useImageInput } from '../states'
 
 export const ImageInput = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [isDragActive, setIsDragActive] = useState(false)
 
   const { initImageBase64, setInitImageBase64, clearInitImageBase64 } =
     useImage2ImageConfigStore()
 
   const hasImage = !!initImageBase64
 
-  const onPickFile = useCallback(() => {
-    fileInputRef.current?.click()
-  }, [])
-
-  const onFileChange = useCallback(async () => {
-    const file = pickFirstImageFile(fileInputRef.current?.files || null)
-    if (!file) return
-
-    const dataUrl = await readFileAsDataUrl(file)
-    setInitImageBase64(dataUrl)
-  }, [setInitImageBase64])
-
-  const onDrop = useCallback(
-    async (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      setIsDragActive(false)
-
-      const file = pickFirstImageFile(event.dataTransfer.files)
-      if (!file) return
-
-      const dataUrl = await readFileAsDataUrl(file)
-      setInitImageBase64(dataUrl)
-    },
-    [setInitImageBase64]
-  )
-
-  const onPaste = useCallback(
-    async (event: ClipboardEvent) => {
-      const items = event.clipboardData?.items
-      if (!items?.length) return
-
-      const imageItem = Array.from(items).find((item) =>
-        item.type.startsWith('image/')
-      )
-      const file = imageItem?.getAsFile()
-      if (!file) return
-
-      const dataUrl = await readFileAsDataUrl(file)
-      setInitImageBase64(dataUrl)
-    },
-    [setInitImageBase64]
-  )
-
-  useEffect(() => {
-    document.addEventListener('paste', onPaste)
-    return () => document.removeEventListener('paste', onPaste)
-  }, [onPaste])
+  const {
+    isDragActive,
+    isLoading,
+    onFileChange,
+    onDrop,
+    onDragEnter,
+    onDragOver,
+    onDragLeave
+  } = useImageInput({
+    onImageDataUrl: setInitImageBase64
+  })
 
   const dropzoneLabel = useMemo(() => {
     if (hasImage) return 'Input image'
@@ -102,56 +41,63 @@ export const ImageInput = () => {
         onChange={onFileChange}
       />
 
-      <div
+      <Card
+        as="div"
+        shadow="none"
+        isPressable
         className={clsx(
-          'relative w-full overflow-hidden rounded-large border border-default-200 bg-default-50',
+          'relative w-full overflow-hidden border border-default-200 bg-content2',
           {
             'border-primary bg-primary-50': isDragActive
           }
         )}
-        onDragEnter={(e) => {
-          e.preventDefault()
-          setIsDragActive(true)
+        onPress={() => {
+          if (isLoading) return
+          fileInputRef.current?.click()
         }}
-        onDragOver={(e) => {
-          e.preventDefault()
-          setIsDragActive(true)
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault()
-          setIsDragActive(false)
-        }}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        <div className="flex items-center justify-between gap-4 p-3">
+        <CardHeader className="flex items-center justify-between gap-4 py-3">
           <span className="text-sm text-default-600">{dropzoneLabel}</span>
           <div className="flex items-center gap-2">
+            {isLoading && <Spinner size="sm" />}
             {hasImage && (
-              <Button size="sm" variant="flat" onPress={clearInitImageBase64}>
-                Remove
-              </Button>
+              <div
+                onClick={(event) => {
+                  event.stopPropagation()
+                }}
+              >
+                <Button
+                  size="sm"
+                  variant="flat"
+                  onPress={clearInitImageBase64}
+                  isDisabled={isLoading}
+                >
+                  Remove
+                </Button>
+              </div>
             )}
-            <Button
-              size="sm"
-              color="primary"
-              variant="flat"
-              onPress={onPickFile}
-            >
-              Upload
-            </Button>
           </div>
-        </div>
+        </CardHeader>
 
-        {hasImage && (
-          <div className="px-3 pb-3">
+        <CardBody className="pt-0">
+          {hasImage && (
             <img
               src={initImageBase64}
               alt="Input"
               className="max-h-48 w-full rounded-medium object-contain bg-black/5"
             />
-          </div>
-        )}
-      </div>
+          )}
+          {!hasImage && (
+            <div className="pb-3 text-xs text-default-500">
+              Tip: you can paste from clipboard (Ctrl/Cmd+V)
+            </div>
+          )}
+        </CardBody>
+      </Card>
     </div>
   )
 }

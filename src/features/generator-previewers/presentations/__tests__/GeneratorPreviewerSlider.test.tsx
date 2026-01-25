@@ -1,7 +1,46 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGeneratorPreviewer } from '../../states'
 import { GeneratorPreviewerSlider } from '../GeneratorPreviewerSlider'
+
+// Mock HeroUI ScrollShadow to avoid framer-motion (window access) in tests.
+vi.mock('@heroui/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@heroui/react')>()
+  return {
+    ...actual,
+    Button: ({
+      children,
+      onPress,
+      isDisabled,
+      className,
+      'aria-label': ariaLabel
+    }: {
+      children: ReactNode
+      onPress?: VoidFunction
+      isDisabled?: boolean
+      className?: string
+      'aria-label'?: string
+    }) => (
+      <button
+        type="button"
+        onClick={onPress}
+        disabled={isDisabled}
+        className={className}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </button>
+    ),
+    ScrollShadow: ({
+      children,
+      className
+    }: {
+      children: ReactNode
+      className?: string
+    }) => <div className={className}>{children}</div>
+  }
+})
 
 // Mock the useGeneratorPreviewer hook
 vi.mock('@/features/generator-previewers/states', () => ({

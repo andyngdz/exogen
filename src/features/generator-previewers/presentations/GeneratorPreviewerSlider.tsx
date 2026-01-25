@@ -31,7 +31,7 @@ export const GeneratorPreviewerSlider = () => {
   }
 
   return (
-    <ScrollShadow className="relative h-full">
+    <ScrollShadow className="relative h-full p-4">
       <Swiper
         modules={[Mousewheel, Keyboard]}
         breakpoints={{
