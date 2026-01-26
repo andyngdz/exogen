@@ -1,57 +1,46 @@
-import type { ChangeEvent, DragEvent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+
+import { imageInputService } from '../services'
+import { useImageDropzone } from './useImageDropzone'
+import { useImageFilePicker } from './useImageFilePicker'
+import { useImagePaste } from './useImagePaste'
 
 interface UseImageInputParams {
+  hasImage: boolean
   onImageDataUrl: (dataUrl: string) => void
+  labels?: {
+    empty: string
+    filled: string
+  }
 }
 
-const fileToDataUrl = async (file: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') {
-        reject(new Error('Failed to read file'))
-        return
-      }
-
-      resolve(reader.result)
-    }
-
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
-const firstImageFile = (files: FileList | null) => {
-  if (!files?.length) return
-
-  const file = files[0]
-  if (!file) return
-  if (!file.type.startsWith('image/')) return
-
-  return file
-}
-
-const clipboardImageFile = (event: ClipboardEvent) => {
-  const items = event.clipboardData?.items
-  if (!items?.length) return
-
-  const imageItem = Array.from(items).find((item) =>
-    item.type.startsWith('image/')
-  )
-  return imageItem?.getAsFile()
-}
-
-export const useImageInput = ({ onImageDataUrl }: UseImageInputParams) => {
-  const [isDragActive, setIsDragActive] = useState(false)
+export const useImageInput = ({
+  hasImage,
+  onImageDataUrl,
+  labels = {
+    empty: 'Drop an image here, paste, or upload',
+    filled: 'Input image'
+  }
+}: UseImageInputParams) => {
   const [isLoading, setIsLoading] = useState(false)
+  const [lastError, setLastError] = useState<string | undefined>(undefined)
+
+  const dropzoneLabel = useMemo(() => {
+    if (hasImage) return labels.filled
+    return labels.empty
+  }, [hasImage, labels.empty, labels.filled])
 
   const loadFile = useCallback(
     async (file: File) => {
+      if (!imageInputService.isImageFile(file)) {
+        setLastError('Only image files are supported')
+        return
+      }
+
+      setLastError(undefined)
       setIsLoading(true)
       try {
-        const dataUrl = await fileToDataUrl(file)
+        const dataUrl = await imageInputService.fileToDataUrl(file)
         onImageDataUrl(dataUrl)
       } finally {
         setIsLoading(false)
@@ -60,68 +49,30 @@ export const useImageInput = ({ onImageDataUrl }: UseImageInputParams) => {
     [onImageDataUrl]
   )
 
-  const onFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = firstImageFile(event.target.files)
-      if (!file) return
+  const clearLastError = useCallback(() => {
+    setLastError(undefined)
+  }, [])
 
-      void loadFile(file)
-
-      // Allow re-uploading the same file consecutively.
-      event.target.value = ''
-    },
-    [loadFile]
-  )
-
-  const onDrop = useCallback(
-    (event: DragEvent<HTMLElement>) => {
-      event.preventDefault()
-      setIsDragActive(false)
-
-      const file = firstImageFile(event.dataTransfer.files)
-      if (!file) return
-
+  const onFile = useCallback(
+    (file: File) => {
       void loadFile(file)
     },
     [loadFile]
   )
 
-  const onDragEnter = useCallback((event: DragEvent<HTMLElement>) => {
-    event.preventDefault()
-    setIsDragActive(true)
-  }, [])
+  const { onFileChange } = useImageFilePicker({ onFile })
 
-  const onDragOver = useCallback((event: DragEvent<HTMLElement>) => {
-    event.preventDefault()
-    setIsDragActive(true)
-  }, [])
+  const { isDragActive, onDrop, onDragEnter, onDragOver, onDragLeave } =
+    useImageDropzone({ onFile })
 
-  const onDragLeave = useCallback((event: DragEvent<HTMLElement>) => {
-    event.preventDefault()
-    setIsDragActive(false)
-  }, [])
-
-  const onPaste = useCallback(
-    (event: ClipboardEvent) => {
-      const file = clipboardImageFile(event)
-      if (!file) return
-
-      void loadFile(file)
-    },
-    [loadFile]
-  )
-
-  useEffect(() => {
-    document.addEventListener('paste', onPaste)
-
-    return () => {
-      document.removeEventListener('paste', onPaste)
-    }
-  }, [onPaste])
+  useImagePaste({ onFile })
 
   return {
     isDragActive,
     isLoading,
+    dropzoneLabel,
+    lastError,
+    clearLastError,
     onFileChange,
     onDrop,
     onDragEnter,

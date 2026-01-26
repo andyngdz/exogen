@@ -96,4 +96,27 @@ describe('ImageInput', () => {
       )
     })
   })
+
+  it('shows error when non-image is selected', () => {
+    render(<ImageInput />)
+
+    const file = new File(['x'], 'test.txt', { type: 'text/plain' })
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement
+
+    const fileList = {
+      0: file,
+      length: 1,
+      item: (index: number) => (index === 0 ? file : null)
+    } as unknown as FileList
+
+    Object.defineProperty(input, 'files', { value: fileList })
+
+    fireEvent.change(input)
+
+    expect(
+      screen.getByText('Only image files are supported')
+    ).toBeInTheDocument()
+  })
 })
