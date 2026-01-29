@@ -9,7 +9,7 @@ import { GeneratorConfigFormat } from '../GeneratorConfigFormat'
 // Mock useConfig hook
 vi.mock('@/cores/hooks', () => ({
   useConfig: vi.fn(() => ({
-    upscalers: [
+    upscalerOptions: [
       {
         value: UpscalerType.LANCZOS,
         name: 'Lanczos',

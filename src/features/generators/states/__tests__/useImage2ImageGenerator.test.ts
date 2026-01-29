@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useImage2ImageConfigStore } from '../useImage2ImageConfigStore'
 import { useImage2ImageGenerator } from '../useImage2ImageGenerator'
 import { useGenerationStatusStore } from '../useGenerationStatusStore'
+import { useHiresFixEnabledStore } from '../useHiresFixEnabledStore'
 import { useUseImageGenerationStore } from '../useImageGenerationResponseStores'
 
 vi.mock('@/services/api', () => ({
@@ -37,6 +38,10 @@ vi.mock('../useImageGenerationResponseStores', () => ({
   })
 }))
 
+vi.mock('../useHiresFixEnabledStore', () => ({
+  useHiresFixEnabledStore: vi.fn()
+}))
+
 afterEach(() => {
   vi.clearAllMocks()
   useImage2ImageConfigStore.getState().reset()
@@ -44,6 +49,11 @@ afterEach(() => {
 
 beforeEach(() => {
   useImage2ImageConfigStore.getState().reset()
+
+  vi.mocked(useHiresFixEnabledStore).mockReturnValue({
+    isHiresFixEnabled: false,
+    setIsHiresFixEnabled: vi.fn()
+  })
 
   vi.mocked(useGenerationStatusStore).mockReturnValue({
     onSetIsGenerating: vi.fn()
@@ -93,7 +103,7 @@ describe('useImage2ImageGenerator', () => {
     expect(api.img2img).not.toHaveBeenCalled()
   })
 
-  it('calls POST /img2img with composed config and omits hires_fix', async () => {
+  it('calls POST /img2img with composed config and omits hires_fix when disabled', async () => {
     vi.mocked(api.addHistory).mockResolvedValue(1)
 
     useImage2ImageConfigStore
@@ -142,5 +152,41 @@ describe('useImage2ImageGenerator', () => {
     expect(img2imgArg.config).not.toHaveProperty('hires_fix')
     expect(mockSetIsGenerating).toHaveBeenCalledWith(true)
     expect(mockSetIsGenerating).toHaveBeenCalledWith(false)
+  })
+
+  it('calls POST /img2img with hires_fix when enabled', async () => {
+    vi.mocked(api.addHistory).mockResolvedValue(1)
+    vi.mocked(useHiresFixEnabledStore).mockReturnValue({
+      isHiresFixEnabled: true,
+      setIsHiresFixEnabled: vi.fn()
+    })
+
+    useImage2ImageConfigStore
+      .getState()
+      .setInitImageBase64('data:image/png;base64,abc')
+    useImage2ImageConfigStore.getState().setStrength(0.5)
+    useImage2ImageConfigStore
+      .getState()
+      .setResizeMode(Image2ImageResizeMode.CROP)
+
+    const wrapper = createQueryClientWrapper()
+    const { result } = renderHook(() => useImage2ImageGenerator(), { wrapper })
+
+    await act(async () => {
+      await result.current.onGenerate(baseConfig)
+    })
+
+    const addHistoryArg = vi.mocked(api.addHistory).mock.calls[0]?.[0]
+    expect(addHistoryArg).toBeDefined()
+    expect(addHistoryArg).toHaveProperty('hires_fix')
+    expect(addHistoryArg?.hires_fix).toEqual(baseConfig.hires_fix)
+
+    const img2imgArg = vi.mocked(api.img2img).mock.calls[0]?.[0]
+    expect(img2imgArg).toBeDefined()
+    expect(img2imgArg?.config).toEqual(
+      expect.objectContaining({
+        hires_fix: baseConfig.hires_fix
+      })
+    )
   })
 })
