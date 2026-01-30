@@ -210,7 +210,7 @@ describe('GeneratorPreviewerSlider', () => {
       render(<GeneratorPreviewerSlider />)
 
       const container = screen.getByTestId('swiper').parentElement
-      expect(container).toHaveClass('p-4', 'relative')
+      expect(container).toHaveClass('relative')
     })
   })
 

@@ -1,8 +1,10 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { FormProvider, useForm } from 'react-hook-form'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageInput } from '../ImageInput'
+import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 
 vi.mock('@heroui/react', () => ({
   Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -11,11 +13,15 @@ vi.mock('@heroui/react', () => ({
   Button: ({
     children,
     onPress,
-    as
+    as,
+    isDisabled,
+    'aria-label': ariaLabel
   }: {
     children: ReactNode
     onPress?: VoidFunction
     as?: string
+    isDisabled?: boolean
+    'aria-label'?: string
   }) =>
     // Allow rendering as a label to support nested <input type="file" />.
     as === 'label' ? (
@@ -24,12 +30,38 @@ vi.mock('@heroui/react', () => ({
         <span onClick={onPress} />
       </label>
     ) : (
-      <button type="button" onClick={onPress}>
+      <button
+        type="button"
+        onClick={onPress}
+        disabled={isDisabled}
+        aria-label={ariaLabel}
+      >
         {children}
       </button>
     ),
   Spinner: () => <div />
 }))
+
+const FormWrapper = ({ children }: { children: ReactNode }) => {
+  const methods = useForm<GeneratorConfigFormValues>({
+    defaultValues: {
+      cfg_scale: 7,
+      clip_skip: 1,
+      height: 512,
+      loras: [],
+      negative_prompt: '',
+      number_of_images: 1,
+      prompt: '',
+      sampler: 'Euler',
+      seed: 0,
+      steps: 20,
+      styles: [],
+      width: 512
+    }
+  })
+
+  return <FormProvider {...methods}>{children}</FormProvider>
+}
 
 class MockFileReader {
   result: string | ArrayBuffer | null = null
@@ -61,11 +93,11 @@ describe('ImageInput', () => {
       .getState()
       .setInitImageBase64('data:image/png;base64,preview')
 
-    render(<ImageInput />)
+    render(<ImageInput />, { wrapper: FormWrapper })
 
     expect(screen.getByAltText('Input')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('Remove'))
+    fireEvent.click(screen.getByLabelText('Remove input image'))
 
     expect(useImage2ImageConfigStore.getState().initImageBase64).toBeUndefined()
   })
@@ -73,7 +105,7 @@ describe('ImageInput', () => {
   it('sets image base64 on file upload', () => {
     vi.stubGlobal('FileReader', MockFileReader)
 
-    render(<ImageInput />)
+    render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.png', { type: 'image/png' })
     const input = document.querySelector(
@@ -98,7 +130,7 @@ describe('ImageInput', () => {
   })
 
   it('shows error when non-image is selected', () => {
-    render(<ImageInput />)
+    render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.txt', { type: 'text/plain' })
     const input = document.querySelector(

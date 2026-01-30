@@ -16,6 +16,7 @@
   - Use `es-toolkit/compat` utilities (e.g., `isEmpty(array)` vs `array.length === 0`)
   - Extract conditional checks into named variables before using in JSX
   - Prefer explicit `if/return` over nested ternaries for readability
+  - Prefer `condition && <Component />` over `condition ? <Component /> : undefined` when the false branch renders nothing
 
 - **Research first**: Check official documentation and existing patterns before implementing new features or using unfamiliar APIs.
 - **Type safety**:

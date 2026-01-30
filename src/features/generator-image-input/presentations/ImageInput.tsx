@@ -1,15 +1,18 @@
 'use client'
 
-import { useImage2ImageConfigStore } from '@/features/generators'
-import { Card } from '@heroui/react'
 import clsx from 'clsx'
 import { useRef } from 'react'
+import { useGeneratorAspectRatio } from '@/features/generator-configs'
+import { useImage2ImageConfigStore } from '@/features/generators'
+import { GeneratorPreviewTile } from '@/features/generator-previewers/presentations/GeneratorPreviewTile'
 import { useImageInput } from '../states'
+import { ImageInputBottomOverlay } from './ImageInputBottomOverlay'
 import { ImageInputBody } from './ImageInputBody'
-import { ImageInputHeader } from './ImageInputHeader'
+import { ImageInputTopRight } from './ImageInputTopRight'
 
 export const ImageInput = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const aspectRatio = useGeneratorAspectRatio()
 
   const { initImageBase64, setInitImageBase64, clearInitImageBase64 } =
     useImage2ImageConfigStore()
@@ -19,7 +22,6 @@ export const ImageInput = () => {
   const {
     isDragActive,
     isLoading,
-    dropzoneLabel,
     lastError,
     clearLastError,
     onFileChange,
@@ -32,8 +34,29 @@ export const ImageInput = () => {
     onImageDataUrl: setInitImageBase64
   })
 
+  const onRemove = () => {
+    clearInitImageBase64()
+    clearLastError()
+  }
+
+  const topRight = hasImage && (
+    <ImageInputTopRight isLoading={isLoading} onRemove={onRemove} />
+  )
+
+  const bottomOverlay = lastError && (
+    <ImageInputBottomOverlay message={lastError} />
+  )
+
   return (
-    <div>
+    <GeneratorPreviewTile
+      aspectRatio={aspectRatio}
+      className={clsx({
+        'ring-2 ring-primary-300': isDragActive
+      })}
+      topRight={topRight}
+      topRightClassName="top-3 right-3"
+      bottomOverlay={bottomOverlay}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -42,14 +65,9 @@ export const ImageInput = () => {
         onChange={onFileChange}
       />
 
-      <Card
-        as="div"
-        shadow="none"
-        isPressable
-        className={clsx('relative w-full overflow-hidden bg-content2', {
-          'bg-primary-50': isDragActive
-        })}
-        onPress={() => {
+      <div
+        className="h-full w-full"
+        onClick={() => {
           if (isLoading) return
           clearLastError()
           fileInputRef.current?.click()
@@ -59,21 +77,8 @@ export const ImageInput = () => {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        <ImageInputHeader
-          dropzoneLabel={dropzoneLabel}
-          isLoading={isLoading}
-          hasImage={hasImage}
-          onRemove={() => {
-            clearInitImageBase64()
-            clearLastError()
-          }}
-        />
-        <ImageInputBody
-          hasImage={hasImage}
-          initImageBase64={initImageBase64}
-          lastError={lastError}
-        />
-      </Card>
-    </div>
+        <ImageInputBody hasImage={hasImage} initImageBase64={initImageBase64} />
+      </div>
+    </GeneratorPreviewTile>
   )
 }

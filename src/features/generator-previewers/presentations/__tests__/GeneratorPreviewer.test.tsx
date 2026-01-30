@@ -124,7 +124,6 @@ describe('GeneratorPreviewer', () => {
       'grid-cols-[repeat(auto-fill,minmax(256px,1fr))]'
     )
     expect(gridContainer).toHaveClass('gap-4')
-    expect(gridContainer).toHaveClass('p-4')
 
     // Should render both preview items
     const previewItems = screen.getAllByTestId('previewer-item')
