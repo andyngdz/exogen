@@ -42,6 +42,10 @@ export const useImageInput = ({
       try {
         const dataUrl = await imageInputService.fileToDataUrl(file)
         onImageDataUrl(dataUrl)
+      } catch (error) {
+        setLastError(
+          error instanceof Error ? error.message : 'Failed to read file'
+        )
       } finally {
         setIsLoading(false)
       }

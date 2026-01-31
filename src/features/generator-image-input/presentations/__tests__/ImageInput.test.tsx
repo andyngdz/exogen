@@ -1,4 +1,5 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
+import { generatorConfigFormDefaults } from '@/cores/test-utils'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
@@ -44,20 +45,7 @@ vi.mock('@heroui/react', () => ({
 
 const FormWrapper = ({ children }: { children: ReactNode }) => {
   const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: {
-      cfg_scale: 7,
-      clip_skip: 1,
-      height: 512,
-      loras: [],
-      negative_prompt: '',
-      number_of_images: 1,
-      prompt: '',
-      sampler: 'Euler',
-      seed: 0,
-      steps: 20,
-      styles: [],
-      width: 512
-    }
+    defaultValues: generatorConfigFormDefaults()
   })
 
   return <FormProvider {...methods}>{children}</FormProvider>

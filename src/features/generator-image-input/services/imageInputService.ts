@@ -14,7 +14,9 @@ export class ImageInputService {
         resolve(reader.result)
       }
 
-      reader.onerror = () => reject(reader.error)
+      reader.onerror = () => {
+        reject(reader.error ?? new Error('Failed to read file'))
+      }
       reader.readAsDataURL(file)
     })
   }

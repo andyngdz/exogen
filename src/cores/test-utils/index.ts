@@ -1,4 +1,5 @@
 export * from './next-image'
+export * from './generator-config-defaults'
 export * from './query-client'
 export * from './query-mock'
 export * from './query-result-mock'
