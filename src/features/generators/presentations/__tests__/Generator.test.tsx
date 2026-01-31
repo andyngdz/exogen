@@ -5,6 +5,7 @@ import { UseFormReturn } from 'react-hook-form'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGeneratorForm } from '../../states'
 import { Generator } from '../Generator'
+import { useMountedState } from 'react-use'
 
 vi.mock('@/features/generator-configs', () => ({
   GeneratorConfig: () => (
@@ -130,7 +131,7 @@ vi.mock('@heroui/react', () => ({
 
 // Mock react-use to make useMountedState return true (mounted)
 vi.mock('react-use', () => ({
-  useMountedState: () => () => true
+  useMountedState: vi.fn()
 }))
 
 describe('Generator', () => {
@@ -138,6 +139,8 @@ describe('Generator', () => {
     vi.mocked(useGeneratorForm).mockReturnValue({
       methods: mockMethods as UseFormReturn<GeneratorConfigFormValues>
     })
+
+    vi.mocked(useMountedState).mockReturnValue(() => true)
   })
 
   afterEach(() => {
@@ -225,6 +228,15 @@ describe('Generator', () => {
 
     // Progress indicator should not be visible
     expect(screen.queryByTestId('progress-indicator')).not.toBeInTheDocument()
+  })
+
+  it('renders a progress indicator when not mounted yet', () => {
+    vi.mocked(useMountedState).mockReturnValue(() => false)
+
+    render(<Generator />)
+
+    expect(screen.getByTestId('progress-indicator')).toBeInTheDocument()
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
   })
 
   it('shows fullscreen loader when model is loading', async () => {

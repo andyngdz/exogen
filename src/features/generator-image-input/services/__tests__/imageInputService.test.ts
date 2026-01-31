@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { imageInputService } from '../imageInputService'
 
 describe('imageInputService', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
   it('returns the first file', () => {
     const file1 = new File(['a'], 'a.png', { type: 'image/png' })
     const file2 = new File(['b'], 'b.png', { type: 'image/png' })
@@ -37,5 +40,32 @@ describe('imageInputService', () => {
     } as unknown as ClipboardEvent
 
     expect(imageInputService.clipboardImageFile(event)).toBe(file)
+  })
+
+  it('rejects with fallback error when FileReader error is null', async () => {
+    class ErrorFileReader {
+      result: string | ArrayBuffer | null = null
+      onload:
+        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
+        | null = null
+      onerror:
+        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
+        | null = null
+      error: DOMException | null = null
+
+      readAsDataURL(_file: File) {
+        this.onerror?.call(
+          this as unknown as FileReader,
+          {} as ProgressEvent<FileReader>
+        )
+      }
+    }
+
+    vi.stubGlobal('FileReader', ErrorFileReader)
+
+    const file = new File(['a'], 'a.png', { type: 'image/png' })
+    await expect(imageInputService.fileToDataUrl(file)).rejects.toThrow(
+      'Failed to read file'
+    )
   })
 })

@@ -99,4 +99,33 @@ describe('useImageInput', () => {
     expect(result.current.isLoading).toBe(false)
     expect(result.current.lastError).toBe('boom')
   })
+
+  it('uses fallback message for non-Error rejections', async () => {
+    const onImageDataUrl = vi.fn()
+    const { result } = renderHook(() =>
+      useImageInput({
+        hasImage: false,
+        onImageDataUrl
+      })
+    )
+
+    vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(true)
+    vi.spyOn(imageInputService, 'fileToDataUrl').mockRejectedValue('boom')
+
+    const file = new File(['a'], 'a.png', { type: 'image/png' })
+    const input = document.createElement('input')
+    Object.defineProperty(input, 'files', {
+      value: [file]
+    })
+
+    await act(async () => {
+      result.current.onFileChange({
+        target: input
+      } as unknown as ChangeEvent<HTMLInputElement>)
+    })
+
+    expect(onImageDataUrl).not.toHaveBeenCalled()
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.lastError).toBe('Failed to read file')
+  })
 })

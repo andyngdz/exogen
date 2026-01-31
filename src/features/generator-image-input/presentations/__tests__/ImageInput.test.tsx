@@ -74,6 +74,7 @@ describe('ImageInput', () => {
   afterEach(() => {
     useImage2ImageConfigStore.getState().reset()
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('renders preview and removes image', () => {
@@ -138,5 +139,92 @@ describe('ImageInput', () => {
     expect(
       screen.getByText('Only image files are supported')
     ).toBeInTheDocument()
+  })
+
+  it('clears error and opens file picker when clicked', async () => {
+    render(<ImageInput />, { wrapper: FormWrapper })
+
+    const file = new File(['x'], 'test.txt', { type: 'text/plain' })
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement
+
+    const fileList = {
+      0: file,
+      length: 1,
+      item: (index: number) => (index === 0 ? file : null)
+    } as unknown as FileList
+
+    Object.defineProperty(input, 'files', { value: fileList })
+
+    fireEvent.change(input)
+
+    expect(
+      screen.getByText('Only image files are supported')
+    ).toBeInTheDocument()
+
+    const clickSpy = vi
+      .spyOn(HTMLInputElement.prototype, 'click')
+      .mockImplementation(() => undefined)
+
+    const clickTarget =
+      screen.queryByText('Click to upload') ?? screen.getByAltText('Input')
+
+    fireEvent.click(clickTarget)
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Only image files are supported')
+      ).not.toBeInTheDocument()
+    })
+
+    expect(clickSpy).toHaveBeenCalled()
+  })
+
+  it('does not open file picker when loading', () => {
+    class HangingFileReader {
+      result: string | ArrayBuffer | null = null
+      onload:
+        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
+        | null = null
+      onerror:
+        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
+        | null = null
+      error: DOMException | null = null
+
+      readAsDataURL(_file: File) {
+        // Intentionally never calls onload/onerror to keep loading state true.
+      }
+    }
+
+    vi.stubGlobal('FileReader', HangingFileReader)
+
+    render(<ImageInput />, { wrapper: FormWrapper })
+
+    const file = new File(['x'], 'test.png', { type: 'image/png' })
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement
+
+    const fileList = {
+      0: file,
+      length: 1,
+      item: (index: number) => (index === 0 ? file : null)
+    } as unknown as FileList
+
+    Object.defineProperty(input, 'files', { value: fileList })
+
+    const clickSpy = vi
+      .spyOn(HTMLInputElement.prototype, 'click')
+      .mockImplementation(() => undefined)
+
+    fireEvent.change(input)
+
+    const clickTarget =
+      screen.queryByText('Click to upload') ?? screen.getByAltText('Input')
+
+    fireEvent.click(clickTarget)
+
+    expect(clickSpy).not.toHaveBeenCalled()
   })
 })
