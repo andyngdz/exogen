@@ -1,7 +1,5 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
-import { ReactNode } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigExtra } from '../GeneratorConfigExtra'
 
@@ -14,67 +12,31 @@ vi.mock('@/cores/api-queries', () => ({
   }))
 }))
 
-const MockFormProvider = ({ children }: { children: ReactNode }) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: {
-      width: 512,
-      height: 512,
-
-      number_of_images: 1,
-      steps: 20,
-      cfg_scale: 7,
-      clip_skip: 2,
-      seed: 0,
-      sampler: 'EULER_A',
-      styles: [],
-      loras: [],
-      prompt: '',
-      negative_prompt: ''
-    }
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const Wrapper = createGeneratorConfigFormWrapper()
 
 describe('GeneratorConfigExtra', () => {
   it('should render the component with the correct header', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigExtra />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigExtra />, { wrapper: Wrapper })
 
     expect(screen.getByText('Extra')).toBeInTheDocument()
   })
 
   it('should render the add button', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigExtra />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigExtra />, { wrapper: Wrapper })
 
     const button = screen.getByRole('button')
     expect(button).toBeInTheDocument()
   })
 
   it('should render the Plus icon in the button', () => {
-    const { container } = render(
-      <MockFormProvider>
-        <GeneratorConfigExtra />
-      </MockFormProvider>
-    )
+    const { container } = render(<GeneratorConfigExtra />, { wrapper: Wrapper })
 
     const iconElement = container.querySelector('svg')
     expect(iconElement).toBeInTheDocument()
   })
 
   it('should render the button as iconOnly', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigExtra />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigExtra />, { wrapper: Wrapper })
 
     const button = screen.getByRole('button')
     expect(button).not.toHaveTextContent(/\S/)

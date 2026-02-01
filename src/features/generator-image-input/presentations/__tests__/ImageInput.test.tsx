@@ -1,11 +1,9 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
-import { generatorConfigFormDefaults } from '@/cores/test-utils'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageInput } from '../ImageInput'
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 
 vi.mock('@heroui/react', () => ({
   Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -43,13 +41,7 @@ vi.mock('@heroui/react', () => ({
   Spinner: () => <div />
 }))
 
-const FormWrapper = ({ children }: { children: ReactNode }) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: generatorConfigFormDefaults()
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const FormWrapper = createGeneratorConfigFormWrapper()
 
 class MockFileReader {
   result: string | ArrayBuffer | null = null

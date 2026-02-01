@@ -8,6 +8,7 @@
   - Component names should include feature prefix (e.g., `GeneratorImageRenderer`, `GeneratorImageDownloadButton` for generator feature)
   - Event handlers must start with `on` prefix (e.g., `onClick`, `onSubmit`, `onPhaseChange`)
 - **Commits**: Conventional format (`feat:`, `fix:`, `test:`, `chore:`)
+- **Testing**: Follow `docs/TESTING.md` (behavior-first, avoid redundant tests, reuse test wrappers)
 - **Comments**: Write what code does, not why or how. Keep short and action-focused. Use `// Step N: <action>` for workflows. Avoid redundant explanations. When code is self-documenting (e.g., well-named functions/hooks), omit comments entirely.
 - **Simplicity**:
   - Prefer simple variables over nested property access (e.g., `model_id` vs `modelDetails?.id`)

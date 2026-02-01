@@ -1,6 +1,5 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigSampling } from '../GeneratorConfigSampling'
 
@@ -45,55 +44,47 @@ vi.mock('../GeneratorConfigSamplerDropdown', () => ({
 }))
 
 describe('GeneratorConfigSampling', () => {
-  const Wrapper = () => {
-    const methods = useForm<GeneratorConfigFormValues>({
-      defaultValues: {
-        steps: 20,
-        cfg_scale: 7.5,
-        clip_skip: 2
-      }
-    })
-
-    return (
-      <FormProvider {...methods}>
-        <GeneratorConfigSampling />
-      </FormProvider>
-    )
-  }
+  const Wrapper = createGeneratorConfigFormWrapper({
+    overrides: {
+      steps: 20,
+      cfg_scale: 7.5,
+      clip_skip: 2
+    }
+  })
 
   it('renders the sampling section with correct title', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     expect(screen.getByText('Sampling')).toBeInTheDocument()
   })
 
   it('renders the steps input with correct properties', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     const stepsInput = screen.getByTestId('number-input-steps')
     expect(stepsInput).toBeInTheDocument()
     expect(screen.getByText('Steps')).toBeInTheDocument()
   })
 
   it('renders the common steps component', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     expect(screen.getByTestId('common-steps')).toBeInTheDocument()
   })
 
   it('renders the CFG Scale input with correct properties', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     const cfgScaleInput = screen.getByTestId('number-input-cfg_scale')
     expect(cfgScaleInput).toBeInTheDocument()
     expect(screen.getByText('CFG Scale')).toBeInTheDocument()
   })
 
   it('renders the CLIP Skip input with correct properties', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     const clipSkipInput = screen.getByTestId('number-input-clip_skip')
     expect(clipSkipInput).toBeInTheDocument()
     expect(screen.getByText('CLIP Skip')).toBeInTheDocument()
   })
 
   it('renders the sampler dropdown', () => {
-    render(<Wrapper />)
+    render(<GeneratorConfigSampling />, { wrapper: Wrapper })
     expect(screen.getByTestId('sampler-dropdown')).toBeInTheDocument()
   })
 })

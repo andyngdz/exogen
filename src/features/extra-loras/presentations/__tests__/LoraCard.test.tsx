@@ -1,6 +1,6 @@
 import type { LoRA } from '@/types'
+import { createFormProviderWrapper } from '@/cores/test-utils'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
 import { LoraCard } from '../LoraCard'
 
@@ -13,14 +13,13 @@ const mockLora: LoRA = {
   updated_at: '2025-01-01T00:00:00Z'
 }
 
-const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const methods = useForm({
+const Wrapper = createFormProviderWrapper({
+  formOptions: {
     defaultValues: {
       loras: [{ lora_id: 1, weight: 0 }]
     }
-  })
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+  }
+})
 
 describe('LoraCard', () => {
   it('renders with weight 0 and does not reset', () => {

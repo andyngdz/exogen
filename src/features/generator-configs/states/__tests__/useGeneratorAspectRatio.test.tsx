@@ -1,19 +1,13 @@
 import { renderHook } from '@testing-library/react'
-import { act, useEffect, type ReactNode } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
+import { act } from 'react'
+import type { UseFormReturn } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
 
-import { generatorConfigFormDefaults } from '@/cores/test-utils'
-import { GeneratorConfigFormValues } from '../../types/generator-config'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
+import type { GeneratorConfigFormValues } from '../../types/generator-config'
 import { useGeneratorAspectRatio } from '../useGeneratorAspectRatio'
 
-const Wrapper = ({ children }: { children: ReactNode }) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: generatorConfigFormDefaults()
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const Wrapper = createGeneratorConfigFormWrapper()
 
 describe('useGeneratorAspectRatio', () => {
   it('returns width / height from generator form values', () => {
@@ -25,21 +19,13 @@ describe('useGeneratorAspectRatio', () => {
   })
 
   it('updates when width/height change', () => {
-    let methods:
-      | ReturnType<typeof useForm<GeneratorConfigFormValues>>
-      | undefined
+    let methods: UseFormReturn<GeneratorConfigFormValues> | undefined
 
-    const CaptureWrapper = ({ children }: { children: ReactNode }) => {
-      const m = useForm<GeneratorConfigFormValues>({
-        defaultValues: generatorConfigFormDefaults()
-      })
-
-      useEffect(() => {
+    const CaptureWrapper = createGeneratorConfigFormWrapper({
+      onMethods: (m) => {
         methods = m
-      }, [m])
-
-      return <FormProvider {...m}>{children}</FormProvider>
-    }
+      }
+    })
 
     const { result } = renderHook(() => useGeneratorAspectRatio(), {
       wrapper: CaptureWrapper
