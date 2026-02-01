@@ -31,7 +31,7 @@ export const useImageInput = ({
   }, [hasImage, labels.empty, labels.filled])
 
   const loadFile = useCallback(
-    async (file: File) => {
+    (file: File) => {
       if (!imageInputService.isImageFile(file)) {
         setLastError('Only image files are supported')
         return
@@ -39,16 +39,20 @@ export const useImageInput = ({
 
       setLastError(undefined)
       setIsLoading(true)
-      try {
-        const dataUrl = await imageInputService.fileToDataUrl(file)
-        onImageDataUrl(dataUrl)
-      } catch (error) {
-        setLastError(
-          error instanceof Error ? error.message : 'Failed to read file'
-        )
-      } finally {
-        setIsLoading(false)
-      }
+
+      imageInputService
+        .fileToDataUrl(file)
+        .then((dataUrl) => {
+          onImageDataUrl(dataUrl)
+        })
+        .catch((error: unknown) => {
+          setLastError(
+            error instanceof Error ? error.message : 'Failed to read file'
+          )
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
     },
     [onImageDataUrl]
   )
@@ -59,7 +63,7 @@ export const useImageInput = ({
 
   const onFile = useCallback(
     (file: File) => {
-      void loadFile(file)
+      loadFile(file)
     },
     [loadFile]
   )

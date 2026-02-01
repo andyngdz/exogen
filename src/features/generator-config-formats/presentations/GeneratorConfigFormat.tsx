@@ -30,18 +30,16 @@ export const GeneratorConfigFormat = () => {
           startContent={<span className="text-sm text-default-700">H</span>}
         />
       </div>
-      <>
-        <Checkbox
-          isSelected={isHiresFixEnabled}
-          onValueChange={onHiresFixToggle}
-          classNames={{
-            label: 'text-sm'
-          }}
-        >
-          Hires.fix
-        </Checkbox>
-        {isHiresFixEnabled && <GeneratorConfigHiresFix />}
-      </>
+      <Checkbox
+        isSelected={isHiresFixEnabled}
+        onValueChange={onHiresFixToggle}
+        classNames={{
+          label: 'text-sm'
+        }}
+      >
+        Hires.fix
+      </Checkbox>
+      {isHiresFixEnabled && <GeneratorConfigHiresFix />}
     </div>
   )
 }
