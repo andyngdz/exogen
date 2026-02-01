@@ -1,17 +1,18 @@
 'use client'
 
+import { useGeneratorAspectRatio } from '@/features/generator-configs'
+import { GeneratorPreviewTile } from '@/features/generator-previewers/presentations/GeneratorPreviewTile'
+import { useImage2ImageConfigStore } from '@/features/generators'
+import { Button } from '@heroui/react'
 import clsx from 'clsx'
 import { useRef } from 'react'
-import { useGeneratorAspectRatio } from '@/features/generator-configs'
-import { useImage2ImageConfigStore } from '@/features/generators'
-import { GeneratorPreviewTile } from '@/features/generator-previewers/presentations/GeneratorPreviewTile'
 import { useImageInput } from '../states'
-import { ImageInputBottomOverlay } from './ImageInputBottomOverlay'
 import { ImageInputBody } from './ImageInputBody'
+import { ImageInputBottomOverlay } from './ImageInputBottomOverlay'
 import { ImageInputTopRight } from './ImageInputTopRight'
 
 export const ImageInput = () => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const aspectRatio = useGeneratorAspectRatio()
 
   const { initImageBase64, setInitImageBase64, clearInitImageBase64 } =
@@ -65,10 +66,13 @@ export const ImageInput = () => {
         onChange={onFileChange}
       />
 
-      <div
-        className="h-full w-full"
-        onClick={() => {
-          if (isLoading) return
+      <Button
+        type="button"
+        aria-label={hasImage ? 'Change input image' : 'Upload input image'}
+        className="h-full w-full min-h-0 p-0"
+        variant="light"
+        isDisabled={isLoading}
+        onPress={() => {
           clearLastError()
           fileInputRef.current?.click()
         }}
@@ -78,7 +82,7 @@ export const ImageInput = () => {
         onDrop={onDrop}
       >
         <ImageInputBody hasImage={hasImage} initImageBase64={initImageBase64} />
-      </div>
+      </Button>
     </GeneratorPreviewTile>
   )
 }

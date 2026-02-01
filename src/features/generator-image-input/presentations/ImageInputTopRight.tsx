@@ -13,21 +13,18 @@ export const ImageInputTopRight = ({
   onRemove
 }: ImageInputTopRightProps) => {
   return (
-    <div
+    <Button
+      isIconOnly
+      size="sm"
+      variant="flat"
+      aria-label="Remove input image"
+      isDisabled={isLoading}
       onClick={(event) => {
         event.stopPropagation()
       }}
+      onPress={onRemove}
     >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="flat"
-        aria-label="Remove input image"
-        isDisabled={isLoading}
-        onPress={onRemove}
-      >
-        <Trash2 size={16} />
-      </Button>
-    </div>
+      <Trash2 size={16} />
+    </Button>
   )
 }
