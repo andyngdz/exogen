@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { ComponentType } from 'react'
 import {
   FormProvider,
   type FieldValues,
@@ -28,6 +29,38 @@ export const createFormProviderWrapper = <TFieldValues extends FieldValues>(
   return Wrapper
 }
 
+export type CapturedFormProviderWrapper<TFieldValues extends FieldValues> = {
+  Wrapper: ComponentType<{ children: ReactNode }>
+  getMethods: () => UseFormReturn<TFieldValues>
+}
+
+export const createCapturedFormProviderWrapper = <
+  TFieldValues extends FieldValues
+>(
+  options: FormProviderWrapperOptions<TFieldValues> = {}
+): CapturedFormProviderWrapper<TFieldValues> => {
+  let captured: UseFormReturn<TFieldValues> | null = null
+
+  const Wrapper = createFormProviderWrapper<TFieldValues>({
+    ...options,
+    onMethods: (methods) => {
+      captured = methods
+      options.onMethods?.(methods)
+    }
+  })
+
+  const getMethods = () => {
+    if (!captured) {
+      throw new Error(
+        'Form methods not captured. Render with the provided wrapper first.'
+      )
+    }
+    return captured
+  }
+
+  return { Wrapper, getMethods }
+}
+
 export type GeneratorConfigFormWrapperOptions = {
   overrides?: Partial<GeneratorConfigFormValues>
   onMethods?: (methods: UseFormReturn<GeneratorConfigFormValues>) => void
@@ -41,5 +74,19 @@ export const createGeneratorConfigFormWrapper = (
       defaultValues: generatorConfigFormDefaults(options.overrides)
     },
     onMethods: options.onMethods
+  })
+}
+
+export type CapturedGeneratorConfigFormWrapperOptions = {
+  overrides?: Partial<GeneratorConfigFormValues>
+}
+
+export const createCapturedGeneratorConfigFormWrapper = (
+  options: CapturedGeneratorConfigFormWrapperOptions = {}
+) => {
+  return createCapturedFormProviderWrapper<GeneratorConfigFormValues>({
+    formOptions: {
+      defaultValues: generatorConfigFormDefaults(options.overrides)
+    }
   })
 }

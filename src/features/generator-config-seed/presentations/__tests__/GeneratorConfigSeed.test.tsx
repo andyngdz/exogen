@@ -1,9 +1,7 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
-import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactNode } from 'react'
-import type { UseFormReturn } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { seedService } from '../../services/seed'
 import { GeneratorConfigSeed } from '../GeneratorConfigSeed'
@@ -33,12 +31,7 @@ vi.mock('../../services/seed', () => ({
   }
 }))
 
-let methods: UseFormReturn<GeneratorConfigFormValues> | undefined
-const Wrapper = createGeneratorConfigFormWrapper({
-  onMethods: (m) => {
-    methods = m
-  }
-})
+const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper()
 
 describe('GeneratorConfigSeed', () => {
   it("should render the component with 'Seed' heading", () => {
@@ -76,6 +69,6 @@ describe('GeneratorConfigSeed', () => {
     // Verify that seedService.generate was called
     expect(seedService.generate).toHaveBeenCalled()
 
-    expect(methods?.getValues('seed')).toBe(12345)
+    expect(getMethods().getValues('seed')).toBe(12345)
   })
 })

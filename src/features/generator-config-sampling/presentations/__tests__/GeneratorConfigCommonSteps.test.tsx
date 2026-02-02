@@ -1,24 +1,16 @@
-import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { UseFormReturn } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { COMMON_STEPS } from '../../constants'
 import { GeneratorConfigCommonSteps } from '../GeneratorConfigCommonSteps'
-import type { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 
 // Mock constants to test with
 vi.mock('../../constants', () => ({
   COMMON_STEPS: [16, 24, 32]
 }))
 
-let methods: UseFormReturn<GeneratorConfigFormValues> | undefined
-
-const Wrapper = createGeneratorConfigFormWrapper({
-  onMethods: (m) => {
-    methods = m
-  }
-})
+const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper()
 
 describe('GeneratorConfigCommonSteps', () => {
   it('should render buttons for each common step value', () => {
@@ -41,13 +33,13 @@ describe('GeneratorConfigCommonSteps', () => {
     const firstStepButton = screen.getByRole('button', { name: '16' })
     await user.click(firstStepButton)
 
-    expect(methods?.getValues('steps')).toBe(16)
+    expect(getMethods().getValues('steps')).toBe(16)
 
     // Click on the third button (32)
     const thirdStepButton = screen.getByRole('button', { name: '32' })
     await user.click(thirdStepButton)
 
-    expect(methods?.getValues('steps')).toBe(32)
+    expect(getMethods().getValues('steps')).toBe(32)
   })
 
   it('should render buttons with light variant and proper styling', () => {
