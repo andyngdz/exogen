@@ -9,6 +9,19 @@ vi.mock('@heroui/react', () => ({
   Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   CardHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   CardBody: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Image: ({
+    src,
+    alt,
+    classNames
+  }: {
+    src?: string
+    alt?: string
+    classNames?: { wrapper?: string; img?: string }
+  }) => (
+    <div className={classNames?.wrapper}>
+      <img src={src} alt={alt} className={classNames?.img} />
+    </div>
+  ),
   Button: ({
     children,
     onPress,
