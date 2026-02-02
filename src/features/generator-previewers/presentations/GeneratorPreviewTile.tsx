@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { CSSProperties, ReactNode } from 'react'
+import { ReactNode } from 'react'
 
 interface GeneratorPreviewTileProps {
   aspectRatio?: number
@@ -22,19 +22,15 @@ export const GeneratorPreviewTile = ({
   bottomOverlay,
   bottomOverlayClassName
 }: GeneratorPreviewTileProps) => {
-  const style: CSSProperties | undefined = aspectRatio
-    ? {
-        aspectRatio
-      }
-    : undefined
-
   return (
     <div
       className={clsx(
         'relative group h-full w-full overflow-hidden rounded-2xl bg-content1',
         className
       )}
-      style={style}
+      style={{
+        aspectRatio
+      }}
     >
       {children}
       {topRight && (
