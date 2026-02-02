@@ -165,22 +165,11 @@ describe('ImageInput', () => {
   })
 
   it('does not open file picker when loading', () => {
-    class HangingFileReader {
-      result: string | ArrayBuffer | null = null
-      onload:
-        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-        | null = null
-      onerror:
-        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-        | null = null
-      error: DOMException | null = null
-
-      readAsDataURL(_file: File) {
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
+      function () {
         // Intentionally never calls onload/onerror to keep loading state true.
       }
-    }
-
-    vi.stubGlobal('FileReader', HangingFileReader)
+    )
 
     render(<ImageInput />, { wrapper: FormWrapper })
 

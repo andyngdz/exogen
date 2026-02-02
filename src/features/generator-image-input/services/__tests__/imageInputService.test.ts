@@ -43,25 +43,18 @@ describe('imageInputService', () => {
   })
 
   it('rejects with fallback error when FileReader error is null', async () => {
-    class ErrorFileReader {
-      result: string | ArrayBuffer | null = null
-      onload:
-        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-        | null = null
-      onerror:
-        | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-        | null = null
-      error: DOMException | null = null
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
+      function (this: FileReader) {
+        Object.defineProperty(this, 'error', {
+          value: null,
+          configurable: true
+        })
 
-      readAsDataURL(_file: File) {
-        this.onerror?.call(
-          this as unknown as FileReader,
-          {} as ProgressEvent<FileReader>
+        this.onerror?.(
+          new ProgressEvent('error') as unknown as ProgressEvent<FileReader>
         )
       }
-    }
-
-    vi.stubGlobal('FileReader', ErrorFileReader)
+    )
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
     await expect(imageInputService.fileToDataUrl(file)).rejects.toThrow(
