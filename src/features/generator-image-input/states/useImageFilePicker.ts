@@ -1,25 +1,31 @@
-import type { ChangeEvent } from 'react'
 import { useCallback } from 'react'
 
 import { imageInputService } from '../services'
 
+export type ImageFilePickerChangeEvent = {
+  target: HTMLInputElement
+}
+
 interface UseImageFilePickerParams {
-  onFile: (file: File) => void
+  onFile: (file: File) => Promise<void>
 }
 
 export const useImageFilePicker = ({ onFile }: UseImageFilePickerParams) => {
   const onFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files
+    async (event: ImageFilePickerChangeEvent) => {
+      const input = event.target
+      const files = input.files
       if (!files) return
 
       const file = imageInputService.firstFile(files)
       if (!file) return
 
-      onFile(file)
-
-      // Allow re-uploading the same file consecutively.
-      event.target.value = ''
+      try {
+        await onFile(file)
+      } finally {
+        // Allow re-uploading the same file consecutively.
+        input.value = ''
+      }
     },
     [onFile]
   )

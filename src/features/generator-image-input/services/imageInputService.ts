@@ -1,5 +1,15 @@
 import { first, isEmpty } from 'es-toolkit/compat'
 
+type ClipboardItemLike = Pick<DataTransferItem, 'type' | 'getAsFile'>
+
+type ClipboardDataLike = {
+  items?: ArrayLike<ClipboardItemLike> | null
+}
+
+export type ClipboardImageFileEvent = {
+  clipboardData?: ClipboardDataLike | null
+}
+
 export class ImageInputService {
   async fileToDataUrl(file: File) {
     return new Promise<string>((resolve, reject) => {
@@ -29,7 +39,7 @@ export class ImageInputService {
     return file.type.startsWith('image/')
   }
 
-  clipboardImageFile(event: ClipboardEvent) {
+  clipboardImageFile(event: ClipboardImageFileEvent) {
     const items = event.clipboardData?.items
     if (!items || isEmpty(items)) return
 

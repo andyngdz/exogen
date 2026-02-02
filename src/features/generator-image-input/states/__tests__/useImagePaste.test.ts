@@ -6,7 +6,9 @@ import { useImagePaste } from '../useImagePaste'
 
 describe('useImagePaste', () => {
   it('subscribes and unsubscribes to paste events', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const addSpy = vi.spyOn(document, 'addEventListener')
     const removeSpy = vi.spyOn(document, 'removeEventListener')
 
@@ -19,8 +21,10 @@ describe('useImagePaste', () => {
     expect(removeSpy).toHaveBeenCalledWith('paste', expect.any(Function))
   })
 
-  it('calls onFile when clipboard has an image', () => {
-    const onFile = vi.fn()
+  it('calls onFile when clipboard has an image', async () => {
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
 
     const addSpy = vi
       .spyOn(document, 'addEventListener')
@@ -32,20 +36,23 @@ describe('useImagePaste', () => {
     const file = new File(['a'], 'a.png', { type: 'image/png' })
     vi.spyOn(imageInputService, 'clipboardImageFile').mockReturnValue(file)
 
-    let pasteListener: ((event: Event) => void) | undefined
+    let pasteListener: ((event: Event) => unknown) | undefined
     addSpy.mockImplementation((type, listener) => {
-      if (type === 'paste') pasteListener = listener as (event: Event) => void
+      if (type !== 'paste') return
+      if (typeof listener === 'function') pasteListener = listener
     })
 
     renderHook(() => useImagePaste({ onFile }))
 
-    pasteListener?.({} as ClipboardEvent)
+    await Promise.resolve(pasteListener?.(new Event('paste')))
 
     expect(onFile).toHaveBeenCalledWith(file)
   })
 
-  it('does not call onFile when clipboard has no image', () => {
-    const onFile = vi.fn()
+  it('does not call onFile when clipboard has no image', async () => {
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
 
     const addSpy = vi
       .spyOn(document, 'addEventListener')
@@ -56,14 +63,15 @@ describe('useImagePaste', () => {
 
     vi.spyOn(imageInputService, 'clipboardImageFile').mockReturnValue(undefined)
 
-    let pasteListener: ((event: Event) => void) | undefined
+    let pasteListener: ((event: Event) => unknown) | undefined
     addSpy.mockImplementation((type, listener) => {
-      if (type === 'paste') pasteListener = listener as (event: Event) => void
+      if (type !== 'paste') return
+      if (typeof listener === 'function') pasteListener = listener
     })
 
     renderHook(() => useImagePaste({ onFile }))
 
-    pasteListener?.({} as ClipboardEvent)
+    await Promise.resolve(pasteListener?.(new Event('paste')))
 
     expect(onFile).not.toHaveBeenCalled()
   })

@@ -1,5 +1,6 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
 import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
+import { createFileListLike } from '@/cores/test-utils'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -84,24 +85,17 @@ describe('ImageInput', () => {
           value: 'data:image/png;base64,abc',
           configurable: true
         })
-        this.onload?.(
-          new ProgressEvent('load') as unknown as ProgressEvent<FileReader>
-        )
+        this.dispatchEvent(new ProgressEvent('load'))
       }
     )
 
     render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.png', { type: 'image/png' })
+    const fileList = createFileListLike([file])
     const input = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement
-
-    const fileList = {
-      0: file,
-      length: 1,
-      item: (index: number) => (index === 0 ? file : null)
-    } as unknown as FileList
 
     Object.defineProperty(input, 'files', { value: fileList })
 
@@ -118,15 +112,10 @@ describe('ImageInput', () => {
     render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.txt', { type: 'text/plain' })
+    const fileList = createFileListLike([file])
     const input = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement
-
-    const fileList = {
-      0: file,
-      length: 1,
-      item: (index: number) => (index === 0 ? file : null)
-    } as unknown as FileList
 
     Object.defineProperty(input, 'files', { value: fileList })
 
@@ -141,15 +130,10 @@ describe('ImageInput', () => {
     render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.txt', { type: 'text/plain' })
+    const fileList = createFileListLike([file])
     const input = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement
-
-    const fileList = {
-      0: file,
-      length: 1,
-      item: (index: number) => (index === 0 ? file : null)
-    } as unknown as FileList
 
     Object.defineProperty(input, 'files', { value: fileList })
 
@@ -187,15 +171,10 @@ describe('ImageInput', () => {
     render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.png', { type: 'image/png' })
+    const fileList = createFileListLike([file])
     const input = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement
-
-    const fileList = {
-      0: file,
-      length: 1,
-      item: (index: number) => (index === 0 ? file : null)
-    } as unknown as FileList
 
     Object.defineProperty(input, 'files', { value: fileList })
 

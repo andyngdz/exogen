@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import { act } from 'react'
-import type { ChangeEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { createFileListLike } from '@/cores/test-utils'
 import { imageInputService } from '../../services'
 import { useImageInput } from '../useImageInput'
 
@@ -11,7 +11,7 @@ vi.mock('../useImagePaste', () => ({
 }))
 
 describe('useImageInput', () => {
-  it('sets error when non-image file is selected', () => {
+  it('sets error when non-image file is selected', async () => {
     const onImageDataUrl = vi.fn()
     const { result } = renderHook(() =>
       useImageInput({
@@ -23,15 +23,13 @@ describe('useImageInput', () => {
     vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(false)
 
     const file = new File(['a'], 'a.txt', { type: 'text/plain' })
-    const input = document.createElement('input')
-    Object.defineProperty(input, 'files', {
-      value: [file]
-    })
+    const fileList = createFileListLike([file])
 
-    act(() => {
-      result.current.onFileChange({
-        target: input
-      } as unknown as ChangeEvent<HTMLInputElement>)
+    const input = document.createElement('input')
+    Object.defineProperty(input, 'files', { value: fileList })
+
+    await act(async () => {
+      await result.current.onFileChange({ target: input })
     })
 
     expect(result.current.lastError).toBe('Only image files are supported')
@@ -53,15 +51,13 @@ describe('useImageInput', () => {
     )
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
+    const fileList = createFileListLike([file])
+
     const input = document.createElement('input')
-    Object.defineProperty(input, 'files', {
-      value: [file]
-    })
+    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      result.current.onFileChange({
-        target: input
-      } as unknown as ChangeEvent<HTMLInputElement>)
+      await result.current.onFileChange({ target: input })
     })
 
     expect(onImageDataUrl).toHaveBeenCalledWith('data:image/png;base64,abc')
@@ -84,15 +80,13 @@ describe('useImageInput', () => {
     )
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
+    const fileList = createFileListLike([file])
+
     const input = document.createElement('input')
-    Object.defineProperty(input, 'files', {
-      value: [file]
-    })
+    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      result.current.onFileChange({
-        target: input
-      } as unknown as ChangeEvent<HTMLInputElement>)
+      await result.current.onFileChange({ target: input })
     })
 
     expect(onImageDataUrl).not.toHaveBeenCalled()
@@ -113,15 +107,13 @@ describe('useImageInput', () => {
     vi.spyOn(imageInputService, 'fileToDataUrl').mockRejectedValue('boom')
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
+    const fileList = createFileListLike([file])
+
     const input = document.createElement('input')
-    Object.defineProperty(input, 'files', {
-      value: [file]
-    })
+    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      result.current.onFileChange({
-        target: input
-      } as unknown as ChangeEvent<HTMLInputElement>)
+      await result.current.onFileChange({ target: input })
     })
 
     expect(onImageDataUrl).not.toHaveBeenCalled()

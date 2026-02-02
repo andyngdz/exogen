@@ -2,16 +2,19 @@ import { renderHook } from '@testing-library/react'
 import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { createFileListLike } from '@/cores/test-utils'
 import { useImageDropzone } from '../useImageDropzone'
 
 describe('useImageDropzone', () => {
   it('toggles drag active state on enter/leave', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     act(() => {
       result.current.onDragEnter(event)
@@ -24,37 +27,37 @@ describe('useImageDropzone', () => {
     expect(result.current.isDragActive).toBe(false)
   })
 
-  it('does nothing when dropped files are empty', () => {
-    const onFile = vi.fn()
+  it('does nothing when dropped files are empty', async () => {
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const dropEvent = {
       preventDefault: vi.fn(),
       dataTransfer: { files: { length: 0 } }
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
-    act(() => {
-      result.current.onDrop(dropEvent)
+    await act(async () => {
+      await result.current.onDrop(dropEvent)
     })
 
     expect(onFile).not.toHaveBeenCalled()
     expect(result.current.isDragActive).toBe(false)
   })
 
-  it('calls onFile when a file is dropped and clears drag active state', () => {
-    const onFile = vi.fn()
+  it('calls onFile when a file is dropped and clears drag active state', async () => {
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
-    const fileList = {
-      0: file,
-      length: 1,
-      item: (index: number) => (index === 0 ? file : null)
-    } as unknown as FileList
+    const fileList = createFileListLike([file])
 
     const dragEvent = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     act(() => {
       result.current.onDragOver(dragEvent)
@@ -63,10 +66,10 @@ describe('useImageDropzone', () => {
     const dropEvent = {
       preventDefault: vi.fn(),
       dataTransfer: { files: fileList }
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
-    act(() => {
-      result.current.onDrop(dropEvent)
+    await act(async () => {
+      await result.current.onDrop(dropEvent)
     })
 
     expect(onFile).toHaveBeenCalledWith(file)
@@ -74,12 +77,14 @@ describe('useImageDropzone', () => {
   })
 
   it('calls preventDefault on onDragEnter', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     act(() => {
       result.current.onDragEnter(event)
@@ -89,12 +94,14 @@ describe('useImageDropzone', () => {
   })
 
   it('calls preventDefault on onDragOver', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     act(() => {
       result.current.onDragOver(event)
@@ -105,12 +112,14 @@ describe('useImageDropzone', () => {
   })
 
   it('calls preventDefault on onDragLeave', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     act(() => {
       result.current.onDragLeave(event)
@@ -119,29 +128,33 @@ describe('useImageDropzone', () => {
     expect(event.preventDefault).toHaveBeenCalled()
   })
 
-  it('calls preventDefault on onDrop', () => {
-    const onFile = vi.fn()
+  it('calls preventDefault on onDrop', async () => {
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn(),
       dataTransfer: { files: { length: 0 } }
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
-    act(() => {
-      result.current.onDrop(event)
+    await act(async () => {
+      await result.current.onDrop(event)
     })
 
     expect(event.preventDefault).toHaveBeenCalled()
   })
 
   it('handles sequential drag enter and leave events', () => {
-    const onFile = vi.fn()
+    const onFile = vi
+      .fn<(file: File) => Promise<void>>()
+      .mockResolvedValue(undefined)
     const { result } = renderHook(() => useImageDropzone({ onFile }))
 
     const event = {
       preventDefault: vi.fn()
-    } as unknown as React.DragEvent<HTMLElement>
+    }
 
     // First enter
     act(() => {

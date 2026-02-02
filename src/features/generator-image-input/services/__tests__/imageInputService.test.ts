@@ -37,7 +37,7 @@ describe('imageInputService', () => {
           }
         ]
       }
-    } as unknown as ClipboardEvent
+    }
 
     expect(imageInputService.clipboardImageFile(event)).toBe(file)
   })
@@ -50,9 +50,7 @@ describe('imageInputService', () => {
           configurable: true
         })
 
-        this.onerror?.(
-          new ProgressEvent('error') as unknown as ProgressEvent<FileReader>
-        )
+        this.dispatchEvent(new ProgressEvent('error'))
       }
     )
 

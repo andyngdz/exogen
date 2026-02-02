@@ -3,16 +3,16 @@ import { useCallback, useEffect } from 'react'
 import { imageInputService } from '../services'
 
 interface UseImagePasteParams {
-  onFile: (file: File) => void
+  onFile: (file: File) => Promise<void>
 }
 
 export const useImagePaste = ({ onFile }: UseImagePasteParams) => {
   const onPaste = useCallback(
-    (event: ClipboardEvent) => {
+    async (event: ClipboardEvent) => {
       const file = imageInputService.clipboardImageFile(event)
       if (!file) return
 
-      onFile(file)
+      await onFile(file)
     },
     [onFile]
   )
