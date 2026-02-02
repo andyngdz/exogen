@@ -1,48 +1,48 @@
 import { renderHook } from '@testing-library/react'
 import { act } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createFileListLike } from '@/cores/test-utils'
+import { addToast } from '@heroui/react'
 import { imageInputService } from '../../services'
-import { useImageInput } from '../useImageInput'
+import { useImageInputController } from '../useImageInputController'
 
-vi.mock('../useImagePaste', () => ({
-  useImagePaste: vi.fn()
+vi.mock('@heroui/react', () => ({
+  addToast: vi.fn(() => 'toast-key')
 }))
 
-describe('useImageInput', () => {
+describe('useImageInputController', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('sets error when non-image file is selected', async () => {
     const onImageDataUrl = vi.fn()
     const { result } = renderHook(() =>
-      useImageInput({
-        hasImage: false,
-        onImageDataUrl
-      })
+      useImageInputController({ onImageDataUrl })
     )
 
     vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(false)
 
     const file = new File(['a'], 'a.txt', { type: 'text/plain' })
-    const fileList = createFileListLike([file])
-
-    const input = document.createElement('input')
-    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      await result.current.onFileChange({ target: input })
+      await result.current.onFile(file)
     })
 
-    expect(result.current.lastError).toBe('Only image files are supported')
+    expect(addToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Input image',
+        description: 'Only image files are supported',
+        color: 'danger'
+      })
+    )
     expect(onImageDataUrl).not.toHaveBeenCalled()
   })
 
   it('loads image file and calls onImageDataUrl', async () => {
     const onImageDataUrl = vi.fn()
     const { result } = renderHook(() =>
-      useImageInput({
-        hasImage: false,
-        onImageDataUrl
-      })
+      useImageInputController({ onImageDataUrl })
     )
 
     vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(true)
@@ -51,27 +51,20 @@ describe('useImageInput', () => {
     )
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
-    const fileList = createFileListLike([file])
-
-    const input = document.createElement('input')
-    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      await result.current.onFileChange({ target: input })
+      await result.current.onFile(file)
     })
 
     expect(onImageDataUrl).toHaveBeenCalledWith('data:image/png;base64,abc')
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.lastError).toBeUndefined()
+    expect(addToast).not.toHaveBeenCalled()
   })
 
   it('surfaces file read errors and clears loading state', async () => {
     const onImageDataUrl = vi.fn()
     const { result } = renderHook(() =>
-      useImageInput({
-        hasImage: false,
-        onImageDataUrl
-      })
+      useImageInputController({ onImageDataUrl })
     )
 
     vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(true)
@@ -80,44 +73,45 @@ describe('useImageInput', () => {
     )
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
-    const fileList = createFileListLike([file])
-
-    const input = document.createElement('input')
-    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      await result.current.onFileChange({ target: input })
+      await result.current.onFile(file)
     })
 
     expect(onImageDataUrl).not.toHaveBeenCalled()
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.lastError).toBe('boom')
+    expect(addToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Input image',
+        description: 'boom',
+        color: 'danger'
+      })
+    )
   })
 
   it('uses fallback message for non-Error rejections', async () => {
     const onImageDataUrl = vi.fn()
     const { result } = renderHook(() =>
-      useImageInput({
-        hasImage: false,
-        onImageDataUrl
-      })
+      useImageInputController({ onImageDataUrl })
     )
 
     vi.spyOn(imageInputService, 'isImageFile').mockReturnValue(true)
     vi.spyOn(imageInputService, 'fileToDataUrl').mockRejectedValue('boom')
 
     const file = new File(['a'], 'a.png', { type: 'image/png' })
-    const fileList = createFileListLike([file])
-
-    const input = document.createElement('input')
-    Object.defineProperty(input, 'files', { value: fileList })
 
     await act(async () => {
-      await result.current.onFileChange({ target: input })
+      await result.current.onFile(file)
     })
 
     expect(onImageDataUrl).not.toHaveBeenCalled()
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.lastError).toBe('Failed to read file')
+    expect(addToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Input image',
+        description: 'Failed to read file',
+        color: 'danger'
+      })
+    )
   })
 })

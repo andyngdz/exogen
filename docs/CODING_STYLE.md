@@ -25,6 +25,7 @@
   - Never use `any` type. Use proper types, `unknown`, or type assertions (`as Type`) instead
   - Use built-in utility types where appropriate (e.g., `VoidFunction` instead of `() => void`)
   - For callback/handler inputs, prefer minimal param interfaces for the fields you actually read (avoid requiring full React/DOM event types)
+  - When using minimal handler contracts, name/export the contract types (avoid inline nested structural types)
 
 - **Truthiness & Nullish Checks**:
   - Prefer truthy checks over explicit comparisons: `if (value)` not `if (value !== undefined)`

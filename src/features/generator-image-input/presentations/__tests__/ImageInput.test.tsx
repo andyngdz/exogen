@@ -1,6 +1,7 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
 import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { createFileListLike } from '@/cores/test-utils'
+import { addToast } from '@heroui/react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -52,6 +53,7 @@ vi.mock('@heroui/react', () => ({
         {children}
       </button>
     ),
+  addToast: vi.fn(() => 'toast-key'),
   Spinner: () => <div />
 }))
 
@@ -121,12 +123,10 @@ describe('ImageInput', () => {
 
     fireEvent.change(input)
 
-    expect(
-      screen.getByText('Only image files are supported')
-    ).toBeInTheDocument()
+    expect(addToast).toHaveBeenCalled()
   })
 
-  it('clears error and opens file picker when clicked', async () => {
+  it('opens file picker when clicked', async () => {
     render(<ImageInput />, { wrapper: FormWrapper })
 
     const file = new File(['x'], 'test.txt', { type: 'text/plain' })
@@ -139,9 +139,7 @@ describe('ImageInput', () => {
 
     fireEvent.change(input)
 
-    expect(
-      screen.getByText('Only image files are supported')
-    ).toBeInTheDocument()
+    expect(addToast).toHaveBeenCalled()
 
     const clickSpy = vi
       .spyOn(HTMLInputElement.prototype, 'click')
@@ -151,12 +149,6 @@ describe('ImageInput', () => {
       screen.queryByText('Click to upload') ?? screen.getByAltText('Input')
 
     fireEvent.click(clickTarget)
-
-    await waitFor(() => {
-      expect(
-        screen.queryByText('Only image files are supported')
-      ).not.toBeInTheDocument()
-    })
 
     expect(clickSpy).toHaveBeenCalled()
   })
