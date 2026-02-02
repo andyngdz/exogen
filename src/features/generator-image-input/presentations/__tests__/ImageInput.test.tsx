@@ -43,25 +43,6 @@ vi.mock('@heroui/react', () => ({
 
 const FormWrapper = createGeneratorConfigFormWrapper()
 
-class MockFileReader {
-  result: string | ArrayBuffer | null = null
-  onload:
-    | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-    | null = null
-  onerror:
-    | ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown)
-    | null = null
-  error: DOMException | null = null
-
-  readAsDataURL(_file: File) {
-    this.result = 'data:image/png;base64,abc'
-    this.onload?.call(
-      this as unknown as FileReader,
-      {} as ProgressEvent<FileReader>
-    )
-  }
-}
-
 describe('ImageInput', () => {
   afterEach(() => {
     useImage2ImageConfigStore.getState().reset()
@@ -84,7 +65,17 @@ describe('ImageInput', () => {
   })
 
   it('sets image base64 on file upload', () => {
-    vi.stubGlobal('FileReader', MockFileReader)
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
+      function (this: FileReader) {
+        Object.defineProperty(this, 'result', {
+          value: 'data:image/png;base64,abc',
+          configurable: true
+        })
+        this.onload?.(
+          new ProgressEvent('load') as unknown as ProgressEvent<FileReader>
+        )
+      }
+    )
 
     render(<ImageInput />, { wrapper: FormWrapper })
 
