@@ -1,14 +1,14 @@
 'use client'
 
 import { useBackendUrl } from '@/cores/backend-initialization'
-import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import { useGeneratorAspectRatio } from '@/features/generator-configs'
 import { ImageGenerationStepEndResponse } from '@/types'
 import { isEmpty } from 'es-toolkit/compat'
 import { FC, useCallback, useMemo } from 'react'
-import { useFormContext } from 'react-hook-form'
 import { useDownloadImages, useGeneratorPreviewer } from '../states'
 import { GeneratorImageDownloadButton } from './GeneratorImageDownloadButton'
 import { GeneratorImageRenderer } from './GeneratorImageRenderer'
+import { GeneratorPreviewTile } from './GeneratorPreviewTile'
 
 export interface GeneratorPreviewerItemProps {
   imageStepEnd: ImageGenerationStepEndResponse
@@ -19,11 +19,8 @@ export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
 }) => {
   const baseURL = useBackendUrl()
   const { onDownloadImage } = useDownloadImages()
-  const { watch } = useFormContext<GeneratorConfigFormValues>()
   const { items } = useGeneratorPreviewer()
-  const width = watch('width')
-  const height = watch('height')
-  const aspectRatio = width / height
+  const aspectRatio = useGeneratorAspectRatio()
   const item = items[imageStepEnd.index]
 
   const onHandleDownloadImage = useCallback(() => {
@@ -37,11 +34,13 @@ export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
   )
 
   return (
-    <div
-      className="relative group h-full w-full"
-      style={{
-        aspectRatio
-      }}
+    <GeneratorPreviewTile
+      aspectRatio={aspectRatio}
+      topRight={
+        hasImage && (
+          <GeneratorImageDownloadButton onDownload={onHandleDownloadImage} />
+        )
+      }
     >
       <GeneratorImageRenderer
         imagePath={item.path}
@@ -49,9 +48,6 @@ export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
         imageIndex={imageStepEnd.index}
         baseURL={baseURL}
       />
-      {hasImage && (
-        <GeneratorImageDownloadButton onDownload={onHandleDownloadImage} />
-      )}
-    </div>
+    </GeneratorPreviewTile>
   )
 }

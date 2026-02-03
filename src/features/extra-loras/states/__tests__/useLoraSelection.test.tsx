@@ -1,8 +1,8 @@
 import { useLorasQuery } from '@/cores/api-queries'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import type { GeneratorConfigFormValues } from '@/features/generator-configs'
 import type { LoRA } from '@/types'
 import { act, renderHook } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useLoraSelection } from '../useLoraSelection'
 
@@ -41,27 +41,11 @@ const mockLoras: LoRA[] = [
 const createWrapper = (
   initialLoras: GeneratorConfigFormValues['loras'] = []
 ) => {
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const methods = useForm<GeneratorConfigFormValues>({
-      defaultValues: {
-        loras: initialLoras,
-        prompt: '',
-        negative_prompt: '',
-        cfg_scale: 7.5,
-        clip_skip: 1,
-        width: 512,
-        height: 512,
-        number_of_images: 1,
-        steps: 20,
-        seed: -1,
-        sampler: 'euler_a',
-
-        styles: []
-      }
-    })
-    return <FormProvider {...methods}>{children}</FormProvider>
-  }
-  return Wrapper
+  return createGeneratorConfigFormWrapper({
+    overrides: {
+      loras: initialLoras
+    }
+  })
 }
 
 describe('useLoraSelection', () => {

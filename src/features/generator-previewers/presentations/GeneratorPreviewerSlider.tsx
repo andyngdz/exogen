@@ -5,13 +5,19 @@ import 'swiper/css'
 import { SwiperNavigationActions } from '@/cores/presentations'
 import { ScrollShadow } from '@heroui/react'
 import { isEmpty } from 'es-toolkit/compat'
-import { useMemo } from 'react'
+import { ReactNode, useMemo } from 'react'
 import { Keyboard, Mousewheel } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useGeneratorPreviewer } from '../states'
 import { GeneratorPreviewerItem } from './GeneratorPreviewerItem'
 
-export const GeneratorPreviewerSlider = () => {
+interface GeneratorPreviewerSliderProps {
+  leadingItem?: ReactNode
+}
+
+export const GeneratorPreviewerSlider = ({
+  leadingItem
+}: GeneratorPreviewerSliderProps) => {
   const { imageStepEnds } = useGeneratorPreviewer()
 
   const ImageSlides = useMemo(() => {
@@ -22,7 +28,9 @@ export const GeneratorPreviewerSlider = () => {
     ))
   }, [imageStepEnds])
 
-  if (isEmpty(imageStepEnds)) {
+  const hasAnySlides = !isEmpty(imageStepEnds) || !!leadingItem
+
+  if (!hasAnySlides) {
     return (
       <div className="flex justify-center items-center text-default-700">
         No images to display
@@ -30,8 +38,10 @@ export const GeneratorPreviewerSlider = () => {
     )
   }
 
+  const shouldLoop = imageStepEnds.length + (leadingItem ? 1 : 0) > 1
+
   return (
-    <ScrollShadow className="p-4 relative h-full">
+    <ScrollShadow className="relative h-full">
       <Swiper
         modules={[Mousewheel, Keyboard]}
         breakpoints={{
@@ -53,8 +63,13 @@ export const GeneratorPreviewerSlider = () => {
           onlyInViewport: true
         }}
         className="h-full"
-        loop
+        loop={shouldLoop}
       >
+        {leadingItem && (
+          <SwiperSlide key="leading-item" className="h-full">
+            {leadingItem}
+          </SwiperSlide>
+        )}
         {ImageSlides}
         <SwiperNavigationActions
           previousLabel="Previous image"

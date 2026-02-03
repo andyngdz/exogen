@@ -2,11 +2,17 @@
 
 import { ScrollShadow } from '@heroui/react'
 import clsx from 'clsx'
-import { useMemo } from 'react'
+import { ReactNode, useMemo } from 'react'
 import { useGeneratorPreviewer } from '../states'
 import { GeneratorPreviewerItem } from './GeneratorPreviewerItem'
 
-export const GeneratorPreviewerGrid = () => {
+interface GeneratorPreviewerGridProps {
+  leadingItem?: ReactNode
+}
+
+export const GeneratorPreviewerGrid = ({
+  leadingItem
+}: GeneratorPreviewerGridProps) => {
   const { imageStepEnds } = useGeneratorPreviewer()
 
   const ImageComponents = useMemo(() => {
@@ -26,9 +32,10 @@ export const GeneratorPreviewerGrid = () => {
         data-testid="grid-container"
         className={clsx(
           'grid grid-cols-[repeat(auto-fill,minmax(256px,1fr))]',
-          'gap-4 p-4'
+          'gap-4'
         )}
       >
+        {leadingItem}
         {ImageComponents}
       </div>
     </ScrollShadow>

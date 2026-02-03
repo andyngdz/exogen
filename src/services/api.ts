@@ -6,6 +6,7 @@ import type {
   HardwareResponse,
   HealthResponse,
   HistoryItem,
+  Image2ImageGenerationRequest,
   ImageGenerationRequest,
   ImageGenerationResponse,
   LoadModelRequest,
@@ -112,6 +113,15 @@ class API {
   async generator(request: ImageGenerationRequest) {
     const { data } = await client.post<ImageGenerationResponse>(
       `/generators`,
+      request
+    )
+
+    return data
+  }
+
+  async img2img(request: Image2ImageGenerationRequest) {
+    const { data } = await client.post<ImageGenerationResponse>(
+      '/img2img',
       request
     )
 

@@ -1,15 +1,14 @@
 import { UpscalerType } from '@/cores/constants'
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import { ReactNode } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigFormat } from '../GeneratorConfigFormat'
 
 // Mock useConfig hook
 vi.mock('@/cores/hooks', () => ({
   useConfig: vi.fn(() => ({
-    upscalers: [
+    upscalerOptions: [
       {
         value: UpscalerType.LANCZOS,
         name: 'Lanczos',
@@ -40,39 +39,17 @@ vi.mock('@/cores/presentations/NumberInputController', () => ({
   )
 }))
 
-const MockFormProvider = ({ children }: { children: ReactNode }) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: {
-      width: 512,
-      height: 512,
-
-      number_of_images: 1,
-      steps: 20,
-      cfg_scale: 7,
-      seed: 0
-    }
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const Wrapper = createGeneratorConfigFormWrapper()
 
 describe('GeneratorConfigFormat', () => {
   it("should render the component with 'Format' heading", () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigFormat />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigFormat />, { wrapper: Wrapper })
 
     expect(screen.getByText('Format')).toBeInTheDocument()
   })
 
   it('should render width and height number inputs', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigFormat />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigFormat />, { wrapper: Wrapper })
 
     expect(screen.getByTestId('number-input-width')).toBeInTheDocument()
     expect(screen.getByTestId('number-input-height')).toBeInTheDocument()
@@ -87,11 +64,7 @@ describe('GeneratorConfigFormat', () => {
   })
 
   it('should render the hires_fix checkbox with label', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigFormat />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigFormat />, { wrapper: Wrapper })
 
     const hiresCheckbox = screen.getByRole('checkbox')
     expect(hiresCheckbox).toBeInTheDocument()

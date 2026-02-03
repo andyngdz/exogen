@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, client } from '../api'
+import { Image2ImageResizeMode } from '@/types'
+import { generatorConfigFormDefaults } from '@/cores/test-utils'
 
 // Mock axios
 vi.mock('axios', () => {
@@ -360,6 +362,48 @@ describe('API Service', () => {
 
       expect(client.post).toHaveBeenCalledWith('/generators', request)
       expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('img2img', () => {
+    it('calls POST /img2img and returns ImageGenerationResponse data', async () => {
+      const request = {
+        history_id: 1,
+        config: {
+          ...generatorConfigFormDefaults(),
+          init_image: 'data:image/png;base64,abc',
+          strength: 0.5,
+          resize_mode: Image2ImageResizeMode.RESIZE
+        }
+      }
+
+      const mockResponse = {
+        items: [
+          {
+            path: '/images/img1.png',
+            file_name: 'img1.png'
+          }
+        ],
+        nsfw_content_detected: [false]
+      }
+      vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.img2img(request)
+
+      expect(client.post).toHaveBeenCalledWith('/img2img', request)
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('setSafetyCheckEnabled', () => {
+    it('sends enabled flag via PUT /config/safety-check', async () => {
+      vi.spyOn(client, 'put').mockResolvedValueOnce({ data: undefined })
+
+      await api.setSafetyCheckEnabled(true)
+
+      expect(client.put).toHaveBeenCalledWith('/config/safety-check', {
+        enabled: true
+      })
     })
   })
 

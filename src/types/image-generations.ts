@@ -1,8 +1,16 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import {
+  GeneratorConfigFormValues,
+  GeneratorImage2ImageConfigFormValues
+} from '@/features/generator-configs'
 
 interface ImageGenerationRequest {
   history_id: number
   config: GeneratorConfigFormValues
+}
+
+interface Image2ImageGenerationRequest {
+  history_id: number
+  config: GeneratorImage2ImageConfigFormValues
 }
 
 interface ImageGenerationItem {
@@ -25,6 +33,7 @@ interface ImageGenerationStepEndResponse {
 export type {
   ImageGenerationItem,
   ImageGenerationRequest,
+  Image2ImageGenerationRequest,
   ImageGenerationResponse,
   ImageGenerationStepEndResponse
 }

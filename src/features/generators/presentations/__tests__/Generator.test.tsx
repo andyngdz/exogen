@@ -3,15 +3,9 @@ import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { act, render, screen } from '@testing-library/react'
 import { UseFormReturn } from 'react-hook-form'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useGenerator, useGeneratorForm } from '../../states'
+import { useGeneratorForm } from '../../states'
 import { Generator } from '../Generator'
-
-// Mock all the feature components
-vi.mock('@/features/generator-actions', () => ({
-  GeneratorAction: () => (
-    <div data-testid="generator-action">GeneratorAction</div>
-  )
-}))
+import { useMountedState } from 'react-use'
 
 vi.mock('@/features/generator-configs', () => ({
   GeneratorConfig: () => (
@@ -19,16 +13,8 @@ vi.mock('@/features/generator-configs', () => ({
   )
 }))
 
-vi.mock('@/features/generator-previewers', () => ({
-  GeneratorPreviewer: () => (
-    <div data-testid="generator-previewer">GeneratorPreviewer</div>
-  )
-}))
-
-vi.mock('@/features/generator-prompts', () => ({
-  GeneratorPrompt: () => (
-    <div data-testid="generator-prompt">GeneratorPrompt</div>
-  )
+vi.mock('@/features/generator-modes', () => ({
+  ModeTabs: () => <div data-testid="mode-tabs">ModeTabs</div>
 }))
 
 vi.mock('@/features/histories', () => ({
@@ -93,7 +79,6 @@ vi.mock('@/cores/presentations', () => ({
 }))
 
 // Mock the state hooks
-const mockOnGenerate = vi.fn()
 const mockMethods: Partial<UseFormReturn<GeneratorConfigFormValues>> = {
   watch: vi.fn(),
   handleSubmit: vi.fn(),
@@ -114,8 +99,7 @@ const mockMethods: Partial<UseFormReturn<GeneratorConfigFormValues>> = {
 }
 
 vi.mock('../../states', () => ({
-  useGeneratorForm: vi.fn(),
-  useGenerator: vi.fn()
+  useGeneratorForm: vi.fn()
 }))
 
 // Mock react-hook-form
@@ -147,23 +131,16 @@ vi.mock('@heroui/react', () => ({
 
 // Mock react-use to make useMountedState return true (mounted)
 vi.mock('react-use', () => ({
-  useMountedState: () => () => true
+  useMountedState: vi.fn()
 }))
 
 describe('Generator', () => {
   beforeEach(() => {
-    // Setup default mocks
-    ;(mockMethods.handleSubmit as ReturnType<typeof vi.fn>).mockReturnValue(
-      vi.fn()
-    )
-
     vi.mocked(useGeneratorForm).mockReturnValue({
       methods: mockMethods as UseFormReturn<GeneratorConfigFormValues>
     })
 
-    vi.mocked(useGenerator).mockReturnValue({
-      onGenerate: mockOnGenerate
-    })
+    vi.mocked(useMountedState).mockReturnValue(() => true)
   })
 
   afterEach(() => {
@@ -174,9 +151,7 @@ describe('Generator', () => {
     render(<Generator />)
 
     expect(screen.getByTestId('generator-config')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-prompt')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-action')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-previewer')).toBeInTheDocument()
+    expect(screen.getByTestId('mode-tabs')).toBeInTheDocument()
     expect(screen.getByTestId('histories')).toBeInTheDocument()
   })
 
@@ -186,23 +161,11 @@ describe('Generator', () => {
     expect(useGeneratorForm).toHaveBeenCalled()
   })
 
-  it('uses useGenerator hook', () => {
-    render(<Generator />)
-
-    expect(useGenerator).toHaveBeenCalled()
-  })
-
   it('renders form with correct attributes', () => {
     render(<Generator />)
 
     const form = screen.getByRole('form')
     expect(form).toHaveAttribute('name', 'generator')
-  })
-
-  it('configures form submit handler', () => {
-    render(<Generator />)
-
-    expect(mockMethods.handleSubmit).toHaveBeenCalledWith(mockOnGenerate)
   })
 
   it('renders Allotment with correct default sizes', () => {
@@ -265,6 +228,15 @@ describe('Generator', () => {
 
     // Progress indicator should not be visible
     expect(screen.queryByTestId('progress-indicator')).not.toBeInTheDocument()
+  })
+
+  it('renders a progress indicator when not mounted yet', () => {
+    vi.mocked(useMountedState).mockReturnValue(() => false)
+
+    render(<Generator />)
+
+    expect(screen.getByTestId('progress-indicator')).toBeInTheDocument()
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
   })
 
   it('shows fullscreen loader when model is loading', async () => {

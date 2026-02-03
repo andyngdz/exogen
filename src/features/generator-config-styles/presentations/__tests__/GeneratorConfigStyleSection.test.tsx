@@ -1,7 +1,7 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 import { StyleItem, StyleSection } from '@/types'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleSection } from '../GeneratorConfigStyleSection'
 
@@ -73,30 +73,8 @@ const mockStyleSections: StyleSection[] = [
   }
 ]
 
-// Test wrapper component that provides form context
-const TestWrapper = ({
-  children,
-  defaultValues
-}: {
-  children: React.ReactNode
-  defaultValues?: Partial<GeneratorConfigFormValues>
-}) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: {
-      width: 512,
-      height: 512,
-
-      number_of_images: 4,
-      steps: 24,
-      seed: -1,
-      cfg_scale: 7.5,
-      styles: [],
-      ...defaultValues
-    }
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const createWrapper = (defaultValues?: Partial<GeneratorConfigFormValues>) =>
+  createGeneratorConfigFormWrapper({ overrides: defaultValues })
 
 describe('GeneratorConfigStyleSection', () => {
   beforeEach(() => {
@@ -104,22 +82,18 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('renders all style sections', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     expect(screen.getByText('anime')).toBeInTheDocument()
     expect(screen.getByText('realistic')).toBeInTheDocument()
   })
 
   it('renders section headers with proper styling', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     const animeHeader = screen.getByText('anime')
     const realisticHeader = screen.getByText('realistic')
@@ -129,11 +103,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('renders all style items within sections', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     // Check anime section styles
     expect(screen.getByTestId('style-item-anime-style-1')).toBeInTheDocument()
@@ -149,11 +121,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('renders sections in correct order', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     const sections = screen.getAllByText(/anime|realistic/)
     expect(sections[0]).toHaveTextContent('anime')
@@ -161,11 +131,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('renders style items in correct order within sections', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     const animeStyles = screen.getAllByTestId(/style-item-anime-style-/)
     expect(animeStyles[0]).toHaveAttribute(
@@ -179,11 +147,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('handles empty style sections array', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={[]} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={[]} />, {
+      wrapper: createWrapper()
+    })
 
     // Should render nothing when no sections
     expect(screen.queryByText(/anime|realistic/)).not.toBeInTheDocument()
@@ -198,9 +164,8 @@ describe('GeneratorConfigStyleSection', () => {
     ]
 
     render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={sectionsWithEmptyStyles} />
-      </TestWrapper>
+      <GeneratorConfigStyleSection styleSections={sectionsWithEmptyStyles} />,
+      { wrapper: createWrapper() }
     )
 
     expect(screen.getByText('empty-section')).toBeInTheDocument()
@@ -209,11 +174,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('applies proper CSS classes to section containers', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     // Find the Card components by their tabindex attribute
     const cardElements = screen
@@ -227,11 +190,9 @@ describe('GeneratorConfigStyleSection', () => {
   })
 
   it('applies proper CSS classes to style item containers', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     const styleItemContainers = screen
       .getAllByTestId(/style-item-/)
@@ -260,20 +221,17 @@ describe('GeneratorConfigStyleSection', () => {
     ]
 
     render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={sectionsWithLowercaseIds} />
-      </TestWrapper>
+      <GeneratorConfigStyleSection styleSections={sectionsWithLowercaseIds} />,
+      { wrapper: createWrapper() }
     )
 
     expect(screen.getByText('lowercase-section')).toBeInTheDocument()
   })
 
   it('passes correct props to GeneratorConfigStyleItem components', () => {
-    render(
-      <TestWrapper>
-        <GeneratorConfigStyleSection styleSections={mockStyleSections} />
-      </TestWrapper>
-    )
+    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
+      wrapper: createWrapper()
+    })
 
     const animeStyle1 = screen.getByTestId('style-item-anime-style-1')
     expect(animeStyle1).toHaveAttribute('data-style-name', 'Anime Style 1')

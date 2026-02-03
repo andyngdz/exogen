@@ -1,8 +1,7 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactNode } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { seedService } from '../../services/seed'
 import { GeneratorConfigSeed } from '../GeneratorConfigSeed'
@@ -32,29 +31,11 @@ vi.mock('../../services/seed', () => ({
   }
 }))
 
-const MockFormProvider = ({ children }: { children: ReactNode }) => {
-  const methods = useForm<GeneratorConfigFormValues>({
-    defaultValues: {
-      width: 512,
-      height: 512,
-
-      number_of_images: 1,
-      steps: 20,
-      cfg_scale: 7,
-      seed: 0
-    }
-  })
-
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper()
 
 describe('GeneratorConfigSeed', () => {
   it("should render the component with 'Seed' heading", () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigSeed />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigSeed />, { wrapper: Wrapper })
 
     expect(
       screen.getByText('Seed', { selector: 'span.font-semibold' })
@@ -62,60 +43,24 @@ describe('GeneratorConfigSeed', () => {
   })
 
   it('should render number input for seed value', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigSeed />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigSeed />, { wrapper: Wrapper })
 
     expect(screen.getByTestId('number-input-seed')).toBeInTheDocument()
     expect(screen.getByText('Value')).toBeInTheDocument()
   })
 
   it('should render a dice button to generate random seed', () => {
-    render(
-      <MockFormProvider>
-        <GeneratorConfigSeed />
-      </MockFormProvider>
-    )
+    render(<GeneratorConfigSeed />, { wrapper: Wrapper })
 
     // Check that a button is present
     const buttons = screen.getAllByRole('button')
     expect(buttons.length).toBe(1) // Should be one button
   })
 
-  it('should call seedService.generate and setValue when dice button is clicked', async () => {
+  it('generates a seed and updates the form value', async () => {
     const user = userEvent.setup()
-    const mockSetValue = vi.fn()
 
-    // Create custom FormProvider with mock setValue
-    const CustomMockFormProvider = ({ children }: { children: ReactNode }) => {
-      const methods = useForm<GeneratorConfigFormValues>({
-        defaultValues: {
-          width: 512,
-          height: 512,
-
-          number_of_images: 1,
-          steps: 20,
-          cfg_scale: 7,
-          seed: 0
-        }
-      })
-
-      // Create new methods object with mocked setValue
-      const mockedMethods = {
-        ...methods,
-        setValue: mockSetValue
-      }
-
-      return <FormProvider {...mockedMethods}>{children}</FormProvider>
-    }
-
-    render(
-      <CustomMockFormProvider>
-        <GeneratorConfigSeed />
-      </CustomMockFormProvider>
-    )
+    render(<GeneratorConfigSeed />, { wrapper: Wrapper })
 
     // Click on the dice button
     const diceButton = screen.getByRole('button')
@@ -124,11 +69,6 @@ describe('GeneratorConfigSeed', () => {
     // Verify that seedService.generate was called
     expect(seedService.generate).toHaveBeenCalled()
 
-    // Verify that setValue was called with the correct parameters
-    expect(mockSetValue).toHaveBeenCalledWith(
-      'seed',
-      12345, // This is the mocked return value of seedService.generate
-      { shouldValidate: true, shouldTouch: true }
-    )
+    expect(getMethods().getValues('seed')).toBe(12345)
   })
 })
