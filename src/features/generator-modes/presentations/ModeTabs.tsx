@@ -14,9 +14,10 @@ export const ModeTabs = () => {
   const { clearInitImageBase64 } = useImage2ImageConfigStore()
 
   return (
-    <div className="p-4">
+    <div className="p-4 h-full min-h-0 flex flex-col">
       <Tabs
         aria-label="Generator mode"
+        placement="top"
         selectedKey={mode}
         onSelectionChange={(key) => {
           const nextMode = key as GeneratorMode
@@ -27,7 +28,9 @@ export const ModeTabs = () => {
           }
         }}
         classNames={{
-          base: 'pb-4'
+          tabWrapper: 'flex flex-col flex-1 min-h-0',
+          base: 'shrink-0 pb-4',
+          panel: 'flex-1 min-h-0'
         }}
         variant="solid"
       >

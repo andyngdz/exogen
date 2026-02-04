@@ -17,9 +17,9 @@ export const ImageInputBody = ({
         <Image
           src={initImageBase64}
           alt="Input"
+          removeWrapper
           classNames={{
-            wrapper: 'h-full w-full',
-            img: 'h-full w-full object-cover'
+            img: 'h-full w-full block object-cover'
           }}
         />
       ) : (
