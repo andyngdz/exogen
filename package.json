@@ -1,7 +1,7 @@
 {
   "name": "exogen",
   "description": "A desktop application for generating AI images locally using Stable Diffusion models",
-  "version": "1.19.0-beta.2",
+  "version": "1.19.0-beta.3",
   "private": true,
   "packageManager": "pnpm@10.25.0",
   "author": {
