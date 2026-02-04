@@ -4,6 +4,7 @@ import { FullScreenLoader } from '@/cores/presentations'
 import { GenerationPhaseStepper } from '@/features/generation-phase-stepper'
 import { GeneratorConfig } from '@/features/generator-configs'
 import { ModeTabs } from '@/features/generator-modes'
+import { GeneratorPhotoviewModal } from '@/features/generator-photoview'
 import { Histories } from '@/features/histories'
 import { useModelLoadProgressStore } from '@/features/model-load-progress'
 import { Progress } from '@heroui/react'
@@ -49,6 +50,7 @@ export const Generator = () => {
         </form>
         {progress && <FullScreenLoader message={progress.message} />}
         <GenerationPhaseStepper />
+        <GeneratorPhotoviewModal />
       </div>
     </FormProvider>
   )

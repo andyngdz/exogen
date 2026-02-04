@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { GeneratorPreviewTile } from '../GeneratorPreviewTile'
 
@@ -149,5 +149,19 @@ describe('GeneratorPreviewTile', () => {
     expect(container).toHaveClass('overflow-hidden')
     expect(container).toHaveClass('rounded-2xl')
     expect(container).toHaveClass('bg-content1')
+  })
+
+  it('behaves as a button when onPress is provided', () => {
+    const onPress = vi.fn()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.click()
+    expect(onPress).toHaveBeenCalledTimes(1)
   })
 })

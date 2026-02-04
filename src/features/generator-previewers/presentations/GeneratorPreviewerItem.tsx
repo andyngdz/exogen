@@ -2,6 +2,7 @@
 
 import { useBackendUrl } from '@/cores/backend-initialization'
 import { useGeneratorAspectRatio } from '@/features/generator-configs'
+import { useGeneratorPhotoviewStore } from '@/features/generator-photoview'
 import { ImageGenerationStepEndResponse } from '@/types'
 import { isEmpty } from 'es-toolkit/compat'
 import { FC, useCallback, useMemo } from 'react'
@@ -20,6 +21,7 @@ export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
   const baseURL = useBackendUrl()
   const { onDownloadImage } = useDownloadImages()
   const { items } = useGeneratorPreviewer()
+  const { openPhotoview } = useGeneratorPhotoviewStore()
   const aspectRatio = useGeneratorAspectRatio()
   const item = items[imageStepEnd.index]
 
@@ -33,9 +35,16 @@ export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
     [item.path, imageStepEnd.image_base64]
   )
 
+  const onOpenPhotoview = useCallback(() => {
+    if (!hasImage) return
+    openPhotoview(imageStepEnd.index)
+  }, [hasImage, imageStepEnd.index, openPhotoview])
+
   return (
     <GeneratorPreviewTile
       aspectRatio={aspectRatio}
+      onPress={onOpenPhotoview}
+      ariaLabel={`Open image ${imageStepEnd.index + 1} in photoview`}
       topRight={
         hasImage && (
           <GeneratorImageDownloadButton onDownload={onHandleDownloadImage} />

@@ -1,4 +1,5 @@
 import { mockNextImage } from '@/cores/test-utils'
+import { useGeneratorPhotoviewStore } from '@/features/generator-photoview'
 import { render, fireEvent } from '@testing-library/react'
 import { useFormContext } from 'react-hook-form'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -15,6 +16,10 @@ vi.mock('react-hook-form', () => ({
 vi.mock('@/features/generator-previewers/states', () => ({
   useGeneratorPreviewer: vi.fn(),
   useDownloadImages: vi.fn()
+}))
+
+vi.mock('@/features/generator-photoview', () => ({
+  useGeneratorPhotoviewStore: vi.fn()
 }))
 
 vi.mock('next/image', () => mockNextImage())
@@ -54,8 +59,10 @@ vi.mock('lucide-react', () => ({
 describe('GeneratorPreviewerItem', () => {
   const mockWatch = vi.fn()
   const mockOnDownloadImage = vi.fn()
+  const mockOpenPhotoview = vi.fn()
   const mockUseGeneratorPreviewer = vi.mocked(useGeneratorPreviewer)
   const mockUseDownloadImages = vi.mocked(useDownloadImages)
+  const mockUseGeneratorPhotoviewStore = vi.mocked(useGeneratorPhotoviewStore)
 
   beforeEach(() => {
     // @ts-expect-error - We're only mocking the watch method that the component uses
@@ -69,6 +76,10 @@ describe('GeneratorPreviewerItem', () => {
     mockUseDownloadImages.mockReturnValue({
       onDownloadImage: mockOnDownloadImage
     })
+
+    mockUseGeneratorPhotoviewStore.mockReturnValue({
+      openPhotoview: mockOpenPhotoview
+    } as never)
   })
 
   afterEach(() => {
@@ -155,5 +166,21 @@ describe('GeneratorPreviewerItem', () => {
     expect(mockOnDownloadImage).toHaveBeenCalledWith(
       'http://localhost:8000/images/test.png'
     )
+
+    // Should not open photoview from download button click
+    expect(mockOpenPhotoview).not.toHaveBeenCalled()
+  })
+
+  it('should open photoview when tile is clicked', () => {
+    mockUseGeneratorPreviewer.mockReturnValue({
+      items: [{ path: 'images/test.png', file_name: 'test.png' }],
+      imageStepEnds: []
+    })
+
+    const { getByRole } = render(<GeneratorPreviewerItem {...defaultProps} />)
+
+    fireEvent.click(getByRole('button', { name: /open image 1 in photoview/i }))
+
+    expect(mockOpenPhotoview).toHaveBeenCalledWith(0)
   })
 })

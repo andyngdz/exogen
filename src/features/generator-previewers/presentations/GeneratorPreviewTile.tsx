@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { ReactNode } from 'react'
+import { KeyboardEvent, ReactNode, useCallback } from 'react'
 
 interface GeneratorPreviewTileProps {
   aspectRatio?: number
@@ -11,6 +11,8 @@ interface GeneratorPreviewTileProps {
   topRightClassName?: string
   bottomOverlay?: ReactNode
   bottomOverlayClassName?: string
+  onPress?: VoidFunction
+  ariaLabel?: string
 }
 
 export const GeneratorPreviewTile = ({
@@ -20,17 +22,40 @@ export const GeneratorPreviewTile = ({
   topRight,
   topRightClassName,
   bottomOverlay,
-  bottomOverlayClassName
+  bottomOverlayClassName,
+  onPress,
+  ariaLabel
 }: GeneratorPreviewTileProps) => {
+  const isClickable = !!onPress
+
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (!onPress) return
+      if (event.key !== 'Enter' && event.key !== ' ') return
+
+      event.preventDefault()
+      onPress()
+    },
+    [onPress]
+  )
+
   return (
     <div
       className={clsx(
         'relative group h-full w-full overflow-hidden rounded-2xl bg-content1',
-        className
+        className,
+        {
+          'cursor-zoom-in': isClickable
+        }
       )}
       style={{
         aspectRatio
       }}
+      onClick={onPress}
+      onKeyDown={onKeyDown}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={ariaLabel}
     >
       {children}
       {topRight && (
