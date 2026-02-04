@@ -55,12 +55,21 @@ describe('useModelSelectors', () => {
 
     renderHook(() => useModelSelectors())
 
-    // Should not call loadModel when id is empty
+    await waitFor(() => {
+      expect(setLoadedModelFamily).toHaveBeenCalledWith(ModelFamily.UNKNOWN)
+    })
+
     expect(mockedApi.loadModel).not.toHaveBeenCalled()
   })
 
   it('should load model when selected_model_id exists', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
+    vi.mocked(mockedApi.loadModel).mockResolvedValueOnce({
+      model_id: 'model-id',
+      config: {},
+      sample_size: 64,
+      family: ModelFamily.SDXL
+    })
     vi.mocked(useModelSelectorStore).mockReturnValue({
       selected_model_id: 'llama-3',
       loaded_model_family: ModelFamily.UNKNOWN,
@@ -73,6 +82,10 @@ describe('useModelSelectors', () => {
     // Should call loadModel with the selected model id
     await waitFor(() => {
       expect(mockedApi.loadModel).toHaveBeenCalledWith({ model_id: 'llama-3' })
+    })
+
+    await waitFor(() => {
+      expect(setLoadedModelFamily).toHaveBeenCalledWith(ModelFamily.SDXL)
     })
   })
 
@@ -95,6 +108,19 @@ describe('useModelSelectors', () => {
 
   it('should reload model when selected_model_id changes', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
+    vi.mocked(mockedApi.loadModel)
+      .mockResolvedValueOnce({
+        model_id: 'model-id',
+        config: {},
+        sample_size: 64,
+        family: ModelFamily.SD15
+      })
+      .mockResolvedValueOnce({
+        model_id: 'model-id',
+        config: {},
+        sample_size: 64,
+        family: ModelFamily.FLUX
+      })
 
     // Start with first model
     vi.mocked(useModelSelectorStore).mockReturnValue({
@@ -107,6 +133,10 @@ describe('useModelSelectors', () => {
 
     await waitFor(() => {
       expect(mockedApi.loadModel).toHaveBeenCalledWith({ model_id: 'llama-3' })
+    })
+
+    await waitFor(() => {
+      expect(setLoadedModelFamily).toHaveBeenCalledWith(ModelFamily.SD15)
     })
 
     // Change to second model
@@ -122,6 +152,10 @@ describe('useModelSelectors', () => {
       expect(mockedApi.loadModel).toHaveBeenCalledWith({
         model_id: 'codellama'
       })
+    })
+
+    await waitFor(() => {
+      expect(setLoadedModelFamily).toHaveBeenCalledWith(ModelFamily.FLUX)
     })
   })
 })

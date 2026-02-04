@@ -65,16 +65,54 @@ describe('ModelSelector', () => {
     expect(screen.getByRole('button', { name: /model-1/i })).toBeInTheDocument()
   })
 
-  it('shows model family label when available', () => {
+  it.each([
+    [ModelFamily.SD15, 'SD 1.5'],
+    [ModelFamily.SDXL, 'SDXL'],
+    [ModelFamily.SD2, 'SD 2.x'],
+    [ModelFamily.SD3, 'SD3'],
+    [ModelFamily.FLUX, 'FLUX']
+  ])('shows model family label: %s', (family, label) => {
     vi.mocked(useModelSelectorStore).mockReturnValue({
       selected_model_id: 'model-1',
-      loaded_model_family: ModelFamily.SDXL,
+      loaded_model_family: family,
       setSelectedModelId: mockSetId,
       setLoadedModelFamily: vi.fn()
     })
 
     render(<ModelSelector />)
-    expect(screen.getByText('SDXL')).toBeInTheDocument()
+    expect(screen.getByText(label)).toBeInTheDocument()
+  })
+
+  it('does not show model family label when unknown', () => {
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'model-1',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: mockSetId,
+      setLoadedModelFamily: vi.fn()
+    })
+
+    render(<ModelSelector />)
+    expect(screen.queryByText('SD 1.5')).not.toBeInTheDocument()
+    expect(screen.queryByText('SDXL')).not.toBeInTheDocument()
+    expect(screen.queryByText('SD 2.x')).not.toBeInTheDocument()
+    expect(screen.queryByText('SD3')).not.toBeInTheDocument()
+    expect(screen.queryByText('FLUX')).not.toBeInTheDocument()
+  })
+
+  it('does not show model family label for unexpected family', () => {
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'model-1',
+      loaded_model_family: 'unexpected' as unknown as ModelFamily,
+      setSelectedModelId: mockSetId,
+      setLoadedModelFamily: vi.fn()
+    })
+
+    render(<ModelSelector />)
+    expect(screen.queryByText('SD 1.5')).not.toBeInTheDocument()
+    expect(screen.queryByText('SDXL')).not.toBeInTheDocument()
+    expect(screen.queryByText('SD 2.x')).not.toBeInTheDocument()
+    expect(screen.queryByText('SD3')).not.toBeInTheDocument()
+    expect(screen.queryByText('FLUX')).not.toBeInTheDocument()
   })
 
   it('should render dropdown even when no data is available', () => {
