@@ -5,6 +5,7 @@ import { addToast } from '@heroui/react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDeleteModel } from '../useDeleteModel'
+import { ModelFamily } from '@/types'
 
 // Mock dependencies
 vi.mock('@/features/model-selectors/states/useModelSelectorStores', () => ({
@@ -27,7 +28,10 @@ describe('useDeleteModel', () => {
 
     // Mock useModelSelectorStore
     vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-2'
+      selected_model_id: 'model-2',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily: vi.fn()
     })
 
     // Mock successful API response by default

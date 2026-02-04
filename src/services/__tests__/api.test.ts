@@ -286,7 +286,12 @@ describe('API Service', () => {
   describe('loadModel', () => {
     it('calls POST /models/load and returns the data', async () => {
       const request = { model_id: 'model1' }
-      const mockResponse = { status: 'loaded', id: 'model1' }
+      const mockResponse = {
+        model_id: 'model1',
+        config: {},
+        sample_size: 64,
+        family: 'unknown'
+      }
       vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
 
       const result = await api.loadModel(request)

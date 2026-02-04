@@ -18,6 +18,7 @@ import type {
   ModelDownloaded,
   ModelRecommendationResponse,
   ModelSearchResponse,
+  LoadModelResponse,
   Sampler,
   SelectDeviceRequest,
   StyleSection
@@ -67,7 +68,10 @@ class API {
   }
 
   async loadModel(request: LoadModelRequest) {
-    const { data } = await client.post('/models/load', request)
+    const { data } = await client.post<LoadModelResponse>(
+      '/models/load',
+      request
+    )
 
     return data
   }
