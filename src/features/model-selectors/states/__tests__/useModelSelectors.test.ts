@@ -2,12 +2,13 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useModelSelectors } from '../useModelSelectors'
 import { useModelSelectorStore } from '../useModelSelectorStores'
+import { ModelFamily } from '@/types'
 
 // Mock dependencies
 vi.mock('@/services/api', () => ({
   api: {
-    loadModel: vi.fn().mockResolvedValue({}),
-    unloadModel: vi.fn().mockResolvedValue({})
+    loadModel: vi.fn(),
+    unloadModel: vi.fn()
   }
 }))
 
@@ -21,16 +22,36 @@ vi.mock('es-toolkit/compat', () => ({
 }))
 
 describe('useModelSelectors', () => {
-  beforeEach(() => {
-    vi.resetAllMocks()
+  const setLoadedModelFamily = vi.fn()
 
-    // Default mock implementation - empty selected_model_id
-    vi.mocked(useModelSelectorStore).mockReturnValue('')
+  beforeEach(async () => {
+    vi.clearAllMocks()
+
+    const mockedApi = vi.mocked(await import('@/services/api')).api
+    vi.mocked(mockedApi.loadModel).mockResolvedValue({
+      model_id: 'model-id',
+      config: {},
+      sample_size: 64,
+      family: ModelFamily.UNKNOWN
+    })
+    vi.mocked(mockedApi.unloadModel).mockResolvedValue({})
+
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: '',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
   })
 
   it('should not load model when selected_model_id is empty', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
-    vi.mocked(useModelSelectorStore).mockReturnValue('')
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: '',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
 
     renderHook(() => useModelSelectors())
 
@@ -40,7 +61,12 @@ describe('useModelSelectors', () => {
 
   it('should load model when selected_model_id exists', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
-    vi.mocked(useModelSelectorStore).mockReturnValue('llama-3')
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'llama-3',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
 
     renderHook(() => useModelSelectors())
 
@@ -52,14 +78,16 @@ describe('useModelSelectors', () => {
 
   it('should unload model on unmount', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
-    vi.mocked(useModelSelectorStore).mockReturnValue('llama-3')
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'llama-3',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
 
     const { unmount } = renderHook(() => useModelSelectors())
-
-    // Unmount the hook
     unmount()
 
-    // Should call unloadModel on cleanup
     await waitFor(() => {
       expect(mockedApi.unloadModel).toHaveBeenCalled()
     })
@@ -69,7 +97,12 @@ describe('useModelSelectors', () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
 
     // Start with first model
-    vi.mocked(useModelSelectorStore).mockReturnValue('llama-3')
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'llama-3',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
     const { rerender } = renderHook(() => useModelSelectors())
 
     await waitFor(() => {
@@ -77,7 +110,12 @@ describe('useModelSelectors', () => {
     })
 
     // Change to second model
-    vi.mocked(useModelSelectorStore).mockReturnValue('codellama')
+    vi.mocked(useModelSelectorStore).mockReturnValue({
+      selected_model_id: 'codellama',
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: vi.fn(),
+      setLoadedModelFamily
+    })
     rerender()
 
     await waitFor(() => {
