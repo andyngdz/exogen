@@ -40,6 +40,7 @@ Next.js 15 + Electron + Python FastAPI. Feature-first structure: `src/features/f
 - **Naming**: PascalCase components (with feature prefix: `GeneratorImageRenderer`), camelCase functions/vars, kebab-case dirs
 - **Imports**: Group by external → internal → types. Use `es-toolkit/compat` for utilities
 - **Components**: `'use client'` for hooks/Zustand/browser APIs. Hooks at top (custom → UI library → React). Use `useMemo` for conditional/expensive renders
+- **Conditionals**: Prefer `isEmpty(value)` from `es-toolkit/compat` over `.length` checks; prefer `cond && <Component />` for conditional renders
 - **State**: Zustand for shared state, `useState` for local. Use `partialize` to exclude UI state from persistence. Prefer `useLocalStorage` over `useRef` for persistent component state
 - **Optional values**: Prefer `undefined` over `null` for optional state/props (e.g. `lastError?: string`)
 - **Types**: When typing DOM/third-party APIs, check the source types first (hover in IDE, or inspect `.d.ts`) and avoid widening types "just in case".
