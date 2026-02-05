@@ -1,5 +1,11 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import { isEmpty } from 'es-toolkit/compat'
+
+import {
+  useGenerationStatusStore,
+  useUseImageGenerationStore
+} from '@/features/generators'
 
 interface UseGeneratorPhotoviewStore {
   isOpen: boolean
@@ -15,9 +21,18 @@ export const useGeneratorPhotoviewStore = create<UseGeneratorPhotoviewStore>()(
       isOpen: false,
       currentIndex: 0,
       openPhotoview: (index) =>
-        set({
-          isOpen: true,
-          currentIndex: Math.max(0, index)
+        set(() => {
+          const { isGenerating } = useGenerationStatusStore.getState()
+          if (isGenerating) return store.getState()
+
+          const { items } = useUseImageGenerationStore.getState()
+          const item = items[index]
+          if (!item || isEmpty(item.path)) return store.getState()
+
+          return {
+            isOpen: true,
+            currentIndex: Math.max(0, index)
+          }
         }),
       setCurrentIndex: (index) =>
         set({
