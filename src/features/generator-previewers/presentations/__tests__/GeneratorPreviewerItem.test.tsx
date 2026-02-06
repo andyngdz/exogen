@@ -1,7 +1,7 @@
 import { mockNextImage } from '@/cores/test-utils'
-import { render, fireEvent } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGeneratorPreviewerItemModel } from '@/features/generator-previewers/states'
+import { fireEvent, render } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   GeneratorPreviewerItem,
   GeneratorPreviewerItemProps
@@ -30,7 +30,14 @@ vi.mock('@heroui/react', async () => {
       isIconOnly?: boolean
       [key: string]: unknown
     }) => (
-      <button onClick={onPress} {...props}>
+      <button
+        onClick={(e) => {
+          // React Aria's usePress stops propagation by default
+          e.stopPropagation()
+          onPress?.()
+        }}
+        {...props}
+      >
         {children}
       </button>
     ),
