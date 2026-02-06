@@ -7,6 +7,7 @@ import {
 } from '@/features/generators'
 import { GeneratorMode } from '@/types'
 import { addToast } from '@heroui/react'
+import { isEmpty } from 'es-toolkit/compat'
 import { useCallback, useState } from 'react'
 
 import { dataUrlService } from '@/services/data-url'
@@ -22,7 +23,9 @@ export const useGeneratorPhotoviewModalModel = () => {
   const { setMode } = useGeneratorModeStore()
   const [isUsingAsInput, setIsUsingAsInput] = useState(false)
 
-  const safeIndex = Math.min(Math.max(0, currentIndex), items.length - 1)
+  const safeIndex = !isEmpty(items)
+    ? Math.min(Math.max(0, currentIndex), items.length - 1)
+    : 0
   const currentItem = items[safeIndex]
   const imageUrl = `${baseURL}/${currentItem.path}`
 

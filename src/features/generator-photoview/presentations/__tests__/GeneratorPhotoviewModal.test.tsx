@@ -85,8 +85,10 @@ vi.mock('lucide-react', () => ({
 describe('GeneratorPhotoviewModal', () => {
   it('should not render when closed', () => {
     vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [],
-      imageStepEnds: []
+      items: [{ path: 'images/out.png', file_name: 'out.png' }],
+      imageStepEnds: [
+        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
+      ]
     } as never)
     vi.mocked(useImage2ImageConfigStore).mockReturnValue({
       setInitImageBase64: vi.fn()
