@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useUseImageGenerationStore } from '@/features/generators'
+import { useGeneratorPhotoviewStore } from '../../states/useGeneratorPhotoviewStore'
 import { GeneratorPhotoviewCarousel } from '../GeneratorPhotoviewCarousel'
 
 vi.mock('@/features/generators')
@@ -14,17 +15,26 @@ vi.mock('swiper/react', () => ({
   Swiper: ({
     children,
     loop,
-    initialSlide
+    initialSlide,
+    onSlideChange
   }: {
     children: React.ReactNode
     loop: boolean
     initialSlide: number
+    onSlideChange?: (swiper: { realIndex: number }) => void
   }) => (
     <div
       data-testid="swiper"
       data-loop={String(loop)}
       data-initial-slide={String(initialSlide)}
     >
+      <button
+        type="button"
+        data-testid="trigger-slide-change"
+        onClick={() => onSlideChange?.({ realIndex: 1 })}
+      >
+        Trigger slide change
+      </button>
       {children}
     </div>
   ),
@@ -43,6 +53,10 @@ vi.mock('swiper/modules', () => ({
 }))
 
 describe('GeneratorPhotoviewCarousel', () => {
+  beforeEach(() => {
+    useGeneratorPhotoviewStore.setState({ isOpen: false, currentIndex: 0 })
+  })
+
   it('should render swiper with all image slides', () => {
     vi.mocked(useUseImageGenerationStore).mockReturnValue({
       items: [
@@ -94,5 +108,20 @@ describe('GeneratorPhotoviewCarousel', () => {
       'data-initial-slide',
       '1'
     )
+  })
+
+  it('updates current index when slide changes', () => {
+    vi.mocked(useUseImageGenerationStore).mockReturnValue({
+      items: [
+        { path: 'images/a.png', file_name: 'a.png' },
+        { path: 'images/b.png', file_name: 'b.png' }
+      ]
+    } as never)
+
+    render(<GeneratorPhotoviewCarousel initialIndex={0} />)
+
+    fireEvent.click(screen.getByTestId('trigger-slide-change'))
+
+    expect(useGeneratorPhotoviewStore.getState().currentIndex).toBe(1)
   })
 })

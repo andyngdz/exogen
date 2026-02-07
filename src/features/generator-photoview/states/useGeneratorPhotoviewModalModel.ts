@@ -27,7 +27,8 @@ export const useGeneratorPhotoviewModalModel = () => {
     ? Math.min(Math.max(0, currentIndex), items.length - 1)
     : 0
   const currentItem = items[safeIndex]
-  const imageUrl = `${baseURL}/${currentItem.path}`
+  const imagePath = currentItem?.path
+  const imageUrl = !isEmpty(imagePath) ? `${baseURL}/${imagePath}` : undefined
 
   const onDownload = useCallback(() => {
     if (!imageUrl) return

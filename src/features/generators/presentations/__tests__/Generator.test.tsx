@@ -1,5 +1,10 @@
 import { ModelLoadPhase } from '@/cores/sockets'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import {
+  useGenerationStatusStore,
+  useUseImageGenerationStore
+} from '@/features/generators'
+import { useGeneratorPhotoviewStore } from '@/features/generator-photoview/states/useGeneratorPhotoviewStore'
 import { act, render, screen } from '@testing-library/react'
 import { UseFormReturn } from 'react-hook-form'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -19,6 +24,12 @@ vi.mock('@/features/generator-modes', () => ({
 
 vi.mock('@/features/histories', () => ({
   Histories: () => <div data-testid="histories">Histories</div>
+}))
+
+vi.mock('@/features/generator-photoview', () => ({
+  GeneratorPhotoviewModal: () => (
+    <div data-testid="generator-photoview-modal">GeneratorPhotoviewModal</div>
+  )
 }))
 
 // Mock Allotment component
@@ -141,6 +152,14 @@ describe('Generator', () => {
     })
 
     vi.mocked(useMountedState).mockReturnValue(() => true)
+
+    useGenerationStatusStore.setState({ isGenerating: false })
+    useUseImageGenerationStore.setState({
+      items: [],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+    useGeneratorPhotoviewStore.setState({ isOpen: false, currentIndex: 0 })
   })
 
   afterEach(() => {
@@ -268,5 +287,62 @@ describe('Generator', () => {
     act(() => {
       useModelLoadProgressStore.getState().reset()
     })
+  })
+
+  it('prevents default form submission', () => {
+    render(<Generator />)
+
+    const form = screen.getByRole('form')
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+
+    form.dispatchEvent(submitEvent)
+
+    expect(submitEvent.defaultPrevented).toBe(true)
+  })
+
+  it('mounts photoview modal when not generating and images exist', () => {
+    useUseImageGenerationStore.setState({
+      items: [{ path: 'images/a.png', file_name: 'a.png' }],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+
+    render(<Generator />)
+
+    expect(screen.getByTestId('generator-photoview-modal')).toBeInTheDocument()
+  })
+
+  it('closes photoview when it is open and conditions become invalid', () => {
+    useUseImageGenerationStore.setState({
+      items: [{ path: 'images/a.png', file_name: 'a.png' }],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+    useGeneratorPhotoviewStore.setState({ isOpen: true, currentIndex: 0 })
+
+    const { rerender } = render(<Generator />)
+    expect(useGeneratorPhotoviewStore.getState().isOpen).toBe(true)
+
+    act(() => {
+      useGenerationStatusStore.setState({ isGenerating: true })
+    })
+
+    rerender(<Generator />)
+
+    expect(useGeneratorPhotoviewStore.getState().isOpen).toBe(false)
+  })
+
+  it('does not mount photoview modal when there are no images', () => {
+    useUseImageGenerationStore.setState({
+      items: [],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+
+    render(<Generator />)
+
+    expect(
+      screen.queryByTestId('generator-photoview-modal')
+    ).not.toBeInTheDocument()
   })
 })
