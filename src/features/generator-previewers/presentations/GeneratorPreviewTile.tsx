@@ -31,6 +31,7 @@ export const GeneratorPreviewTile = ({
 
   return (
     <Card
+      as="div"
       isPressable={isClickable}
       onPress={onPress}
       aria-label={ariaLabel ?? 'Open preview'}
