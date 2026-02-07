@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useDownloadImages } from '@/features/generator-previewers/states'
 import {
   useGeneratorModeStore,
   useImage2ImageConfigStore,
   useUseImageGenerationStore
 } from '@/features/generators'
-import { useDownloadImages } from '@/features/generator-previewers/states'
 import { dataUrlService } from '@/services/data-url'
 import { GeneratorMode } from '@/types'
 import { addToast } from '@heroui/react'
@@ -38,9 +38,13 @@ vi.mock('@heroui/react', async () => {
     await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
   return {
     ...actual,
-    Modal: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="modal">{children}</div>
-    ),
+    Modal: ({
+      children,
+      isOpen
+    }: {
+      children: React.ReactNode
+      isOpen?: boolean
+    }) => (isOpen ? <div data-testid="modal">{children}</div> : null),
     ModalContent: ({ children }: { children: React.ReactNode }) => (
       <div>{children}</div>
     ),

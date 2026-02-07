@@ -52,7 +52,6 @@ export default defineConfig({
       ],
       exclude: [
         ...(configDefaults.coverage.exclude ?? []),
-        'src/cores/test-utils/framerMotionMock.ts',
         '**/index.ts',
         '**/types.ts',
         '**/types/**'

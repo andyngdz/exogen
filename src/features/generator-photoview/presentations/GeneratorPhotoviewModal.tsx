@@ -14,8 +14,6 @@ import { GeneratorPhotoviewCarousel } from './GeneratorPhotoviewCarousel'
 export const GeneratorPhotoviewModal = () => {
   const model = useGeneratorPhotoviewModalModel()
 
-  if (!model.isOpen) return null
-
   return (
     <Modal
       isOpen={model.isOpen}
@@ -39,7 +37,6 @@ export const GeneratorPhotoviewModal = () => {
                   startContent={<Download size={16} />}
                   variant="flat"
                   color="default"
-                  isDisabled={!model.canDownload}
                   onPress={model.onDownload}
                   aria-label="Download current image"
                 >
@@ -49,7 +46,6 @@ export const GeneratorPhotoviewModal = () => {
                   startContent={<ImageUp size={16} />}
                   variant="solid"
                   color="primary"
-                  isDisabled={!model.canUseAsInput}
                   isLoading={model.isUsingAsInput}
                   onPress={model.onUseAsInput}
                   aria-label="Use current image as input"

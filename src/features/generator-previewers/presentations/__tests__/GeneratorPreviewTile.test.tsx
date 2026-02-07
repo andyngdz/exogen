@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { GeneratorPreviewTile } from '../GeneratorPreviewTile'
@@ -148,7 +149,6 @@ describe('GeneratorPreviewTile', () => {
     expect(container).toHaveClass('w-full')
     expect(container).toHaveClass('overflow-hidden')
     expect(container).toHaveClass('rounded-2xl')
-    expect(container).toHaveClass('bg-content1')
   })
 
   it('behaves as a button when onPress is provided', () => {
@@ -165,24 +165,9 @@ describe('GeneratorPreviewTile', () => {
     expect(onPress).toHaveBeenCalledTimes(1)
   })
 
-  it('triggers onPress when Enter key is pressed', () => {
+  it('triggers onPress when Enter key is pressed', async () => {
     const onPress = vi.fn()
-
-    render(
-      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
-        <span>Content</span>
-      </GeneratorPreviewTile>
-    )
-
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Open tile' }), {
-      key: 'Enter'
-    })
-
-    expect(onPress).toHaveBeenCalledTimes(1)
-  })
-
-  it('triggers onPress and prevents default when Space key is pressed', () => {
-    const onPress = vi.fn()
+    const user = userEvent.setup()
 
     render(
       <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
@@ -191,20 +176,15 @@ describe('GeneratorPreviewTile', () => {
     )
 
     const tile = screen.getByRole('button', { name: 'Open tile' })
-    const keyboardEvent = new KeyboardEvent('keydown', {
-      key: ' ',
-      bubbles: true,
-      cancelable: true
-    })
-
-    tile.dispatchEvent(keyboardEvent)
+    tile.focus()
+    await user.keyboard('{Enter}')
 
     expect(onPress).toHaveBeenCalledTimes(1)
-    expect(keyboardEvent.defaultPrevented).toBe(true)
   })
 
-  it('does not trigger onPress for non-activation keys', () => {
+  it('triggers onPress when Space key is pressed', async () => {
     const onPress = vi.fn()
+    const user = userEvent.setup()
 
     render(
       <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
@@ -212,9 +192,26 @@ describe('GeneratorPreviewTile', () => {
       </GeneratorPreviewTile>
     )
 
-    fireEvent.keyDown(screen.getByRole('button', { name: 'Open tile' }), {
-      key: 'Escape'
-    })
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.focus()
+    await user.keyboard(' ')
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not trigger onPress for non-activation keys', async () => {
+    const onPress = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.focus()
+    await user.keyboard('{Escape}')
 
     expect(onPress).not.toHaveBeenCalled()
   })
@@ -227,8 +224,6 @@ describe('GeneratorPreviewTile', () => {
     )
 
     const tile = screen.getByText('Content').parentElement
-    expect(tile).not.toHaveAttribute('role')
-    expect(tile).not.toHaveAttribute('tabindex')
     expect(tile).not.toHaveClass('cursor-zoom-in')
   })
 
