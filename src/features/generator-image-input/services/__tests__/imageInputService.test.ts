@@ -42,6 +42,20 @@ describe('imageInputService', () => {
     expect(imageInputService.clipboardImageFile(event)).toBe(file)
   })
 
+  it('returns undefined when clipboard data is missing', () => {
+    expect(imageInputService.clipboardImageFile({})).toBeUndefined()
+  })
+
+  it('returns undefined when clipboard items are empty', () => {
+    const event = {
+      clipboardData: {
+        items: []
+      }
+    }
+
+    expect(imageInputService.clipboardImageFile(event)).toBeUndefined()
+  })
+
   it('rejects with fallback error when FileReader error is null', async () => {
     vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(
       function (this: FileReader) {

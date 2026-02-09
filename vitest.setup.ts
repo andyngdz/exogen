@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom/vitest'
 import 'core-js/actual'
-import type { ReactElement, ReactNode } from 'react'
-import { createElement } from 'react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import 'vitest-localstorage-mock'
 
@@ -27,33 +25,7 @@ vi.stubGlobal('ResizeObserver', ResizeObserverMock)
 // Mock framer-motion to prevent window access issues during tests.
 // Keep it lightweight: enough for HeroUI internals.
 vi.mock('framer-motion', () => {
-  const createMotionComponent = (tag: string) => {
-    const MotionComponent = ({
-      children,
-      ...props
-    }: Record<string, unknown> & { children?: ReactNode }) =>
-      createElement(tag, props, children)
-
-    return MotionComponent
-  }
-
-  const motionProxy = new Proxy(
-    {},
-    {
-      get: (_target, prop) => createMotionComponent(String(prop))
-    }
-  )
-
-  return {
-    AnimatePresence: ({ children }: { children: ReactNode }) =>
-      children as ReactElement,
-    LazyMotion: ({ children }: { children: ReactNode }) =>
-      children as ReactElement,
-    domAnimation: {},
-    domMax: {},
-    m: motionProxy,
-    motion: motionProxy
-  }
+  return import('./src/cores/test-utils/framerMotionMock')
 })
 
 // Mock react-lottie to prevent canvas context issues during tests

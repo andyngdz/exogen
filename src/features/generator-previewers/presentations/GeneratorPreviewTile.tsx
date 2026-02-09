@@ -1,5 +1,6 @@
 'use client'
 
+import { Card } from '@heroui/react'
 import clsx from 'clsx'
 import { ReactNode } from 'react'
 
@@ -11,6 +12,8 @@ interface GeneratorPreviewTileProps {
   topRightClassName?: string
   bottomOverlay?: ReactNode
   bottomOverlayClassName?: string
+  onPress?: VoidFunction
+  ariaLabel?: string
 }
 
 export const GeneratorPreviewTile = ({
@@ -20,13 +23,24 @@ export const GeneratorPreviewTile = ({
   topRight,
   topRightClassName,
   bottomOverlay,
-  bottomOverlayClassName
+  bottomOverlayClassName,
+  onPress,
+  ariaLabel
 }: GeneratorPreviewTileProps) => {
+  const isClickable = !!onPress
+
   return (
-    <div
+    <Card
+      as="div"
+      isPressable={isClickable}
+      onPress={onPress}
+      aria-label={ariaLabel ?? 'Open preview'}
       className={clsx(
-        'relative group h-full w-full overflow-hidden rounded-2xl bg-content1',
-        className
+        'relative group h-full w-full overflow-hidden rounded-2xl',
+        className,
+        {
+          'cursor-zoom-in': isClickable
+        }
       )}
       style={{
         aspectRatio
@@ -34,20 +48,25 @@ export const GeneratorPreviewTile = ({
     >
       {children}
       {topRight && (
-        <div className={clsx('absolute top-2 right-2', topRightClassName)}>
+        <div
+          className={clsx(
+            'absolute top-2 right-2 z-20 pointer-events-auto',
+            topRightClassName
+          )}
+        >
           {topRight}
         </div>
       )}
       {bottomOverlay && (
         <div
           className={clsx(
-            'absolute bottom-3 left-3 right-3',
+            'absolute bottom-3 left-3 right-3 z-20 pointer-events-auto',
             bottomOverlayClassName
           )}
         >
           {bottomOverlay}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

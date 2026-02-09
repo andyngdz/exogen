@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 
 import { GeneratorPreviewTile } from '../GeneratorPreviewTile'
 
@@ -148,6 +149,102 @@ describe('GeneratorPreviewTile', () => {
     expect(container).toHaveClass('w-full')
     expect(container).toHaveClass('overflow-hidden')
     expect(container).toHaveClass('rounded-2xl')
-    expect(container).toHaveClass('bg-content1')
+  })
+
+  it('behaves as a button when onPress is provided', () => {
+    const onPress = vi.fn()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.click()
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it('triggers onPress when Enter key is pressed', async () => {
+    const onPress = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.focus()
+    await user.keyboard('{Enter}')
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it('triggers onPress when Space key is pressed', async () => {
+    const onPress = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.focus()
+    await user.keyboard(' ')
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not trigger onPress for non-activation keys', async () => {
+    const onPress = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <GeneratorPreviewTile onPress={onPress} ariaLabel="Open tile">
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByRole('button', { name: 'Open tile' })
+    tile.focus()
+    await user.keyboard('{Escape}')
+
+    expect(onPress).not.toHaveBeenCalled()
+  })
+
+  it('does not expose button semantics when onPress is missing', () => {
+    render(
+      <GeneratorPreviewTile>
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByText('Content').parentElement
+    expect(tile).not.toHaveClass('cursor-zoom-in')
+  })
+
+  it('ignores keyboard events when onPress is not provided', () => {
+    render(
+      <GeneratorPreviewTile>
+        <span>Content</span>
+      </GeneratorPreviewTile>
+    )
+
+    const tile = screen.getByText('Content').parentElement
+    expect(tile).not.toBeNull()
+
+    const keyboardEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true
+    })
+
+    tile?.dispatchEvent(keyboardEvent)
+
+    expect(keyboardEvent.defaultPrevented).toBe(false)
   })
 })
