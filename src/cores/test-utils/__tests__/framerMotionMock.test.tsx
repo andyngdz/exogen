@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 import {
   AnimatePresence,
   LazyMotion,
+  MotionConfig,
+  MotionGlobalConfig,
   domAnimation,
   domMax,
   m,
@@ -29,14 +31,18 @@ describe('framerMotionMock', () => {
 
     const withAnimatePresence = AnimatePresence({ children: child })
     const withLazyMotion = LazyMotion({ children: child })
+    const withMotionConfig = MotionConfig({ children: child })
+    const withMotionGlobalConfig = MotionGlobalConfig({ children: child })
     render(
       <>
         {withAnimatePresence as ReactElement}
         {withLazyMotion as ReactElement}
+        {withMotionConfig as ReactElement}
+        {withMotionGlobalConfig as ReactElement}
       </>
     )
 
-    expect(screen.getAllByText('wrapped content')).toHaveLength(2)
+    expect(screen.getAllByText('wrapped content')).toHaveLength(4)
   })
 
   it('exposes domAnimation and domMax objects', () => {
