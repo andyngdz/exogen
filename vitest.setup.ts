@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom/vitest'
 import 'core-js/actual'
-import * as framerMotionMock from './src/cores/test-utils/framerMotionMock'
 import { afterEach, beforeEach, vi } from 'vitest'
 import 'vitest-localstorage-mock'
 
@@ -26,7 +25,7 @@ vi.stubGlobal('ResizeObserver', ResizeObserverMock)
 // Mock framer-motion to prevent window access issues during tests.
 // Keep it lightweight: enough for HeroUI internals.
 vi.mock('framer-motion', () => {
-  return framerMotionMock
+  return import('./src/cores/test-utils/framerMotionMock')
 })
 
 // Mock react-lottie to prevent canvas context issues during tests
