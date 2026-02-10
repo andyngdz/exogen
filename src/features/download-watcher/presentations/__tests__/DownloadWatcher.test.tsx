@@ -5,6 +5,7 @@ import type {
 } from '@/cores/sockets'
 import { SocketEvents } from '@/cores/sockets'
 import { ModelDownloaded } from '@/types'
+import { ModelFamily } from '@/types'
 import { QueryClient } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { cleanup, render } from '@testing-library/react'
@@ -30,9 +31,12 @@ vi.mock('@/cores/sockets', async () => {
 
 // Mock model selector store
 const mockSetSelectedModelId = vi.fn()
+const mockSetLoadedModelFamily = vi.fn()
 const mockUseModelSelectorStore = vi.fn(() => ({
   selected_model_id: '',
-  setSelectedModelId: mockSetSelectedModelId
+  loaded_model_family: ModelFamily.UNKNOWN,
+  setSelectedModelId: mockSetSelectedModelId,
+  setLoadedModelFamily: mockSetLoadedModelFamily
 }))
 
 vi.mock('@/features/model-selectors/states', () => ({
@@ -64,7 +68,9 @@ describe('DownloadWatcher', () => {
     // Reset mock model selector store to default state
     mockUseModelSelectorStore.mockReturnValue({
       selected_model_id: '',
-      setSelectedModelId: mockSetSelectedModelId
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: mockSetSelectedModelId,
+      setLoadedModelFamily: mockSetLoadedModelFamily
     })
 
     // Create mock functions
@@ -350,7 +356,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with first downloaded model
@@ -383,7 +391,9 @@ describe('DownloadWatcher', () => {
       // Setup: model already selected
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: 'existing-model',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with one model
@@ -415,7 +425,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with multiple models
@@ -456,7 +468,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with empty models
@@ -481,7 +495,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with undefined (no data)

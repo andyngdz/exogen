@@ -1,8 +1,8 @@
 import { useSamplersQuery } from '@/cores/api-queries'
-import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import type { GeneratorConfigFormValues } from '@/features/generator-configs'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { FormProvider, useForm } from 'react-hook-form'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigSamplerDropdown } from '../GeneratorConfigSamplerDropdown'
 
@@ -36,19 +36,14 @@ describe('GeneratorConfigSamplerDropdown', () => {
     }
   ]
 
-  const Wrapper = ({ defaultValue = 'EULER_A' }: { defaultValue?: string }) => {
-    const methods = useForm<GeneratorConfigFormValues>({
-      defaultValues: {
+  const createWrapper = (
+    defaultValue: GeneratorConfigFormValues['sampler'] = 'EULER_A' as GeneratorConfigFormValues['sampler']
+  ) =>
+    createGeneratorConfigFormWrapper({
+      overrides: {
         sampler: defaultValue
-      } as GeneratorConfigFormValues
+      }
     })
-
-    return (
-      <FormProvider {...methods}>
-        <GeneratorConfigSamplerDropdown />
-      </FormProvider>
-    )
-  }
 
   afterEach(() => {
     vi.clearAllMocks()
@@ -61,7 +56,7 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper />)
+    render(<GeneratorConfigSamplerDropdown />, { wrapper: createWrapper() })
 
     expect(screen.getByTestId('sampler-loader')).toBeInTheDocument()
   })
@@ -73,7 +68,7 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: true
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper />)
+    render(<GeneratorConfigSamplerDropdown />, { wrapper: createWrapper() })
 
     expect(screen.getByText('Failed to load samplers')).toBeInTheDocument()
   })
@@ -85,7 +80,7 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper />)
+    render(<GeneratorConfigSamplerDropdown />, { wrapper: createWrapper() })
 
     expect(screen.getByText('No samplers available')).toBeInTheDocument()
   })
@@ -97,7 +92,7 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper />)
+    render(<GeneratorConfigSamplerDropdown />, { wrapper: createWrapper() })
 
     const select = screen.getByRole('button', { name: /sampler/i })
     expect(select).not.toBeDisabled()
@@ -110,7 +105,9 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper defaultValue="EULER_A" />)
+    render(<GeneratorConfigSamplerDropdown />, {
+      wrapper: createWrapper('EULER_A' as GeneratorConfigFormValues['sampler'])
+    })
 
     const allEulerA = screen.getAllByText('Euler A')
     expect(allEulerA.length).toBeGreaterThan(0)
@@ -125,7 +122,9 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper defaultValue="EULER_A" />)
+    render(<GeneratorConfigSamplerDropdown />, {
+      wrapper: createWrapper('EULER_A' as GeneratorConfigFormValues['sampler'])
+    })
 
     const select = screen.getByRole('button', { name: /sampler/i })
     await user.click(select)
@@ -145,7 +144,7 @@ describe('GeneratorConfigSamplerDropdown', () => {
       isError: false
     } as unknown as ReturnType<typeof useSamplersQuery>)
 
-    render(<Wrapper />)
+    render(<GeneratorConfigSamplerDropdown />, { wrapper: createWrapper() })
 
     const select = screen.getByRole('button', { name: /sampler/i })
     await user.click(select)

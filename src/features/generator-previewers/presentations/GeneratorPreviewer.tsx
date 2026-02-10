@@ -1,13 +1,20 @@
+import { ReactNode } from 'react'
 import { useImageViewModeStore } from '../states/useImageViewModeStore'
 import { GeneratorPreviewerGrid } from './GeneratorPreviewerGrid'
 import { GeneratorPreviewerSlider } from './GeneratorPreviewerSlider'
 
-export const GeneratorPreviewer = () => {
+interface GeneratorPreviewerProps {
+  leadingItem?: ReactNode
+}
+
+export const GeneratorPreviewer = ({
+  leadingItem
+}: GeneratorPreviewerProps) => {
   const { viewMode } = useImageViewModeStore()
 
   if (viewMode === 'slider') {
-    return <GeneratorPreviewerSlider />
+    return <GeneratorPreviewerSlider leadingItem={leadingItem} />
   }
 
-  return <GeneratorPreviewerGrid />
+  return <GeneratorPreviewerGrid leadingItem={leadingItem} />
 }

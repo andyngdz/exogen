@@ -1,7 +1,7 @@
 import { useLorasQuery } from '@/cores/api-queries'
+import { createFormProviderWrapper } from '@/cores/test-utils'
 import type { LoRA } from '@/types'
 import { render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoraList } from '../LoraList'
 
@@ -41,14 +41,13 @@ const mockLoras: LoRA[] = [
   }
 ]
 
-const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const methods = useForm({
+const Wrapper = createFormProviderWrapper({
+  formOptions: {
     defaultValues: {
       loras: []
     }
-  })
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+  }
+})
 
 describe('LoraList', () => {
   beforeEach(() => {

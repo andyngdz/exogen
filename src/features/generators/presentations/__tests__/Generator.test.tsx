@@ -1,17 +1,16 @@
 import { ModelLoadPhase } from '@/cores/sockets'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import {
+  useGenerationStatusStore,
+  useUseImageGenerationStore
+} from '@/features/generators'
+import { useGeneratorPhotoviewStore } from '@/features/generator-photoview/states/useGeneratorPhotoviewStore'
 import { act, render, screen } from '@testing-library/react'
 import { UseFormReturn } from 'react-hook-form'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useGenerator, useGeneratorForm } from '../../states'
+import { useGeneratorForm } from '../../states'
 import { Generator } from '../Generator'
-
-// Mock all the feature components
-vi.mock('@/features/generator-actions', () => ({
-  GeneratorAction: () => (
-    <div data-testid="generator-action">GeneratorAction</div>
-  )
-}))
+import { useMountedState } from 'react-use'
 
 vi.mock('@/features/generator-configs', () => ({
   GeneratorConfig: () => (
@@ -19,20 +18,18 @@ vi.mock('@/features/generator-configs', () => ({
   )
 }))
 
-vi.mock('@/features/generator-previewers', () => ({
-  GeneratorPreviewer: () => (
-    <div data-testid="generator-previewer">GeneratorPreviewer</div>
-  )
-}))
-
-vi.mock('@/features/generator-prompts', () => ({
-  GeneratorPrompt: () => (
-    <div data-testid="generator-prompt">GeneratorPrompt</div>
-  )
+vi.mock('@/features/generator-modes', () => ({
+  ModeTabs: () => <div data-testid="mode-tabs">ModeTabs</div>
 }))
 
 vi.mock('@/features/histories', () => ({
   Histories: () => <div data-testid="histories">Histories</div>
+}))
+
+vi.mock('@/features/generator-photoview', () => ({
+  GeneratorPhotoviewModal: () => (
+    <div data-testid="generator-photoview-modal">GeneratorPhotoviewModal</div>
+  )
 }))
 
 // Mock Allotment component
@@ -93,7 +90,6 @@ vi.mock('@/cores/presentations', () => ({
 }))
 
 // Mock the state hooks
-const mockOnGenerate = vi.fn()
 const mockMethods: Partial<UseFormReturn<GeneratorConfigFormValues>> = {
   watch: vi.fn(),
   handleSubmit: vi.fn(),
@@ -114,8 +110,7 @@ const mockMethods: Partial<UseFormReturn<GeneratorConfigFormValues>> = {
 }
 
 vi.mock('../../states', () => ({
-  useGeneratorForm: vi.fn(),
-  useGenerator: vi.fn()
+  useGeneratorForm: vi.fn()
 }))
 
 // Mock react-hook-form
@@ -147,23 +142,24 @@ vi.mock('@heroui/react', () => ({
 
 // Mock react-use to make useMountedState return true (mounted)
 vi.mock('react-use', () => ({
-  useMountedState: () => () => true
+  useMountedState: vi.fn()
 }))
 
 describe('Generator', () => {
   beforeEach(() => {
-    // Setup default mocks
-    ;(mockMethods.handleSubmit as ReturnType<typeof vi.fn>).mockReturnValue(
-      vi.fn()
-    )
-
     vi.mocked(useGeneratorForm).mockReturnValue({
       methods: mockMethods as UseFormReturn<GeneratorConfigFormValues>
     })
 
-    vi.mocked(useGenerator).mockReturnValue({
-      onGenerate: mockOnGenerate
+    vi.mocked(useMountedState).mockReturnValue(() => true)
+
+    useGenerationStatusStore.setState({ isGenerating: false })
+    useUseImageGenerationStore.setState({
+      items: [],
+      imageStepEnds: [],
+      nsfw_content_detected: []
     })
+    useGeneratorPhotoviewStore.setState({ isOpen: false, currentIndex: 0 })
   })
 
   afterEach(() => {
@@ -174,9 +170,7 @@ describe('Generator', () => {
     render(<Generator />)
 
     expect(screen.getByTestId('generator-config')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-prompt')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-action')).toBeInTheDocument()
-    expect(screen.getByTestId('generator-previewer')).toBeInTheDocument()
+    expect(screen.getByTestId('mode-tabs')).toBeInTheDocument()
     expect(screen.getByTestId('histories')).toBeInTheDocument()
   })
 
@@ -186,23 +180,11 @@ describe('Generator', () => {
     expect(useGeneratorForm).toHaveBeenCalled()
   })
 
-  it('uses useGenerator hook', () => {
-    render(<Generator />)
-
-    expect(useGenerator).toHaveBeenCalled()
-  })
-
   it('renders form with correct attributes', () => {
     render(<Generator />)
 
     const form = screen.getByRole('form')
     expect(form).toHaveAttribute('name', 'generator')
-  })
-
-  it('configures form submit handler', () => {
-    render(<Generator />)
-
-    expect(mockMethods.handleSubmit).toHaveBeenCalledWith(mockOnGenerate)
   })
 
   it('renders Allotment with correct default sizes', () => {
@@ -267,6 +249,15 @@ describe('Generator', () => {
     expect(screen.queryByTestId('progress-indicator')).not.toBeInTheDocument()
   })
 
+  it('renders a progress indicator when not mounted yet', () => {
+    vi.mocked(useMountedState).mockReturnValue(() => false)
+
+    render(<Generator />)
+
+    expect(screen.getByTestId('progress-indicator')).toBeInTheDocument()
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
+  })
+
   it('shows fullscreen loader when model is loading', async () => {
     const { useModelLoadProgressStore } =
       await import('@/features/model-load-progress/states/useModelLoadProgressStore')
@@ -296,5 +287,62 @@ describe('Generator', () => {
     act(() => {
       useModelLoadProgressStore.getState().reset()
     })
+  })
+
+  it('prevents default form submission', () => {
+    render(<Generator />)
+
+    const form = screen.getByRole('form')
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
+
+    form.dispatchEvent(submitEvent)
+
+    expect(submitEvent.defaultPrevented).toBe(true)
+  })
+
+  it('mounts photoview modal when not generating and images exist', () => {
+    useUseImageGenerationStore.setState({
+      items: [{ path: 'images/a.png', file_name: 'a.png' }],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+
+    render(<Generator />)
+
+    expect(screen.getByTestId('generator-photoview-modal')).toBeInTheDocument()
+  })
+
+  it('closes photoview when it is open and conditions become invalid', () => {
+    useUseImageGenerationStore.setState({
+      items: [{ path: 'images/a.png', file_name: 'a.png' }],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+    useGeneratorPhotoviewStore.setState({ isOpen: true, currentIndex: 0 })
+
+    const { rerender } = render(<Generator />)
+    expect(useGeneratorPhotoviewStore.getState().isOpen).toBe(true)
+
+    act(() => {
+      useGenerationStatusStore.setState({ isGenerating: true })
+    })
+
+    rerender(<Generator />)
+
+    expect(useGeneratorPhotoviewStore.getState().isOpen).toBe(false)
+  })
+
+  it('does not mount photoview modal when there are no images', () => {
+    useUseImageGenerationStore.setState({
+      items: [],
+      imageStepEnds: [],
+      nsfw_content_detected: []
+    })
+
+    render(<Generator />)
+
+    expect(
+      screen.queryByTestId('generator-photoview-modal')
+    ).not.toBeInTheDocument()
   })
 })

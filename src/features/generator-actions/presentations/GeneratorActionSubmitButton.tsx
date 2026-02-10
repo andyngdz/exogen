@@ -4,7 +4,15 @@ import { Button } from '@heroui/react'
 import clsx from 'clsx'
 import { useFormContext } from 'react-hook-form'
 
-export const GeneratorActionSubmitButton = () => {
+interface GeneratorActionSubmitButtonProps {
+  onPress: VoidFunction
+  isDisabled?: boolean
+}
+
+export const GeneratorActionSubmitButton = ({
+  onPress,
+  isDisabled
+}: GeneratorActionSubmitButtonProps) => {
   const { watch } = useFormContext<GeneratorConfigFormValues>()
   const { isGenerating } = useGenerationStatusStore()
   const numberOfImages = watch('number_of_images')
@@ -12,9 +20,10 @@ export const GeneratorActionSubmitButton = () => {
   return (
     <Button
       color="primary"
-      type="submit"
+      type="button"
       className="opacity-100"
-      isDisabled={isGenerating}
+      isDisabled={isGenerating || isDisabled}
+      onPress={onPress}
     >
       <span
         className={clsx({

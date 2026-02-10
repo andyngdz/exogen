@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       '@next/next/no-img-element': 'off',
+      'sonarjs/no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

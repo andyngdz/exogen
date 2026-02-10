@@ -6,6 +6,7 @@ import type {
   HardwareResponse,
   HealthResponse,
   HistoryItem,
+  Image2ImageGenerationRequest,
   ImageGenerationRequest,
   ImageGenerationResponse,
   LoadModelRequest,
@@ -17,6 +18,7 @@ import type {
   ModelDownloaded,
   ModelRecommendationResponse,
   ModelSearchResponse,
+  LoadModelResponse,
   Sampler,
   SelectDeviceRequest,
   StyleSection
@@ -66,7 +68,10 @@ class API {
   }
 
   async loadModel(request: LoadModelRequest) {
-    const { data } = await client.post('/models/load', request)
+    const { data } = await client.post<LoadModelResponse>(
+      '/models/load',
+      request
+    )
 
     return data
   }
@@ -112,6 +117,15 @@ class API {
   async generator(request: ImageGenerationRequest) {
     const { data } = await client.post<ImageGenerationResponse>(
       `/generators`,
+      request
+    )
+
+    return data
+  }
+
+  async img2img(request: Image2ImageGenerationRequest) {
+    const { data } = await client.post<ImageGenerationResponse>(
+      '/img2img',
       request
     )
 

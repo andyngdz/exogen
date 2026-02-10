@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom/vitest'
 import 'core-js/actual'
-import type React from 'react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import 'vitest-localstorage-mock'
 
@@ -23,15 +22,10 @@ vi.stubGlobal('ResizeObserver', ResizeObserverMock)
  * Mock external modules that cause issues in test environment
  */
 
-// Mock framer-motion to prevent window access issues during tests
-vi.mock('framer-motion', async () => {
-  const actual =
-    await vi.importActual<typeof import('framer-motion')>('framer-motion')
-  return {
-    ...actual,
-    LazyMotion: ({ children }: { children: React.ReactNode }) =>
-      children as React.ReactElement
-  }
+// Mock framer-motion to prevent window access issues during tests.
+// Keep it lightweight: enough for HeroUI internals.
+vi.mock('framer-motion', () => {
+  return import('./src/cores/test-utils/framerMotionMock')
 })
 
 // Mock react-lottie to prevent canvas context issues during tests
