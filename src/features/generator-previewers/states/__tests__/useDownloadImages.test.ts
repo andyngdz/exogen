@@ -1,6 +1,6 @@
 import { useDownloadImages } from '@/features/generator-previewers/states/useDownloadImages'
 import { addToast } from '@heroui/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 
 // Partial mock to override only addToast while keeping other exports intact
 vi.mock('@heroui/react', async () => {
@@ -14,7 +14,7 @@ vi.mock('@heroui/react', async () => {
 
 describe('useDownloadImages', () => {
   const testUrl = 'https://example.com/image.png'
-  let mockDownloadImage: ReturnType<typeof vi.fn>
+  let mockDownloadImage: Mock<(url: string) => Promise<void>>
 
   beforeEach(() => {
     vi.clearAllMocks()

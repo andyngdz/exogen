@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom/vitest'
 import 'core-js/actual'
-import type React from 'react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import 'vitest-localstorage-mock'
 
@@ -23,16 +22,25 @@ vi.stubGlobal('ResizeObserver', ResizeObserverMock)
  * Mock external modules that cause issues in test environment
  */
 
-// Mock framer-motion to prevent window access issues during tests
-vi.mock('framer-motion', async () => {
-  const actual =
-    await vi.importActual<typeof import('framer-motion')>('framer-motion')
-  return {
-    ...actual,
-    LazyMotion: ({ children }: { children: React.ReactNode }) =>
-      children as React.ReactElement
-  }
+// Mock framer-motion to prevent window access issues during tests.
+// Keep it lightweight: enough for HeroUI internals.
+vi.mock('framer-motion', () => {
+  return import('./src/cores/test-utils/framerMotionMock')
 })
+
+// Mock react-lottie to prevent canvas context issues during tests
+vi.mock('react-lottie', () => ({
+  default: () => ({
+    type: 'div',
+    props: { 'data-testid': 'lottie-animation' },
+    children: 'AI Animation'
+  })
+}))
+
+// Mock lottie animation data
+vi.mock('@/assets/ai.json', () => ({
+  default: { mockAnimationData: true }
+}))
 
 /**
  * ElectronAPI Mock
@@ -45,6 +53,7 @@ const noop = (): void => {}
 
 const createElectronAPIMock = (): ElectronAPI => ({
   downloadImage: vi.fn().mockReturnThis(),
+  selectFile: vi.fn().mockResolvedValue(null),
   onBackendSetupStatus: vi.fn().mockReturnValue(noop),
   app: {
     getVersion: vi.fn().mockResolvedValue('0.0.0')
@@ -52,7 +61,8 @@ const createElectronAPIMock = (): ElectronAPI => ({
   backend: {
     getPort: vi.fn().mockResolvedValue(8000),
     isLogStreaming: vi.fn().mockResolvedValue(false),
-    onLog: vi.fn().mockReturnValue(noop)
+    onLog: vi.fn().mockReturnValue(noop),
+    openBackendFolder: vi.fn().mockResolvedValue('')
   },
   updater: {
     checkForUpdates: vi
@@ -69,7 +79,7 @@ const createElectronAPIMock = (): ElectronAPI => ({
 
 beforeEach(() => {
   // Setup ElectronAPI mock on window object
-  Object.defineProperty(window, 'electronAPI', {
+  Object.defineProperty(globalThis, 'electronAPI', {
     configurable: true,
     writable: true,
     value: createElectronAPIMock()
@@ -78,5 +88,5 @@ beforeEach(() => {
 
 afterEach(() => {
   // Clean up ElectronAPI mock
-  Reflect.deleteProperty(window, 'electronAPI')
+  Reflect.deleteProperty(globalThis, 'electronAPI')
 })

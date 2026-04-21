@@ -11,6 +11,10 @@ export const useModelRecommendation = () => {
     router.replace('/editor')
   }, [router])
 
+  const onSkip = useCallback(() => {
+    router.replace('/editor')
+  }, [router])
+
   const onDownloadCompleted = useCallback(() => {
     router.replace('/editor')
   }, [router])
@@ -19,5 +23,5 @@ export const useModelRecommendation = () => {
     onDownloadCompleted
   ])
 
-  return { onNext, data }
+  return { onNext, onSkip, data }
 }

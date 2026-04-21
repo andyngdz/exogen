@@ -1,7 +1,46 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGeneratorPreviewer } from '../../states'
 import { GeneratorPreviewerSlider } from '../GeneratorPreviewerSlider'
+
+// Mock HeroUI ScrollShadow to avoid framer-motion (window access) in tests.
+vi.mock('@heroui/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@heroui/react')>()
+  return {
+    ...actual,
+    Button: ({
+      children,
+      onPress,
+      isDisabled,
+      className,
+      'aria-label': ariaLabel
+    }: {
+      children: ReactNode
+      onPress?: VoidFunction
+      isDisabled?: boolean
+      className?: string
+      'aria-label'?: string
+    }) => (
+      <button
+        type="button"
+        onClick={onPress}
+        disabled={isDisabled}
+        className={className}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </button>
+    ),
+    ScrollShadow: ({
+      children,
+      className
+    }: {
+      children: ReactNode
+      className?: string
+    }) => <div className={className}>{children}</div>
+  }
+})
 
 // Mock the useGeneratorPreviewer hook
 vi.mock('@/features/generator-previewers/states', () => ({
@@ -163,16 +202,15 @@ describe('GeneratorPreviewerSlider', () => {
     it('should render slider actions', () => {
       render(<GeneratorPreviewerSlider />)
 
-      expect(screen.getByTestId('slider-actions')).toBeInTheDocument()
-      expect(screen.getByTestId('prev-button')).toBeInTheDocument()
-      expect(screen.getByTestId('next-button')).toBeInTheDocument()
+      expect(screen.getByLabelText('Previous image')).toBeInTheDocument()
+      expect(screen.getByLabelText('Next image')).toBeInTheDocument()
     })
 
     it('should have correct container styling', () => {
       render(<GeneratorPreviewerSlider />)
 
       const container = screen.getByTestId('swiper').parentElement
-      expect(container).toHaveClass('p-4', 'relative')
+      expect(container).toHaveClass('relative')
     })
   })
 
@@ -190,7 +228,7 @@ describe('GeneratorPreviewerSlider', () => {
     it('should call slideNext when next button is clicked', () => {
       render(<GeneratorPreviewerSlider />)
 
-      const nextButton = screen.getByTestId('next-button')
+      const nextButton = screen.getByLabelText('Next image')
       fireEvent.click(nextButton)
 
       expect(mockSlideNext).toHaveBeenCalledTimes(1)
@@ -199,7 +237,7 @@ describe('GeneratorPreviewerSlider', () => {
     it('should call slidePrev when previous button is clicked', () => {
       render(<GeneratorPreviewerSlider />)
 
-      const prevButton = screen.getByTestId('prev-button')
+      const prevButton = screen.getByLabelText('Previous image')
       fireEvent.click(prevButton)
 
       expect(mockSlidePrev).toHaveBeenCalledTimes(1)

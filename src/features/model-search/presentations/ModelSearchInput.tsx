@@ -5,5 +5,5 @@ import { ModelSearchFormValues } from '../types'
 export const ModelSearchInput = () => {
   const { register } = useFormContext<ModelSearchFormValues>()
 
-  return <Input variant="flat" {...register('query')} />
+  return <Input placeholder="Model name, author, ..." {...register('query')} />
 }

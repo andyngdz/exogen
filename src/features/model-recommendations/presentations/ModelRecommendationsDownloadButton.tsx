@@ -17,10 +17,10 @@ interface ModelRecommendationsDownloadButtonProps {
 export const ModelRecommendationsDownloadButton: FC<
   ModelRecommendationsDownloadButtonProps
 > = ({ modelId }) => {
-  const { id } = useDownloadWatcherStore()
+  const { model_id } = useDownloadWatcherStore()
   const { percent, isDownloading, downloadSized, downloadTotalSized } =
     useDownloadWatcher(modelId)
-  const isDisabled = isDownloading || (!!id && modelId !== id)
+  const isDisabled = isDownloading || (!!model_id && modelId !== model_id)
 
   const onDownload = async () => {
     await api.downloadModel(modelId)

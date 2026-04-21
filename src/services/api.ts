@@ -2,19 +2,24 @@ import { DEFAULT_BACKEND_URL } from '@/cores/constants'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import axios from 'axios'
 import type {
-  DeviceIndexResponse,
+  BackendConfig,
   HardwareResponse,
   HealthResponse,
   HistoryItem,
+  Image2ImageGenerationRequest,
   ImageGenerationRequest,
   ImageGenerationResponse,
   LoadModelRequest,
+  LoRA,
+  LoRADeleteResponse,
+  LoRAListResponse,
   MaxMemoryRequest,
-  MemoryResponse,
   ModelDetailsResponse,
   ModelDownloaded,
   ModelRecommendationResponse,
   ModelSearchResponse,
+  LoadModelResponse,
+  Sampler,
   SelectDeviceRequest,
   StyleSection
 } from '../types'
@@ -40,21 +45,16 @@ class API {
   }
 
   async setMaxMemory(request: MaxMemoryRequest) {
-    await client.post('/hardware/max-memory', request)
-  }
-
-  async getMemory() {
-    const { data } = await client.get<MemoryResponse>('/hardware/memory')
+    const { data } = await client.put<BackendConfig>(
+      '/config/max-memory',
+      request
+    )
 
     return data
   }
 
   async selectDevice(request: SelectDeviceRequest) {
-    await client.post('/hardware/device', request)
-  }
-
-  async getDeviceIndex() {
-    const { data } = await client.get<DeviceIndexResponse>('/hardware/device')
+    const { data } = await client.put<BackendConfig>('/config/device', request)
 
     return data
   }
@@ -68,7 +68,10 @@ class API {
   }
 
   async loadModel(request: LoadModelRequest) {
-    const { data } = await client.post('/models/load', request)
+    const { data } = await client.post<LoadModelResponse>(
+      '/models/load',
+      request
+    )
 
     return data
   }
@@ -89,14 +92,14 @@ class API {
 
   async modelDetails(model_id: string) {
     const { data } = await client.get<ModelDetailsResponse>(
-      `/models/details?id=${model_id}`
+      `/models/details?model_id=${model_id}`
     )
 
     return data
   }
 
-  async downloadModel(id: string) {
-    await client.post('/downloads/', { id })
+  async downloadModel(model_id: string) {
+    await client.post('/downloads/', { model_id })
   }
 
   async getDownloadedModels() {
@@ -120,6 +123,15 @@ class API {
     return data
   }
 
+  async img2img(request: Image2ImageGenerationRequest) {
+    const { data } = await client.post<ImageGenerationResponse>(
+      '/img2img',
+      request
+    )
+
+    return data
+  }
+
   async styles() {
     const { data } = await client.get<StyleSection[]>('/styles')
 
@@ -132,10 +144,50 @@ class API {
     return data
   }
 
+  async deleteHistory(history_id: number) {
+    const { data } = await client.delete(`/histories/${history_id}`)
+
+    return data
+  }
+
   async deleteModel(model_id: string) {
     const { data } = await client.delete(`/models?model_id=${model_id}`)
 
     return data
+  }
+
+  async getSamplers() {
+    const { data } = await client.get<Sampler[]>('/generators/samplers')
+
+    return data
+  }
+
+  async loras() {
+    const { data } = await client.get<LoRAListResponse>('/loras')
+
+    return data
+  }
+
+  async uploadLora(file_path: string) {
+    const { data } = await client.post<LoRA>('/loras/upload', { file_path })
+
+    return data
+  }
+
+  async deleteLora(id: number) {
+    const { data } = await client.delete<LoRADeleteResponse>(`/loras/${id}`)
+
+    return data
+  }
+
+  async getConfig() {
+    const { data } = await client.get<BackendConfig>('/config/')
+
+    return data
+  }
+
+  async setSafetyCheckEnabled(enabled: boolean) {
+    await client.put('/config/safety-check', { enabled })
   }
 }
 

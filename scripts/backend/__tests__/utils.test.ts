@@ -1,5 +1,6 @@
 import { BackendStatusLevel } from '@types'
 import { mkdtempSync, rmSync } from 'node:fs'
+import { Server } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -215,13 +216,26 @@ describe('utils', () => {
 
       const result = await isPortAvailable(port)
 
-      server.close()
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve())
+      })
 
       expect(result).toBe(false)
     })
   })
 
   describe('findAvailablePort', () => {
+    let testServer: Server | null = null
+
+    afterEach(async () => {
+      if (testServer && testServer.listening) {
+        await new Promise<void>((resolve) => {
+          testServer?.close(() => resolve())
+        })
+        testServer = null
+      }
+    })
+
     it('should return preferred port when available', async () => {
       const port = await findAvailablePort(9000)
 
@@ -230,19 +244,20 @@ describe('utils', () => {
 
     it('should find next available port when preferred is occupied', async () => {
       const { createServer } = await import('node:net')
-      const server = createServer()
+      testServer = createServer()
 
-      const preferredPort = 9100
-
+      // Use port 0 to let OS assign an available port
       await new Promise<void>((resolve) => {
-        server.listen(preferredPort, '127.0.0.1', () => resolve())
+        testServer?.listen(0, '127.0.0.1', () => resolve())
       })
 
-      const port = await findAvailablePort(preferredPort)
+      const address = testServer.address()
+      const occupiedPort =
+        typeof address === 'object' && address ? address.port : 9100
 
-      server.close()
+      const port = await findAvailablePort(occupiedPort)
 
-      expect(port).toBeGreaterThan(preferredPort)
+      expect(port).toBeGreaterThan(occupiedPort)
     })
 
     it('should use default preferred port 8000', async () => {

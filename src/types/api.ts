@@ -1,3 +1,5 @@
+import { UpscalerMethod, UpscalerType } from '@/cores/constants'
+
 export interface HealthResponse {
   status: string
   message: string
@@ -18,22 +20,14 @@ export interface HardwareResponse {
   message: string
 }
 
-export interface DeviceIndexResponse {
-  device_index: number
-}
-
-export interface MemoryResponse {
-  gpu: number
-  ram: number
-}
-
-export interface SelectDeviceRequest {
-  device_index: number
-}
-
 export interface MaxMemoryRequest {
   gpu_scale_factor: number
   ram_scale_factor: number
+}
+
+export interface MaxMemoryParams {
+  gpuScaleFactor: number
+  ramScaleFactor: number
 }
 
 export interface ModelRecommendationItem {
@@ -86,4 +80,33 @@ export interface StyleSection {
 export interface ApiError {
   message: string
   status?: number
+}
+
+export interface UpscalerOption {
+  value: UpscalerType
+  name: string
+  description: string
+  suggested_denoise_strength: number
+  method: UpscalerMethod
+  is_recommended: boolean
+}
+
+export interface UpscalerSection {
+  method: UpscalerMethod
+  title: string
+  options: UpscalerOption[]
+}
+
+export interface BackendConfig {
+  upscalers: UpscalerSection[]
+  safety_check_enabled: boolean
+  gpu_scale_factor: number
+  ram_scale_factor: number
+  total_gpu_memory: number
+  total_ram_memory: number
+  device_index: number
+}
+
+export interface SelectDeviceRequest {
+  device_index: number
 }

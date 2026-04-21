@@ -21,7 +21,9 @@ export const GeneratorConfigStyleItem: FC<GeneratorConfigStyleItemProps> = ({
   return (
     <Tooltip
       key={styleItem.id}
+      closeDelay={0}
       classNames={{
+        base: 'pointer-events-none',
         content: 'p-0 rounded-lg overflow-hidden'
       }}
       content={

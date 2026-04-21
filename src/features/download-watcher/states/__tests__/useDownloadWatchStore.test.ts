@@ -6,37 +6,37 @@ import {
 } from '../useDownloadWatchStore'
 
 describe('useDownloadWatcherStore', () => {
-  it('initializes with undefined id and step', () => {
+  it('initializes with undefined model_id and step', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
-    expect(result.current.id).toBeUndefined()
+    expect(result.current.model_id).toBeUndefined()
     expect(result.current.step).toBeUndefined()
   })
 
   it('provides all required functions', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
-    expect(result.current.onSetId).toBeInstanceOf(Function)
+    expect(result.current.onSetModelId).toBeInstanceOf(Function)
     expect(result.current.onUpdateStep).toBeInstanceOf(Function)
     expect(result.current.onResetStep).toBeInstanceOf(Function)
-    expect(result.current.onResetId).toBeInstanceOf(Function)
+    expect(result.current.onResetModelId).toBeInstanceOf(Function)
   })
 
-  it('sets id when onSetId is called', () => {
+  it('sets model_id when onSetModelId is called', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     act(() => {
-      result.current.onSetId('test-model-123')
+      result.current.onSetModelId('test-model-123')
     })
 
-    expect(result.current.id).toBe('test-model-123')
+    expect(result.current.model_id).toBe('test-model-123')
   })
 
   it('updates step when onUpdateStep is called', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     const mockStep = {
-      id: 'model-456',
+      model_id: 'model-456',
       step: 3,
       total: 10,
       downloaded_size: 3145728,
@@ -56,7 +56,7 @@ describe('useDownloadWatcherStore', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     const firstStep = {
-      id: 'model-1',
+      model_id: 'model-1',
       step: 1,
       total: 5,
       downloaded_size: 1048576,
@@ -65,7 +65,7 @@ describe('useDownloadWatcherStore', () => {
     }
 
     const secondStep = {
-      id: 'model-1',
+      model_id: 'model-1',
       step: 3,
       total: 5,
       downloaded_size: 3145728,
@@ -90,7 +90,7 @@ describe('useDownloadWatcherStore', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     const mockStep = {
-      id: 'model-789',
+      model_id: 'model-789',
       step: 5,
       total: 10,
       downloaded_size: 5242880,
@@ -111,27 +111,27 @@ describe('useDownloadWatcherStore', () => {
     expect(result.current.step).toBeUndefined()
   })
 
-  it('resets id to undefined when onResetId is called', () => {
+  it('resets model_id to undefined when onResetModelId is called', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     act(() => {
-      result.current.onSetId('test-model-xyz')
+      result.current.onSetModelId('test-model-xyz')
     })
 
-    expect(result.current.id).toBe('test-model-xyz')
+    expect(result.current.model_id).toBe('test-model-xyz')
 
     act(() => {
-      result.current.onResetId()
+      result.current.onResetModelId()
     })
 
-    expect(result.current.id).toBeUndefined()
+    expect(result.current.model_id).toBeUndefined()
   })
 
-  it('can set id and step independently', () => {
+  it('can set model_id and step independently', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     const mockStep = {
-      id: 'model-a',
+      model_id: 'model-a',
       step: 2,
       total: 5,
       downloaded_size: 2097152,
@@ -140,19 +140,19 @@ describe('useDownloadWatcherStore', () => {
     }
 
     act(() => {
-      result.current.onSetId('model-b')
+      result.current.onSetModelId('model-b')
       result.current.onUpdateStep(mockStep)
     })
 
-    expect(result.current.id).toBe('model-b')
+    expect(result.current.model_id).toBe('model-b')
     expect(result.current.step).toEqual(mockStep)
   })
 
-  it('can reset id and step independently', () => {
+  it('can reset model_id and step independently', () => {
     const { result } = renderHook(() => useDownloadWatcherStore())
 
     const mockStep = {
-      id: 'model-c',
+      model_id: 'model-c',
       step: 4,
       total: 10,
       downloaded_size: 4194304,
@@ -161,25 +161,25 @@ describe('useDownloadWatcherStore', () => {
     }
 
     act(() => {
-      result.current.onSetId('model-d')
+      result.current.onSetModelId('model-d')
       result.current.onUpdateStep(mockStep)
     })
 
-    expect(result.current.id).toBe('model-d')
+    expect(result.current.model_id).toBe('model-d')
     expect(result.current.step).toEqual(mockStep)
 
     act(() => {
-      result.current.onResetId()
+      result.current.onResetModelId()
     })
 
-    expect(result.current.id).toBeUndefined()
+    expect(result.current.model_id).toBeUndefined()
     expect(result.current.step).toEqual(mockStep) // step should remain
 
     act(() => {
       result.current.onResetStep()
     })
 
-    expect(result.current.id).toBeUndefined()
+    expect(result.current.model_id).toBeUndefined()
     expect(result.current.step).toBeUndefined()
   })
 
@@ -189,11 +189,11 @@ describe('useDownloadWatcherStore', () => {
     // This test ensures the hook returns the correct type
     const state: UseDownloadWatcherStore = result.current
 
-    expect(state).toHaveProperty('id')
+    expect(state).toHaveProperty('model_id')
     expect(state).toHaveProperty('step')
-    expect(state).toHaveProperty('onSetId')
+    expect(state).toHaveProperty('onSetModelId')
     expect(state).toHaveProperty('onUpdateStep')
     expect(state).toHaveProperty('onResetStep')
-    expect(state).toHaveProperty('onResetId')
+    expect(state).toHaveProperty('onResetModelId')
   })
 })

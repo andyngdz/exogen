@@ -85,7 +85,8 @@ vi.mock('@heroui/react', () => ({
   ),
   ModalFooter: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="modal-footer">{children}</div>
-  )
+  ),
+  Divider: () => <hr />
 }))
 
 // Mock Lucide icons
@@ -105,6 +106,9 @@ vi.mock('@/features/settings/states/useDeleteModel', () => ({
   })
 }))
 
+// Helper to create a pending promise (never resolves)
+const createPendingPromise = <T,>(): Promise<T> => new Promise(() => {})
+
 describe('ModelManagement', () => {
   let wrapper = createQueryClientWrapper()
 
@@ -117,7 +121,7 @@ describe('ModelManagement', () => {
     it('displays loading spinner when fetching models', () => {
       // Mock API to never resolve to keep loading state
       vi.mocked(api.getDownloadedModels).mockImplementation(
-        () => new Promise(() => {}) // Never resolves
+        createPendingPromise
       )
 
       render(<ModelManagement />, { wrapper })
@@ -129,7 +133,7 @@ describe('ModelManagement', () => {
 
     it('has correct loading container styling', () => {
       vi.mocked(api.getDownloadedModels).mockImplementation(
-        () => new Promise(() => {})
+        createPendingPromise
       )
 
       render(<ModelManagement />, { wrapper })
@@ -176,10 +180,10 @@ describe('ModelManagement', () => {
     it('renders the page title correctly', async () => {
       render(<ModelManagement />, { wrapper })
 
-      expect(await screen.findByText('Installed Models')).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(
-        'Installed Models'
-      )
+      expect(await screen.findByText('Model Management')).toBeInTheDocument()
+      expect(
+        screen.getByText('Manage your installed AI models')
+      ).toBeInTheDocument()
     })
 
     it('renders models listbox with correct aria-label', async () => {
@@ -193,7 +197,7 @@ describe('ModelManagement', () => {
     it('displays all downloaded models in the list', async () => {
       render(<ModelManagement />, { wrapper })
 
-      await screen.findByText('stable-diffusion-xl-base-1.0')
+      await screen.findByText('Model Management')
 
       expect(
         screen.getByText('stable-diffusion-xl-base-1.0')
@@ -279,7 +283,7 @@ describe('ModelManagement', () => {
     it('renders page title even when no models exist', async () => {
       render(<ModelManagement />, { wrapper })
 
-      expect(await screen.findByText('Installed Models')).toBeInTheDocument()
+      expect(await screen.findByText('Model Management')).toBeInTheDocument()
     })
 
     it('renders empty listbox when no models are downloaded', async () => {
@@ -312,7 +316,7 @@ describe('ModelManagement', () => {
       render(<ModelManagement />, { wrapper })
 
       // Component should still render title even if API fails
-      expect(await screen.findByText('Installed Models')).toBeInTheDocument()
+      expect(await screen.findByText('Model Management')).toBeInTheDocument()
 
       consoleErrorSpy.mockRestore()
     })
@@ -323,7 +327,7 @@ describe('ModelManagement', () => {
 
       render(<ModelManagement />, { wrapper })
 
-      expect(await screen.findByText('Installed Models')).toBeInTheDocument()
+      expect(await screen.findByText('Model Management')).toBeInTheDocument()
 
       const listbox = screen.getByTestId('listbox')
       expect(listbox).toBeInTheDocument()
@@ -349,21 +353,21 @@ describe('ModelManagement', () => {
     it('has correct container structure', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const container = await screen.findByText('Installed Models')
+      const container = await screen.findByText('Model Management')
       expect(container.parentElement?.tagName).toBe('DIV')
     })
 
     it('applies correct CSS classes to title', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const title = await screen.findByText('Installed Models')
-      expect(title).toHaveClass('text-lg', 'font-medium', 'mb-4')
+      const title = await screen.findByText('Model Management')
+      expect(title).toHaveClass('text-lg', 'font-semibold')
     })
 
     it('maintains consistent component hierarchy', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const title = await screen.findByText('Installed Models')
+      const title = await screen.findByText('Model Management')
       const listbox = await screen.findByTestId('listbox')
 
       // Title should come before listbox in the DOM
@@ -400,7 +404,7 @@ describe('ModelManagement', () => {
       render(<ModelManagement />, { wrapper })
 
       const heading = await screen.findByRole('heading', { level: 3 })
-      expect(heading).toHaveTextContent('Installed Models')
+      expect(heading).toHaveTextContent('Model Management')
     })
 
     it('provides accessible buttons for model actions', async () => {

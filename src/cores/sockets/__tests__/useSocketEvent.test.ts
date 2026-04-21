@@ -53,7 +53,10 @@ describe('useSocketEvent', () => {
 
     // Create new socket instance
     const newMockSocket = createMockSocket()
-    useSocketStore.setState({ socket: newMockSocket as unknown as Socket })
+
+    act(() => {
+      useSocketStore.setState({ socket: newMockSocket as unknown as Socket })
+    })
 
     // Trigger re-render
     rerender()

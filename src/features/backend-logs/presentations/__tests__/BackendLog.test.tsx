@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { BackendLog } from '../BackendLog'
 
@@ -10,13 +10,21 @@ vi.mock('@heroui/react', () => ({
   Button: ({
     children,
     onPress,
-    endContent
+    endContent,
+    isIconOnly,
+    'aria-label': ariaLabel
   }: {
-    children: React.ReactNode
+    children?: React.ReactNode
     onPress: () => void
-    endContent: React.ReactNode
+    endContent?: React.ReactNode
+    isIconOnly?: boolean
+    'aria-label'?: string
   }) => (
-    <button onClick={onPress} data-testid="console-button">
+    <button
+      onClick={onPress}
+      data-testid={isIconOnly ? 'open-folder-button' : 'console-button'}
+      aria-label={ariaLabel}
+    >
       {children}
       {endContent}
     </button>
@@ -44,9 +52,10 @@ vi.mock('@heroui/react', () => ({
   }))
 }))
 
-// Mock lucide-react icon
+// Mock lucide-react icons
 vi.mock('lucide-react', () => ({
-  SquareChevronRight: () => <span data-testid="icon" />
+  SquareChevronRight: () => <span data-testid="icon" />,
+  FolderOpen: () => <span data-testid="folder-icon" />
 }))
 
 // Mock BackendLogList
@@ -101,5 +110,47 @@ describe('BackendLog', () => {
     render(<BackendLog />)
 
     expect(screen.queryByTestId('drawer')).not.toBeInTheDocument()
+  })
+
+  it('renders open folder button in drawer header', () => {
+    mockUseDisclosure.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: vi.fn(),
+      isControlled: false,
+      getButtonProps: vi.fn(),
+      getDisclosureProps: vi.fn()
+    })
+
+    render(<BackendLog />)
+
+    const openFolderButton = screen.getByTestId('open-folder-button')
+    expect(openFolderButton).toBeInTheDocument()
+    expect(openFolderButton).toHaveAttribute(
+      'aria-label',
+      'Open backend folder'
+    )
+  })
+
+  it('calls electronAPI.backend.openBackendFolder when folder button is clicked', () => {
+    mockUseDisclosure.mockReturnValue({
+      isOpen: true,
+      onOpen: mockOnOpen,
+      onClose: mockOnClose,
+      onOpenChange: vi.fn(),
+      isControlled: false,
+      getButtonProps: vi.fn(),
+      getDisclosureProps: vi.fn()
+    })
+
+    render(<BackendLog />)
+
+    const openFolderButton = screen.getByTestId('open-folder-button')
+    fireEvent.click(openFolderButton)
+
+    expect(
+      globalThis.window.electronAPI.backend.openBackendFolder
+    ).toHaveBeenCalledTimes(1)
   })
 })

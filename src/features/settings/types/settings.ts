@@ -1,3 +1,3 @@
 export interface SettingFormValues {
-  safetyCheck: boolean
+  safety_check_enabled: boolean
 }

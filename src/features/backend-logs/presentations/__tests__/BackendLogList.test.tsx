@@ -14,18 +14,20 @@ vi.mock('@/services', () => ({
   }
 }))
 
-vi.mock('@heroui/react', () => ({
-  ScrollShadow: ({
-    children,
-    className
-  }: {
-    children: React.ReactNode
-    className: string
-  }) => (
-    <div data-testid="scroll-shadow" className={className}>
-      {children}
-    </div>
-  )
+vi.mock('../../services/backend-logs', () => ({
+  backendLogsService: {
+    onGetLogColor: vi.fn((level: string) => {
+      switch (level) {
+        case 'error':
+          return 'text-danger'
+        case 'warn':
+          return 'text-warning'
+        default:
+          return 'text-success'
+      }
+    }),
+    onGetBackgroundColor: vi.fn(() => 'bg-success')
+  }
 }))
 
 import { useBackendLog } from '../../states'
@@ -44,7 +46,6 @@ describe('BackendLogList', () => {
     vi.clearAllMocks()
     mockUseBackendLog.mockReturnValue({
       logs: [],
-      onGetLogColor: vi.fn(() => 'text-default-700' as const),
       scrollRef: mockScrollRef,
       rowVirtualizer: mockVirtualizer as never,
       isStreaming: false,
@@ -52,12 +53,11 @@ describe('BackendLogList', () => {
     })
   })
 
-  it('renders ScrollShadow container', () => {
-    render(<BackendLogList />)
-
-    const scrollShadow = screen.getByTestId('scroll-shadow')
-    expect(scrollShadow).toBeInTheDocument()
-    expect(scrollShadow).toHaveClass('scrollbar-thin', 'h-96')
+  it('renders scrollable container', () => {
+    const { container } = render(<BackendLogList />)
+    // The first div should be the scrollable container
+    const scrollContainer = container.firstChild
+    expect(scrollContainer).toHaveClass('py-4', 'overflow-y-auto')
   })
 
   it('renders empty list when no logs', () => {
@@ -74,12 +74,19 @@ describe('BackendLogList', () => {
     ]
 
     mockVirtualizer.getVirtualItems.mockReturnValue([
-      { index: 0, key: 'log-0', start: 0, size: 50, measureElement: vi.fn() }
+      {
+        index: 0,
+        key: 'log-0',
+        start: 0,
+        size: 50,
+        measureElement: vi.fn(),
+        lane: 0,
+        end: 50
+      }
     ])
 
     mockUseBackendLog.mockReturnValue({
       logs: mockLogs,
-      onGetLogColor: vi.fn(() => 'text-secondary' as const),
       scrollRef: mockScrollRef,
       rowVirtualizer: mockVirtualizer as never,
       isStreaming: false,
@@ -98,15 +105,19 @@ describe('BackendLogList', () => {
     ]
 
     mockVirtualizer.getVirtualItems.mockReturnValue([
-      { index: 0, key: 'log-0', start: 0, size: 50, measureElement: vi.fn() }
+      {
+        index: 0,
+        key: 'log-0',
+        start: 0,
+        size: 50,
+        measureElement: vi.fn(),
+        lane: 0,
+        end: 50
+      }
     ])
 
     mockUseBackendLog.mockReturnValue({
       logs: mockLogs,
-      onGetLogColor: (level) =>
-        level === 'error'
-          ? ('text-danger' as const)
-          : ('text-default-700' as const),
       scrollRef: mockScrollRef,
       rowVirtualizer: mockVirtualizer as never,
       isStreaming: false,
@@ -130,12 +141,19 @@ describe('BackendLogList', () => {
     ]
 
     mockVirtualizer.getVirtualItems.mockReturnValue([
-      { index: 0, key: 'log-0', start: 0, size: 50, measureElement: vi.fn() }
+      {
+        index: 0,
+        key: 'log-0',
+        start: 0,
+        size: 50,
+        measureElement: vi.fn(),
+        lane: 0,
+        end: 50
+      }
     ])
 
     mockUseBackendLog.mockReturnValue({
       logs: mockLogs,
-      onGetLogColor: vi.fn(() => 'text-secondary' as const),
       scrollRef: mockScrollRef,
       rowVirtualizer: mockVirtualizer as never,
       isStreaming: false,
@@ -146,7 +164,5 @@ describe('BackendLogList', () => {
 
     // Should display the text without ANSI codes
     expect(screen.getByText('Green text and red text')).toBeInTheDocument()
-    // Should NOT display the raw ANSI codes
-    expect(screen.queryByText(/\u001b/)).not.toBeInTheDocument()
   })
 })

@@ -1,8 +1,8 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import serve from 'electron-serve'
 import fixPath from 'fix-path'
-import path from 'path'
-import { startBackend, stopBackend } from '../scripts/backend'
+import path from 'node:path'
+import { BACKEND_DIRNAME, startBackend, stopBackend } from '../scripts/backend'
 import { setupBackendPortHandler } from './backend-port'
 import { isLogStreaming, startLogStreaming } from './log-streamer'
 import {
@@ -37,7 +37,6 @@ const onCreateWindow = async () => {
     height: 800,
     autoHideMenuBar: true,
     show: false,
-    backgroundColor: '#0B0B0B',
     webPreferences: {
       preload: path.join(appDir, 'electron', 'preload.js'),
       sandbox: true,
@@ -98,9 +97,31 @@ const onDownloadImage = () => {
   })
 }
 
+const onSelectFile = () => {
+  ipcMain.handle('select-file', async (_, filters?: Electron.FileFilter[]) => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: filters || []
+    })
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null
+    }
+
+    return result.filePaths[0]
+  })
+}
+
 const onLogStreaming = () => {
   ipcMain.handle('backend:log-stream-status', () => {
     return isLogStreaming()
+  })
+}
+
+const onOpenBackendFolder = () => {
+  ipcMain.handle('backend:open-folder', () => {
+    const backendPath = path.join(app.getPath('userData'), BACKEND_DIRNAME)
+    return shell.openPath(backendPath)
   })
 }
 
@@ -120,13 +141,48 @@ const onAutoUpdate = () => {
   })
 }
 
-const gotLock = app.requestSingleInstanceLock()
+const onAppReady = async () => {
+  console.log('Electron app ready, initializing...')
+  onSetLinuxGpuFlags()
 
-if (!gotLock) {
-  console.log('Another instance is already running, exiting...')
-  app.quit()
-} else {
+  // Start log streaming early to capture backend initialization logs
+  startLogStreaming()
+
+  console.log('Creating main window...')
+  await onCreateWindow()
+  console.log('Main window created')
+
+  onDownloadImage()
+  onSelectFile()
+  onLogStreaming()
+  onOpenBackendFolder()
+  onBackendStatusHistory()
+  onAppInfo()
+  setupBackendPortHandler()
+  onAutoUpdate()
+
+  if (process.env.SKIP_BACKEND === 'true') {
+    console.log('Skipping backend startup (SKIP_BACKEND=true)')
+  } else {
+    console.log('Starting Python backend...')
+    startBackend({
+      userDataPath: app.getPath('userData'),
+      externalEmit: broadcastBackendStatus
+    })
+  }
+}
+
+const main = async () => {
+  const gotLock = app.requestSingleInstanceLock()
+
+  if (!gotLock) {
+    console.log('Another instance is already running, exiting...')
+    app.quit()
+    return
+  }
+
   console.log('Single instance lock acquired')
+
   app.on('second-instance', () => {
     const [win] = BrowserWindow.getAllWindows()
 
@@ -136,45 +192,23 @@ if (!gotLock) {
     }
   })
 
-  app.whenReady().then(async () => {
-    console.log('Electron app ready, initializing...')
-    onSetLinuxGpuFlags()
-
-    // Start log streaming early to capture backend initialization logs
-    startLogStreaming()
-
-    console.log('Creating main window...')
-    await onCreateWindow()
-    console.log('Main window created')
-
-    onDownloadImage()
-    onLogStreaming()
-    onBackendStatusHistory()
-    onAppInfo()
-    setupBackendPortHandler()
-    onAutoUpdate()
-
-    if (process.env.SKIP_BACKEND !== 'true') {
-      console.log('Starting Python backend...')
-      startBackend({
-        userDataPath: app.getPath('userData'),
-        externalEmit: broadcastBackendStatus
-      })
-    } else {
-      console.log('Skipping backend startup (SKIP_BACKEND=true)')
-    }
-  })
-
   app.on('window-all-closed', () => {
     console.log('All windows closed')
-    if (process.platform !== 'darwin') {
-      console.log('Quitting app (not macOS)')
-      app.quit()
+    if (process.platform === 'darwin') {
+      return
     }
+    app.quit()
   })
 
-  app.on('before-quit', () => {
+  app.on('before-quit', async (event) => {
     console.log('App is quitting, stopping backend...')
-    stopBackend()
+    event.preventDefault()
+    await stopBackend()
+    app.exit(0)
   })
+
+  await app.whenReady()
+  await onAppReady()
 }
+
+main()

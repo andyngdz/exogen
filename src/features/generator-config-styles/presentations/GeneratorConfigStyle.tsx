@@ -1,10 +1,12 @@
 import { useStyleSections } from '@/cores/hooks/useStyleSections'
 import { Button, Skeleton, useDisclosure } from '@heroui/react'
 import { Plus } from 'lucide-react'
+import { useDefaultStyles } from '../states'
 import { GeneratorConfigStyleModal } from './GeneratorConfigStyleModal'
 import { GeneratorConfigStyleSelectedPreviewer } from './GeneratorConfigStyleSelectedPreviewer'
 
 export const GeneratorConfigStyle = () => {
+  useDefaultStyles()
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
   const { styleSections, isLoading } = useStyleSections()
 

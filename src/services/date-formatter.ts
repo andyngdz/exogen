@@ -12,6 +12,10 @@ class DateFormatter {
   date(value: string) {
     return dayjs(value).format('MMM D, YYYY')
   }
+
+  datetime(value: string) {
+    return dayjs(value).format('MMM D, YYYY [at] HH:mm')
+  }
 }
 
 export const dateFormatter = new DateFormatter()

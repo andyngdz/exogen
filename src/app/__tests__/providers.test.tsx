@@ -9,6 +9,14 @@ vi.mock('@/features/download-watcher/presentations/DownloadWatcher', () => ({
   )
 }))
 
+// Mock the BackendLogCollector component to prevent act() warnings
+// from its internal useEffect that updates Zustand state
+vi.mock('@/features/backend-logs', () => ({
+  BackendLogCollector: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="backend-log-collector">{children}</div>
+  )
+}))
+
 // Mock the external providers
 vi.mock('@heroui/react', () => ({
   HeroUIProvider: ({ children }: { children: React.ReactNode }) => (

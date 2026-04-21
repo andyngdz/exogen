@@ -1,14 +1,20 @@
 import {
+  Divider,
   Modal,
+  ModalBody,
   ModalContent,
   ModalHeader,
-  ModalBody,
-  Tabs,
   Tab,
-  Divider
+  Tabs
 } from '@heroui/react'
-import { GeneralSettings, ModelManagement, UpdateSettings } from './tabs'
 import { FC } from 'react'
+import { SettingsTab, useSettingsStore } from '../states/useSettingsStore'
+import {
+  GeneralSettings,
+  MemorySettings,
+  ModelManagement,
+  UpdateSettings
+} from './tabs'
 
 interface SettingsModalProps {
   isOpen: boolean
@@ -16,6 +22,8 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const { selectedTab, setSelectedTab } = useSettingsStore()
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur">
       <ModalContent>
@@ -32,14 +40,19 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               panel: 'w-full p-4'
             }}
             isVertical
+            selectedKey={selectedTab}
+            onSelectionChange={(key) => setSelectedTab(key as SettingsTab)}
           >
-            <Tab key="general" title="General">
+            <Tab key={SettingsTab.GENERAL} title="General">
               <GeneralSettings />
             </Tab>
-            <Tab key="models" title="Model Management">
+            <Tab key={SettingsTab.MEMORY} title="Memory">
+              <MemorySettings />
+            </Tab>
+            <Tab key={SettingsTab.MODELS} title="Model Management">
               <ModelManagement />
             </Tab>
-            <Tab key="updates" title="Updates">
+            <Tab key={SettingsTab.UPDATES} title="Updates">
               <UpdateSettings />
             </Tab>
           </Tabs>

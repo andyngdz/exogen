@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, client } from '../api'
+import { Image2ImageResizeMode } from '@/types'
+import { generatorConfigFormDefaults } from '@/cores/test-utils'
 
 // Mock axios
 vi.mock('axios', () => {
@@ -8,6 +10,7 @@ vi.mock('axios', () => {
       create: () => ({
         get: vi.fn(),
         post: vi.fn(),
+        put: vi.fn(),
         delete: vi.fn()
       })
     }
@@ -61,47 +64,43 @@ describe('API Service', () => {
   })
 
   describe('setMaxMemory', () => {
-    it('sends max memory configuration', async () => {
+    it('sends max memory configuration via PUT /config/max-memory', async () => {
       const request = { gpu_scale_factor: 0.7, ram_scale_factor: 0.7 }
-      vi.spyOn(client, 'post').mockResolvedValueOnce({})
+      const mockResponse = {
+        upscalers: [],
+        safety_check_enabled: true,
+        gpu_scale_factor: 0.7,
+        ram_scale_factor: 0.7,
+        total_gpu_memory: 8589934592,
+        total_ram_memory: 17179869184,
+        device_index: 0
+      }
+      vi.spyOn(client, 'put').mockResolvedValueOnce({ data: mockResponse })
 
-      await api.setMaxMemory(request)
+      const result = await api.setMaxMemory(request)
 
-      expect(client.post).toHaveBeenCalledWith('/hardware/max-memory', request)
-    })
-  })
-
-  describe('getMemory', () => {
-    it('fetches memory information', async () => {
-      const mockResponse = { gpu: 24576000000, ram: 32000000000 }
-      vi.spyOn(client, 'get').mockResolvedValueOnce({ data: mockResponse })
-
-      const result = await api.getMemory()
-
-      expect(client.get).toHaveBeenCalledWith('/hardware/memory')
+      expect(client.put).toHaveBeenCalledWith('/config/max-memory', request)
       expect(result).toEqual(mockResponse)
     })
   })
 
   describe('selectDevice', () => {
-    it('selects a device', async () => {
+    it('selects a device via PUT /config/device', async () => {
       const request = { device_index: 0 }
-      vi.spyOn(client, 'post').mockResolvedValueOnce({})
+      const mockResponse = {
+        upscalers: [],
+        safety_check_enabled: true,
+        gpu_scale_factor: 0.5,
+        ram_scale_factor: 0.5,
+        total_gpu_memory: 8589934592,
+        total_ram_memory: 17179869184,
+        device_index: 0
+      }
+      vi.spyOn(client, 'put').mockResolvedValueOnce({ data: mockResponse })
 
-      await api.selectDevice(request)
+      const result = await api.selectDevice(request)
 
-      expect(client.post).toHaveBeenCalledWith('/hardware/device', request)
-    })
-  })
-
-  describe('getDeviceIndex', () => {
-    it('fetches device index', async () => {
-      const mockResponse = { device_index: 1 }
-      vi.spyOn(client, 'get').mockResolvedValueOnce({ data: mockResponse })
-
-      const result = await api.getDeviceIndex()
-
-      expect(client.get).toHaveBeenCalledWith('/hardware/device')
+      expect(client.put).toHaveBeenCalledWith('/config/device', request)
       expect(result).toEqual(mockResponse)
     })
   })
@@ -192,7 +191,9 @@ describe('API Service', () => {
 
       const result = await api.modelDetails(modelId)
 
-      expect(client.get).toHaveBeenCalledWith(`/models/details?id=${modelId}`)
+      expect(client.get).toHaveBeenCalledWith(
+        `/models/details?model_id=${modelId}`
+      )
       expect(result).toEqual(mockResponse)
     })
   })
@@ -203,7 +204,9 @@ describe('API Service', () => {
 
       await api.downloadModel(modelId)
 
-      expect(client.post).toHaveBeenCalledWith('/downloads/', { id: modelId })
+      expect(client.post).toHaveBeenCalledWith('/downloads/', {
+        model_id: modelId
+      })
     })
   })
 
@@ -261,12 +264,14 @@ describe('API Service', () => {
         width: 512,
         height: 512,
         styles: ['style1'],
+        loras: [],
         model: 'model1',
         guidance_scale: 7.5,
         sampler: 'Euler a',
         number_of_images: 1,
-        hires_fix: false,
-        cfg_scale: 7
+
+        cfg_scale: 7,
+        clip_skip: 2
       }
       const mockResponse = 1
       vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
@@ -280,14 +285,50 @@ describe('API Service', () => {
 
   describe('loadModel', () => {
     it('calls POST /models/load and returns the data', async () => {
-      const request = { id: 'model1' }
-      const mockResponse = { status: 'loaded', id: 'model1' }
+      const request = { model_id: 'model1' }
+      const mockResponse = {
+        model_id: 'model1',
+        config: {},
+        sample_size: 64,
+        family: 'unknown'
+      }
       vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
 
       const result = await api.loadModel(request)
 
       expect(client.post).toHaveBeenCalledWith('/models/load', request)
       expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('unloadModel', () => {
+    it('calls POST /models/unload and returns the data', async () => {
+      const mockResponse = {
+        status: 'unloaded',
+        message: 'Model unloaded successfully'
+      }
+      vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.unloadModel()
+
+      expect(client.post).toHaveBeenCalledWith('/models/unload')
+      expect(result).toEqual(mockResponse)
+    })
+
+    it('handles API error when unloading model', async () => {
+      const errorMessage = 'No model is currently loaded'
+      vi.spyOn(client, 'post').mockRejectedValueOnce(new Error(errorMessage))
+
+      await expect(api.unloadModel()).rejects.toThrow(errorMessage)
+      expect(client.post).toHaveBeenCalledWith('/models/unload')
+    })
+
+    it('handles server error response', async () => {
+      const serverError = { message: 'Internal server error', status: 500 }
+      vi.spyOn(client, 'post').mockRejectedValueOnce(serverError)
+
+      await expect(api.unloadModel()).rejects.toEqual(serverError)
+      expect(client.post).toHaveBeenCalledWith('/models/unload')
     })
   })
 
@@ -302,10 +343,13 @@ describe('API Service', () => {
           steps: 20,
           width: 512,
           height: 512,
+          sampler: 'EULER_A',
           styles: [],
+          loras: [],
           number_of_images: 1,
-          hires_fix: false,
-          cfg_scale: 7
+
+          cfg_scale: 7,
+          clip_skip: 2
         }
       }
       const mockResponse = {
@@ -326,6 +370,48 @@ describe('API Service', () => {
     })
   })
 
+  describe('img2img', () => {
+    it('calls POST /img2img and returns ImageGenerationResponse data', async () => {
+      const request = {
+        history_id: 1,
+        config: {
+          ...generatorConfigFormDefaults(),
+          init_image: 'data:image/png;base64,abc',
+          strength: 0.5,
+          resize_mode: Image2ImageResizeMode.RESIZE
+        }
+      }
+
+      const mockResponse = {
+        items: [
+          {
+            path: '/images/img1.png',
+            file_name: 'img1.png'
+          }
+        ],
+        nsfw_content_detected: [false]
+      }
+      vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.img2img(request)
+
+      expect(client.post).toHaveBeenCalledWith('/img2img', request)
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('setSafetyCheckEnabled', () => {
+    it('sends enabled flag via PUT /config/safety-check', async () => {
+      vi.spyOn(client, 'put').mockResolvedValueOnce({ data: undefined })
+
+      await api.setSafetyCheckEnabled(true)
+
+      expect(client.put).toHaveBeenCalledWith('/config/safety-check', {
+        enabled: true
+      })
+    })
+  })
+
   describe('getHistories', () => {
     it('fetches all history items', async () => {
       const mockResponse = [
@@ -338,7 +424,7 @@ describe('API Service', () => {
           config: {
             width: 1024,
             height: 1024,
-            hires_fix: false,
+
             number_of_images: 4,
             prompt: 'a beautiful landscape',
             negative_prompt: 'blurry, low quality',
@@ -437,6 +523,61 @@ describe('API Service', () => {
     })
   })
 
+  describe('deleteHistory', () => {
+    it('successfully deletes a history entry', async () => {
+      const historyId = 123
+      const mockResponse = {
+        success: true,
+        message: 'History entry deleted successfully 123'
+      }
+      vi.spyOn(client, 'delete').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.deleteHistory(historyId)
+
+      expect(client.delete).toHaveBeenCalledWith(`/histories/${historyId}`)
+      expect(result).toEqual(mockResponse)
+    })
+
+    it('handles API error when deleting history', async () => {
+      const historyId = 456
+      const errorMessage = 'History not found'
+      vi.spyOn(client, 'delete').mockRejectedValueOnce(new Error(errorMessage))
+
+      await expect(api.deleteHistory(historyId)).rejects.toThrow(errorMessage)
+      expect(client.delete).toHaveBeenCalledWith(`/histories/${historyId}`)
+    })
+
+    it('calls the correct endpoint with numeric history ID', async () => {
+      const historyId = 789
+      const mockResponse = { success: true }
+      vi.spyOn(client, 'delete').mockResolvedValueOnce({ data: mockResponse })
+
+      await api.deleteHistory(historyId)
+
+      expect(client.delete).toHaveBeenCalledWith(`/histories/${historyId}`)
+    })
+
+    it('handles server error response', async () => {
+      const historyId = 999
+      const serverError = { message: 'Internal server error', status: 500 }
+      vi.spyOn(client, 'delete').mockRejectedValueOnce(serverError)
+
+      await expect(api.deleteHistory(historyId)).rejects.toEqual(serverError)
+      expect(client.delete).toHaveBeenCalledWith(`/histories/${historyId}`)
+    })
+
+    it('handles 404 error when history does not exist', async () => {
+      const historyId = 1
+      const notFoundError = {
+        response: { status: 404, data: { detail: 'History entry not found' } }
+      }
+      vi.spyOn(client, 'delete').mockRejectedValueOnce(notFoundError)
+
+      await expect(api.deleteHistory(historyId)).rejects.toEqual(notFoundError)
+      expect(client.delete).toHaveBeenCalledWith(`/histories/${historyId}`)
+    })
+  })
+
   describe('deleteModel', () => {
     it('successfully deletes a model', async () => {
       const modelId = 'test-model-123'
@@ -478,6 +619,87 @@ describe('API Service', () => {
 
       await expect(api.deleteModel(modelId)).rejects.toEqual(serverError)
       expect(client.delete).toHaveBeenCalledWith(`/models?model_id=${modelId}`)
+    })
+  })
+
+  describe('getSamplers', () => {
+    it('fetches samplers list', async () => {
+      const mockResponse = [
+        {
+          name: 'Euler A',
+          value: 'EULER_A',
+          description: 'Fast, exploratory, slightly non-deterministic.'
+        },
+        {
+          name: 'DDIM',
+          value: 'DDIM',
+          description: 'Deterministic, stable, and widely used.'
+        }
+      ]
+      vi.spyOn(client, 'get').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.getSamplers()
+
+      expect(client.get).toHaveBeenCalledWith('/generators/samplers')
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('loras', () => {
+    it('fetches available LoRAs', async () => {
+      const mockResponse = {
+        loras: [
+          {
+            id: 1,
+            name: 'Anime Style',
+            file_path: '/loras/anime.safetensors',
+            file_size: 1024,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-02T00:00:00Z'
+          }
+        ]
+      }
+      vi.spyOn(client, 'get').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.loras()
+
+      expect(client.get).toHaveBeenCalledWith('/loras')
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('uploadLora', () => {
+    it('uploads a LoRA file path', async () => {
+      const filePath = '/loras/new-lora.safetensors'
+      const mockResponse = {
+        id: 2,
+        name: 'New LoRA',
+        file_path: filePath,
+        file_size: 2048,
+        created_at: '2024-02-01T00:00:00Z',
+        updated_at: '2024-02-01T00:00:00Z'
+      }
+      vi.spyOn(client, 'post').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.uploadLora(filePath)
+
+      expect(client.post).toHaveBeenCalledWith('/loras/upload', {
+        file_path: filePath
+      })
+      expect(result).toEqual(mockResponse)
+    })
+  })
+
+  describe('deleteLora', () => {
+    it('deletes a LoRA by id', async () => {
+      const loraId = 3
+      const mockResponse = { id: loraId, message: 'LoRA deleted successfully' }
+      vi.spyOn(client, 'delete').mockResolvedValueOnce({ data: mockResponse })
+
+      const result = await api.deleteLora(loraId)
+
+      expect(client.delete).toHaveBeenCalledWith(`/loras/${loraId}`)
+      expect(result).toEqual(mockResponse)
     })
   })
 })

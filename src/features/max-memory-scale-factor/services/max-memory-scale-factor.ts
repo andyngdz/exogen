@@ -1,25 +1,13 @@
-import { MemoryColorClasses } from '../types'
+import { SliderProps } from '@heroui/react'
 
 class MaxMemoryScaleFactorService {
-  memoryColor(scaleFactor: number): MemoryColorClasses {
+  color(scaleFactor: number): SliderProps['color'] {
     if (scaleFactor <= 0.5) {
-      return {
-        bgClassName: 'bg-success/10',
-        textClassName: 'text-success/90',
-        color: 'success'
-      }
+      return 'success'
     } else if (scaleFactor <= 0.7) {
-      return {
-        bgClassName: 'bg-warning/10',
-        textClassName: 'text-warning/90',
-        color: 'warning'
-      }
+      return 'warning'
     } else {
-      return {
-        bgClassName: 'bg-danger/10',
-        textClassName: 'text-danger/90',
-        color: 'danger'
-      }
+      return 'danger'
     }
   }
 }

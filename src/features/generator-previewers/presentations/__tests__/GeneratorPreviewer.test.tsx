@@ -49,7 +49,7 @@ vi.mock('swiper/react', () => ({
 // Mock react-hook-form
 vi.mock('react-hook-form', () => ({
   useFormContext: () => ({
-    watch: (key: string) => (key === 'width' ? 512 : 512)
+    watch: () => 512
   })
 }))
 
@@ -124,7 +124,6 @@ describe('GeneratorPreviewer', () => {
       'grid-cols-[repeat(auto-fill,minmax(256px,1fr))]'
     )
     expect(gridContainer).toHaveClass('gap-4')
-    expect(gridContainer).toHaveClass('p-4')
 
     // Should render both preview items
     const previewItems = screen.getAllByTestId('previewer-item')

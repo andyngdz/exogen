@@ -45,36 +45,36 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4 # Use latest checkout action
 
-      # Step 2: Setup Node.js environment
+      # Step 2: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      # Step 3: Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v4 # Use latest setup-node action
         with:
           node-version: "latest"
           cache: "pnpm" # Enable caching for pnpm dependencies
 
-      # Step 2.5: Install pnpm
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      # Step 3: Install dependencies (will use cache if available)
+      # Step 4: Install dependencies (will use cache if available)
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Step 4: Run Prettier format check
+      # Step 5: Run Prettier format check
       - name: Check Prettier formatting
         id: format
         run: pnpm run ci:format
         continue-on-error: true # Allow workflow to continue even if this step fails
 
-      # Step 5: Run ESLint check
+      # Step 6: Run ESLint check
       - name: Check ESLint
         id: lint
         run: pnpm run ci:lint
         continue-on-error: true # Allow workflow to continue even if this step fails
 
-      # Step 6: Upload ESLint report artifact (only if lint step ran)
+      # Step 7: Upload ESLint report artifact (only if lint step ran)
       - name: Upload ESLint Results
         if: steps.lint.outcome != 'skipped'
         uses: actions/upload-artifact@v4
@@ -83,7 +83,7 @@ jobs:
           path: eslint-report.json # Path to the file to upload
           retention-days: 7 # Keep artifact for 7 days
 
-      # Step 7: Report results as a PR comment
+      # Step 8: Report results as a PR comment
       - name: Report Results
         # Always run this step to report status, even if previous steps failed
         if: always() && github.event_name == 'pull_request'
@@ -137,30 +137,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js environment
+      # Step 2: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      # Step 3: Setup Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
           cache: "pnpm" # Enable caching for pnpm dependencies
 
-      # Step 2.5: Install pnpm
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      # Step 3: Install dependencies (will use cache if available)
+      # Step 4: Install dependencies (will use cache if available)
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Step 4: Run unit tests
+      # Step 5: Run unit tests
       # Combine test and coverage to avoid running tests twice
       - name: Run tests with coverage
         id: test_coverage # Changed id to avoid conflict with job name
         run: pnpm run test:coverage # This script runs tests AND generates coverage
 
-      # Step 5: Upload coverage report artifact
+      # Step 6: Upload coverage report artifact
       - name: Upload coverage reports
         # Only upload if the test/coverage step succeeded
         if: steps.test_coverage.outcome == 'success'
@@ -170,7 +170,7 @@ jobs:
           path: coverage # Path to the coverage directory
           retention-days: 7 # Keep artifact for 7 days
 
-      # Step 6: Report test results as a PR comment
+      # Step 7: Report test results as a PR comment
       - name: Report test results
         if: always()
         uses: actions/github-script@v6

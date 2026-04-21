@@ -1,10 +1,12 @@
+import { UpscaleFactor, UpscalerType } from '@/cores/constants'
 import { createQueryClientWrapper } from '@/cores/test-utils'
 import { api } from '@/services'
 import { addToast } from '@heroui/react'
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGenerator } from '../useGenerator'
 import { useGenerationStatusStore } from '../useGenerationStatusStore'
+import { useHiresFixEnabledStore } from '../useHiresFixEnabledStore'
 import { useUseImageGenerationStore } from '../useImageGenerationResponseStores'
 
 // Mock the API module with a factory so addHistory is a mock function
@@ -37,8 +39,19 @@ vi.mock('../useImageGenerationResponseStores', () => ({
   })
 }))
 
+vi.mock('../useHiresFixEnabledStore', () => ({
+  useHiresFixEnabledStore: vi.fn()
+}))
+
 afterEach(() => {
   vi.resetAllMocks()
+})
+
+beforeEach(() => {
+  vi.mocked(useHiresFixEnabledStore).mockReturnValue({
+    isHiresFixEnabled: false,
+    setIsHiresFixEnabled: vi.fn()
+  })
 })
 
 describe('useGenerator', () => {
@@ -49,10 +62,12 @@ describe('useGenerator', () => {
     width: 512,
     height: 512,
     cfg_scale: 7,
+    clip_skip: 2,
     steps: 20,
     seed: -1,
-    sampler_name: 'Euler a',
-    hires_fix: false,
+    sampler: 'EULER_A',
+
+    loras: [],
     number_of_images: 1,
     styles: []
   }
@@ -238,5 +253,95 @@ describe('useGenerator', () => {
         color: 'success'
       })
     )
+  })
+
+  describe('hires fix payload handling', () => {
+    it('should include hires_fix in payload when store isHiresFixEnabled is true', async () => {
+      vi.mocked(api.addHistory).mockResolvedValue(1)
+      vi.mocked(api.generator).mockResolvedValue({
+        items: [],
+        nsfw_content_detected: []
+      })
+      vi.mocked(useHiresFixEnabledStore).mockReturnValue({
+        isHiresFixEnabled: true,
+        setIsHiresFixEnabled: vi.fn()
+      })
+
+      const mockSetIsGenerating = vi.fn()
+      vi.mocked(useGenerationStatusStore).mockReturnValue({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+      vi.mocked(useUseImageGenerationStore).mockReturnValue({
+        onInit: vi.fn(),
+        onCompleted: vi.fn()
+      })
+
+      const configWithHiresFix = {
+        ...mockConfig,
+        hires_fix: {
+          upscale_factor: UpscaleFactor.TWO,
+          upscaler: UpscalerType.REAL_ESRGAN_X2_PLUS,
+          denoising_strength: 0.35,
+          steps: 0
+        }
+      }
+
+      const wrapper = createQueryClientWrapper()
+      const { result } = renderHook(() => useGenerator(), { wrapper })
+
+      await act(async () => {
+        await result.current.onGenerate(configWithHiresFix)
+      })
+
+      expect(api.addHistory).toHaveBeenCalledWith(configWithHiresFix)
+      expect(api.generator).toHaveBeenCalledWith({
+        history_id: 1,
+        config: configWithHiresFix
+      })
+    })
+
+    it('should omit hires_fix from payload when store isHiresFixEnabled is false', async () => {
+      vi.mocked(api.addHistory).mockResolvedValue(1)
+      vi.mocked(api.generator).mockResolvedValue({
+        items: [],
+        nsfw_content_detected: []
+      })
+      vi.mocked(useHiresFixEnabledStore).mockReturnValue({
+        isHiresFixEnabled: false,
+        setIsHiresFixEnabled: vi.fn()
+      })
+
+      const mockSetIsGenerating = vi.fn()
+      vi.mocked(useGenerationStatusStore).mockReturnValue({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+      vi.mocked(useUseImageGenerationStore).mockReturnValue({
+        onInit: vi.fn(),
+        onCompleted: vi.fn()
+      })
+
+      const configWithHiresFix = {
+        ...mockConfig,
+        hires_fix: {
+          upscale_factor: UpscaleFactor.TWO,
+          upscaler: UpscalerType.REAL_ESRGAN_X2_PLUS,
+          denoising_strength: 0.35,
+          steps: 0
+        }
+      }
+
+      const wrapper = createQueryClientWrapper()
+      const { result } = renderHook(() => useGenerator(), { wrapper })
+
+      await act(async () => {
+        await result.current.onGenerate(configWithHiresFix)
+      })
+
+      expect(api.addHistory).toHaveBeenCalledWith(mockConfig)
+      expect(api.generator).toHaveBeenCalledWith({
+        history_id: 1,
+        config: mockConfig
+      })
+    })
   })
 })

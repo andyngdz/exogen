@@ -6,4 +6,5 @@ export class SocketEvents {
   static readonly MODEL_LOAD_COMPLETED = 'model_load_completed'
   static readonly IMAGE_GENERATION_STEP_END = 'image_generation_step_end'
   static readonly DOWNLOAD_STEP_PROGRESS = 'download_step_progress'
+  static readonly GENERATION_PHASE = 'generation_phase'
 }

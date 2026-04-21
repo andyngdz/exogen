@@ -1,17 +1,25 @@
+import { UpscalerMethod } from '@/cores/constants'
+import { api } from '@/services/api'
+import type { BackendConfig, LoRA, LoRADeleteResponse } from '@/types'
 import type { ModelDownloaded } from '@/types/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { api } from '@/services/api'
 import {
+  useBackendConfigQuery,
+  useDeleteLoraMutation,
   useDownloadedModelsQuery,
   useHardwareQuery,
   useHealthQuery,
   useHistoriesQuery,
-  useMemoryQuery,
+  useLorasQuery,
   useModelRecommendationsQuery,
-  useStyleSectionsQuery
+  useSafetyCheckMutation,
+  useMaxMemoryMutation,
+  useSamplersQuery,
+  useStyleSectionsQuery,
+  useUploadLoraMutation
 } from '../queries'
 
 // Mock the API service
@@ -19,11 +27,17 @@ vi.mock('@/services/api', () => ({
   api: {
     health: vi.fn(),
     getHardwareStatus: vi.fn(),
-    getMemory: vi.fn(),
     getModelRecommendations: vi.fn(),
     getDownloadedModels: vi.fn(),
     styles: vi.fn(),
-    getHistories: vi.fn()
+    getHistories: vi.fn(),
+    getSamplers: vi.fn(),
+    loras: vi.fn(),
+    uploadLora: vi.fn(),
+    deleteLora: vi.fn(),
+    getConfig: vi.fn(),
+    setSafetyCheckEnabled: vi.fn(),
+    setMaxMemory: vi.fn()
   }
 }))
 
@@ -137,39 +151,6 @@ describe('React Query Hooks', () => {
       })
 
       expect(api.getHardwareStatus).toHaveBeenCalled()
-    })
-  })
-
-  describe('useMemoryQuery', () => {
-    it('calls api.getMemory and returns the data', async () => {
-      const mockResponse = { gpu: 24576000000, ram: 32000000000 }
-      vi.mocked(api.getMemory).mockResolvedValue(mockResponse)
-
-      const { result } = renderHook(() => useMemoryQuery(), {
-        wrapper: testEnv.wrapper
-      })
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      expect(api.getMemory).toHaveBeenCalled()
-      expect(result.current.data).toEqual(mockResponse)
-    })
-
-    it('handles error', async () => {
-      const mockError = new Error('Network error')
-      vi.mocked(api.getMemory).mockRejectedValue(mockError)
-
-      const { result } = renderHook(() => useMemoryQuery(), {
-        wrapper: testEnv.wrapper
-      })
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true)
-      })
-
-      expect(api.getMemory).toHaveBeenCalled()
     })
   })
 
@@ -336,11 +317,12 @@ describe('React Query Hooks', () => {
           config: {
             width: 1024,
             height: 1024,
-            hires_fix: false,
+            loras: [],
             number_of_images: 4,
             prompt: 'a beautiful landscape',
             negative_prompt: 'blurry, low quality',
             cfg_scale: 7.5,
+            clip_skip: 2,
             steps: 30,
             seed: 12345,
             sampler: 'DPM++ 2M Karras',
@@ -412,6 +394,277 @@ describe('React Query Hooks', () => {
 
       expect(api.getHistories).toHaveBeenCalled()
       expect(result.current.error).toBeDefined()
+    })
+  })
+
+  describe('useSamplersQuery', () => {
+    it('calls api.getSamplers and returns data', async () => {
+      const mockResponse = [
+        {
+          name: 'Euler A',
+          value: 'EULER_A',
+          description: 'Fast, exploratory, slightly non-deterministic.'
+        },
+        {
+          name: 'DDIM',
+          value: 'DDIM',
+          description: 'Deterministic, stable, and widely used.'
+        }
+      ]
+      vi.mocked(api.getSamplers).mockResolvedValue(mockResponse)
+
+      const { result } = renderHook(() => useSamplersQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true)
+      })
+
+      expect(api.getSamplers).toHaveBeenCalled()
+      expect(result.current.data).toEqual(mockResponse)
+    })
+
+    it('handles error', async () => {
+      const mockError = new Error('Network error')
+      vi.mocked(api.getSamplers).mockRejectedValue(mockError)
+
+      const { result } = renderHook(() => useSamplersQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+      })
+
+      expect(api.getSamplers).toHaveBeenCalled()
+    })
+  })
+
+  describe('useLorasQuery', () => {
+    it('returns the lora list from api.loras', async () => {
+      const mockResponse = {
+        loras: [
+          {
+            id: 1,
+            name: 'Test LoRA',
+            file_path: '/loras/test.safetensors',
+            file_size: 1024,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-02T00:00:00Z'
+          }
+        ]
+      }
+      vi.mocked(api.loras).mockResolvedValue(mockResponse)
+
+      const { result } = renderHook(() => useLorasQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true)
+      })
+
+      expect(api.loras).toHaveBeenCalled()
+      expect(result.current.data).toEqual(mockResponse.loras)
+    })
+
+    it('handles errors from api.loras', async () => {
+      const mockError = new Error('Failed to fetch LoRAs')
+      vi.mocked(api.loras).mockRejectedValue(mockError)
+
+      const { result } = renderHook(() => useLorasQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+      })
+
+      expect(api.loras).toHaveBeenCalled()
+    })
+  })
+
+  describe('useUploadLoraMutation', () => {
+    it('uploads a LoRA and invalidates the loras query cache', async () => {
+      const filePath = '/loras/new-lora.safetensors'
+      const mockResponse: LoRA = {
+        id: 2,
+        name: 'New LoRA',
+        file_path: filePath,
+        file_size: 2048,
+        created_at: '2024-02-01T00:00:00Z',
+        updated_at: '2024-02-01T00:00:00Z'
+      }
+      vi.mocked(api.uploadLora).mockResolvedValue(mockResponse)
+      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
+
+      const { result } = renderHook(() => useUploadLoraMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      const response = await result.current.mutateAsync(filePath)
+
+      expect(api.uploadLora).toHaveBeenCalledWith(filePath)
+      expect(response).toEqual(mockResponse)
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['loras'] })
+    })
+  })
+
+  describe('useDeleteLoraMutation', () => {
+    it('deletes a LoRA and invalidates the loras query cache', async () => {
+      const loraId = 5
+      const mockResponse: LoRADeleteResponse = {
+        id: loraId,
+        message: 'LoRA deleted'
+      }
+      vi.mocked(api.deleteLora).mockResolvedValue(mockResponse)
+      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
+
+      const { result } = renderHook(() => useDeleteLoraMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      const response = await result.current.mutateAsync(loraId)
+
+      expect(api.deleteLora).toHaveBeenCalledWith(loraId)
+      expect(response).toEqual(mockResponse)
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['loras'] })
+    })
+  })
+
+  describe('useBackendConfigQuery', () => {
+    it('calls api.getConfig and returns the data', async () => {
+      const mockResponse: BackendConfig = {
+        upscalers: [
+          { method: UpscalerMethod.AI, title: 'AI Upscaler', options: [] }
+        ],
+        safety_check_enabled: true,
+        gpu_scale_factor: 0.8,
+        ram_scale_factor: 0.8,
+        total_gpu_memory: 12485197824,
+        total_ram_memory: 32943878144,
+        device_index: 0
+      }
+      vi.mocked(api.getConfig).mockResolvedValue(mockResponse)
+
+      const { result } = renderHook(() => useBackendConfigQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true)
+      })
+
+      expect(api.getConfig).toHaveBeenCalled()
+      expect(result.current.data).toEqual(mockResponse)
+    })
+
+    it('handles error', async () => {
+      const mockError = new Error('Failed to fetch config')
+      vi.mocked(api.getConfig).mockRejectedValue(mockError)
+
+      const { result } = renderHook(() => useBackendConfigQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+      })
+
+      expect(api.getConfig).toHaveBeenCalled()
+    })
+  })
+
+  describe('useSafetyCheckMutation', () => {
+    it('calls setSafetyCheckEnabled with true and invalidates config cache', async () => {
+      vi.mocked(api.setSafetyCheckEnabled).mockResolvedValue(undefined)
+      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
+
+      const { result } = renderHook(() => useSafetyCheckMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await result.current.mutateAsync(true)
+
+      expect(api.setSafetyCheckEnabled).toHaveBeenCalledWith(true)
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['config'] })
+    })
+
+    it('calls setSafetyCheckEnabled with false and invalidates config cache', async () => {
+      vi.mocked(api.setSafetyCheckEnabled).mockResolvedValue(undefined)
+      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
+
+      const { result } = renderHook(() => useSafetyCheckMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await result.current.mutateAsync(false)
+
+      expect(api.setSafetyCheckEnabled).toHaveBeenCalledWith(false)
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['config'] })
+    })
+
+    it('handles error from setSafetyCheckEnabled', async () => {
+      const mockError = new Error('Failed to update safety check')
+      vi.mocked(api.setSafetyCheckEnabled).mockRejectedValue(mockError)
+
+      const { result } = renderHook(() => useSafetyCheckMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await expect(result.current.mutateAsync(true)).rejects.toThrow(
+        'Failed to update safety check'
+      )
+      expect(api.setSafetyCheckEnabled).toHaveBeenCalledWith(true)
+    })
+  })
+
+  describe('useMaxMemoryMutation', () => {
+    it('calls setMaxMemory and invalidates config cache', async () => {
+      const mockResponse: BackendConfig = {
+        upscalers: [],
+        safety_check_enabled: true,
+        gpu_scale_factor: 0.7,
+        ram_scale_factor: 0.6,
+        total_gpu_memory: 8589934592,
+        total_ram_memory: 17179869184,
+        device_index: 0
+      }
+      vi.mocked(api.setMaxMemory).mockResolvedValue(mockResponse)
+      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
+
+      const { result } = renderHook(() => useMaxMemoryMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await result.current.mutateAsync({
+        gpuScaleFactor: 0.7,
+        ramScaleFactor: 0.6
+      })
+
+      expect(api.setMaxMemory).toHaveBeenCalledWith({
+        gpu_scale_factor: 0.7,
+        ram_scale_factor: 0.6
+      })
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['config'] })
+    })
+
+    it('handles error from setMaxMemory', async () => {
+      const mockError = new Error('Failed to update max memory')
+      vi.mocked(api.setMaxMemory).mockRejectedValue(mockError)
+
+      const { result } = renderHook(() => useMaxMemoryMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await expect(
+        result.current.mutateAsync({ gpuScaleFactor: 0.5, ramScaleFactor: 0.5 })
+      ).rejects.toThrow('Failed to update max memory')
+      expect(api.setMaxMemory).toHaveBeenCalledWith({
+        gpu_scale_factor: 0.5,
+        ram_scale_factor: 0.5
+      })
     })
   })
 })

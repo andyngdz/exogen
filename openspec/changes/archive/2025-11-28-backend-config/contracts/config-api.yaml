@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: ExoGen Backend Config API
+  version: 1.0.0
+  description: Configuration endpoint for retrieving backend-controlled settings
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /config/:
+    get:
+      operationId: getConfig
+      summary: Get backend configuration
+      description: |
+        Returns the backend configuration including available upscalers and their metadata.
+        This endpoint is called once during app initialization.
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackendConfig'
+              example:
+                upscalers:
+                  - value: Lanczos
+                    name: Lanczos (High Quality)
+                    description: High-quality resampling, best for photos
+                    suggested_denoise_strength: 0.4
+                  - value: Bicubic
+                    name: Bicubic (Smooth)
+                    description: Smooth interpolation, good balance
+                    suggested_denoise_strength: 0.4
+                  - value: Bilinear
+                    name: Bilinear (Fast)
+                    description: Fast interpolation, moderate quality
+                    suggested_denoise_strength: 0.35
+                  - value: Nearest
+                    name: Nearest (Sharp Edges)
+                    description: No interpolation, preserves sharp edges
+                    suggested_denoise_strength: 0.3
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    BackendConfig:
+      type: object
+      required:
+        - upscalers
+      properties:
+        upscalers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Upscaler'
+          description: Available image upscaling methods
+
+    Upscaler:
+      type: object
+      required:
+        - value
+        - name
+        - description
+        - suggested_denoise_strength
+      properties:
+        value:
+          type: string
+          description: Unique identifier for the upscaler
+          example: Lanczos
+        name:
+          type: string
+          description: Display name for UI
+          example: Lanczos (High Quality)
+        description:
+          type: string
+          description: Help text explaining the upscaler
+          example: High-quality resampling, best for photos
+        suggested_denoise_strength:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Recommended denoising value
+          example: 0.4
+
+    ApiError:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message

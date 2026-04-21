@@ -34,7 +34,7 @@ const startBackend = async ({
     // Step 5: Install dependencies using uv sync
     await installDependencies({ backendPath, emit })
 
-    // Step 6: Run the LocalAI Backend with uv run uvicorn
+    // Step 6: Run the ExoGen Backend with uv run uvicorn
     await runBackend({ backendPath, emit })
   } catch (error) {
     const normalizedError = normalizeError(error, 'Unknown error')

@@ -64,7 +64,7 @@ describe('cloneBackend', () => {
 
       expect(mockEmit).toHaveBeenCalledWith({
         level: BackendStatusLevel.Info,
-        message: 'Cloning LocalAI backend repository…'
+        message: 'Cloning ExoGen backend repository…'
       })
 
       expect(mockCloneRepository).toHaveBeenCalledWith(
@@ -237,7 +237,7 @@ describe('cloneBackend', () => {
 
       expect(mockEmit).toHaveBeenNthCalledWith(2, {
         level: BackendStatusLevel.Info,
-        message: 'Cloning LocalAI backend repository…'
+        message: 'Cloning ExoGen backend repository…'
       })
 
       expect(mockEmit).toHaveBeenNthCalledWith(3, {

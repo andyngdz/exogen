@@ -183,4 +183,32 @@ describe('useBackendLogStore', () => {
       expect(result.current.isStreaming).toBe(true)
     })
   })
+
+  describe('reset', () => {
+    it('should reset the store to its initial state', () => {
+      const { result } = renderHook(() => useBackendLogStore())
+
+      // Set some state
+      act(() => {
+        result.current.addLog({
+          timestamp: Date.now(),
+          level: 'info',
+          message: 'Log before reset'
+        })
+        result.current.setIsStreaming(true)
+      })
+
+      expect(result.current.logs).toHaveLength(1)
+      expect(result.current.isStreaming).toBe(true)
+
+      // Reset the state
+      act(() => {
+        result.current.reset()
+      })
+
+      // Verify it's back to initial state
+      expect(result.current.logs).toEqual([])
+      expect(result.current.isStreaming).toBe(false)
+    })
+  })
 })

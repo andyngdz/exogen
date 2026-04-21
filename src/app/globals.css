@@ -31,11 +31,6 @@
   animation: shine 2s linear infinite;
 }
 
-@utility scrollable {
-  @apply scrollbar-thin;
-  @apply overflow-auto;
-}
-
 :root {
   --swiper-pagination-color: hsl(var(--heroui-primary));
   --swiper-pagination-bullet-inactive-color: hsl(var(--heroui-default-900));
@@ -44,4 +39,24 @@
 .dark {
   --swiper-pagination-color: hsl(var(--heroui-primary));
   --swiper-pagination-bullet-inactive-color: hsl(var(--heroui-default-900));
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: calc(var(--spacing) * 2);
+  height: var(--spacing);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--heroui-default-200));
+  border-radius: calc(var(--spacing) * 1.5);
+}
+
+/* Remove scrollbar arrows */
+::-webkit-scrollbar-button {
+  display: none;
 }

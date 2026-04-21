@@ -1,4 +1,5 @@
 export * from './api'
+export * from './data-url'
 export * from './date-formatter'
 export * from './errors'
 export * from './formatter'

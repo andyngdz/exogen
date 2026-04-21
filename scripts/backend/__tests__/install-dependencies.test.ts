@@ -5,7 +5,8 @@ import * as utilsModule from '../utils'
 
 // Mock dependencies
 vi.mock('zx', () => ({
-  $: vi.fn()
+  $: vi.fn(),
+  usePowerShell: vi.fn()
 }))
 vi.mock('../utils')
 

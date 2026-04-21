@@ -1,8 +1,10 @@
 import { NumberInput, NumberInputProps } from '@heroui/react'
 import { Control, FieldValues, Path, useController } from 'react-hook-form'
 
-export interface NumberInputControllerProps<T extends FieldValues, C>
-  extends NumberInputProps {
+export interface NumberInputControllerProps<
+  T extends FieldValues,
+  C
+> extends NumberInputProps {
   control: Control<T, C, T>
   controlName: Path<T>
   maximumFractionDigits?: number
@@ -20,7 +22,7 @@ export const NumberInputController = <T extends FieldValues, C>({
     name: controlName,
     rules: {
       validate: (value) => {
-        if (isNaN(value)) {
+        if (Number.isNaN(value)) {
           return 'Input is required'
         }
       }

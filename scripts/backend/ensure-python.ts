@@ -3,7 +3,7 @@ import {
   BackendStatusEmitter,
   BackendStatusLevel
 } from '@types'
-import { $ } from 'zx'
+import { $ } from '../zx-config'
 import { isMac, isWindows } from './utils'
 
 interface PythonCandidate {
@@ -33,6 +33,8 @@ interface MissingInstruction {
  */
 const versionRegex = /Python\s+(\d+)\.(\d+)(?:\.(\d+))?/i
 
+const MIN_MINOR_VERSION = 11
+
 const pythonCandidates = (): PythonCandidate[] => {
   if (process.platform === 'win32') {
     return [
@@ -58,7 +60,15 @@ const parseVersion = (output: string) => {
     return
   }
 
-  return `${match[1]}.${match[2]}.${match[3] ?? '0'}`
+  const major = Number.parseInt(match[1], 10)
+  const minor = Number.parseInt(match[2], 10)
+  const patch = match[3] ?? '0'
+
+  return {
+    version: `${major}.${minor}.${patch}`,
+    major,
+    minor
+  }
 }
 
 const tryCandidate = async (candidate: PythonCandidate) => {
@@ -70,13 +80,14 @@ const tryCandidate = async (candidate: PythonCandidate) => {
   }
 
   const versionOutput = result.stdout.trim()
-  const version = parseVersion(versionOutput)
+  const parsed = parseVersion(versionOutput)
 
-  if (version && version.startsWith('3.11')) {
+  if (parsed?.major === 3 && parsed.minor >= MIN_MINOR_VERSION) {
     return {
       command: candidate.command,
       args: candidate.baseArgs,
-      version
+      version: parsed.version,
+      minor: parsed.minor
     }
   }
 }
@@ -95,7 +106,7 @@ const missingInstructions = (): MissingInstruction => {
   if (isMac) {
     return {
       message:
-        'Python 3.11 is required. Install it via Homebrew or download it from python.org.',
+        'Python 3.11+ is required. Install it via Homebrew or download it from python.org.',
       commands: [
         {
           label: 'Install with Homebrew',
@@ -108,7 +119,7 @@ const missingInstructions = (): MissingInstruction => {
   if (isWindows) {
     return {
       message:
-        'Python 3.11 is required. Install it using winget, Chocolatey, or from python.org.',
+        'Python 3.11+ is required. Install it using winget, Chocolatey, or from python.org.',
       commands: [
         {
           label: 'Install with winget',
@@ -125,7 +136,7 @@ const missingInstructions = (): MissingInstruction => {
 
   return {
     message:
-      'Python 3.11 is required. Install it with your system package manager.',
+      'Python 3.11+ is required. Install it with your system package manager.',
     commands: [
       {
         label: 'Update packages',
@@ -148,6 +159,13 @@ const ensurePython311 = async ({ emit }: EnsurePythonOptions) => {
       message: `Python ${existing.version} detected.`
     })
 
+    if (existing.minor > MIN_MINOR_VERSION) {
+      emit({
+        level: BackendStatusLevel.Info,
+        message: `Python ${existing.version} may not be fully tested. Python 3.11 is recommended.`
+      })
+    }
+
     return existing
   }
 
@@ -159,7 +177,7 @@ const ensurePython311 = async ({ emit }: EnsurePythonOptions) => {
     commands
   })
 
-  throw new Error('Python 3.11 is not installed.')
+  throw new Error('Python 3.11+ is not installed.')
 }
 
 export { ensurePython311 }

@@ -19,7 +19,8 @@ const { mock$, mockDollar } = vi.hoisted(() => {
 })
 
 vi.mock('zx', () => ({
-  $: mockDollar
+  $: mockDollar,
+  usePowerShell: vi.fn()
 }))
 
 describe('git helpers', () => {

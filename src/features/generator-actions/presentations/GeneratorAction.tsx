@@ -1,11 +1,19 @@
 import {
-  useImageViewModeStore,
-  ImageViewMode
+  ImageViewMode,
+  useImageViewModeStore
 } from '@/features/generator-previewers/states/useImageViewModeStore'
 import { Select, SelectItem, Selection } from '@heroui/react'
 import { GeneratorActionSubmitButton } from './GeneratorActionSubmitButton'
 
-export const GeneratorAction = () => {
+interface GeneratorActionProps {
+  onGenerate: VoidFunction
+  isGenerateDisabled?: boolean
+}
+
+export const GeneratorAction = ({
+  onGenerate,
+  isGenerateDisabled
+}: GeneratorActionProps) => {
   const { viewMode, setViewMode } = useImageViewModeStore()
 
   const handleSelectionChange = (keys: Selection) => {
@@ -14,8 +22,11 @@ export const GeneratorAction = () => {
   }
 
   return (
-    <div className="flex justify-between gap-4 p-4">
-      <GeneratorActionSubmitButton />
+    <div className="flex justify-between gap-4">
+      <GeneratorActionSubmitButton
+        onPress={onGenerate}
+        isDisabled={isGenerateDisabled}
+      />
       <Select
         className="max-w-32"
         selectedKeys={[viewMode]}

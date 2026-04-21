@@ -8,16 +8,21 @@
  */
 
 import { render, screen } from '@testing-library/react'
-import * as ReactHookForm from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ModelSearchContainer } from '../ModelSearchContainer'
 
 // Mock child components
-vi.mock('../ModelSearchInput', () => ({
-  ModelSearchInput: () => (
-    <div data-testid="mock-search-input">Search Input</div>
-  )
-}))
+vi.mock('../ModelSearchInput', async () => {
+  const { useFormContext } =
+    await vi.importActual<typeof import('react-hook-form')>('react-hook-form')
+
+  return {
+    ModelSearchInput: () => {
+      useFormContext()
+      return <div data-testid="mock-search-input">Search Input</div>
+    }
+  }
+})
 
 vi.mock('../ModelSearchListModel', () => ({
   ModelSearchListModel: () => (
@@ -78,6 +83,7 @@ vi.mock('allotment', () => {
 })
 
 // Mock useForm to verify configuration
+const useFormMock = vi.hoisted(() => vi.fn())
 const mockFormMethods = {
   register: vi.fn(),
   handleSubmit: vi.fn(),
@@ -93,20 +99,23 @@ vi.mock('react-hook-form', async () => {
   const actual = await vi.importActual('react-hook-form')
   return {
     ...actual,
-    useForm: () => mockFormMethods
+    useForm: useFormMock
   }
 })
 
 describe('ModelSearchContainer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useFormMock.mockReturnValue(mockFormMethods)
   })
 
-  it('renders with correct form configuration', () => {
+  it('initializes react-hook-form with expected options', () => {
     render(<ModelSearchContainer />)
-
-    // With our mock setup, we're just verifying the component renders
-    // Form configuration is verified by the mock itself
+    expect(useFormMock).toHaveBeenCalledWith({
+      mode: 'all',
+      reValidateMode: 'onChange',
+      defaultValues: { query: '' }
+    })
   })
 
   it('renders all child components', () => {
@@ -133,14 +142,8 @@ describe('ModelSearchContainer', () => {
     expect(panes[1]).toHaveClass('flex-col')
   })
 
-  it('provides form context to child components', () => {
-    // Spy on FormProvider to verify it's called
-    const formProviderSpy = vi.spyOn(ReactHookForm, 'FormProvider')
-
+  it('provides react-hook-form context to children', () => {
     render(<ModelSearchContainer />)
-
-    // Just verify FormProvider was called - the exact arguments are complex
-    // and depend on the component implementation
-    expect(formProviderSpy).toHaveBeenCalled()
+    expect(screen.getByTestId('mock-search-input')).toBeInTheDocument()
   })
 })

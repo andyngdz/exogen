@@ -57,7 +57,9 @@ describe('ModelLoadProgressBar', () => {
     const { rerender, getByRole } = render(<ModelLoadProgressBar />)
 
     act(() => {
-      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({ id: 'model-123' })
+      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({
+        model_id: 'model-123'
+      })
     })
     rerender(<ModelLoadProgressBar />)
 
@@ -68,9 +70,11 @@ describe('ModelLoadProgressBar', () => {
     const { rerender, getByRole } = render(<ModelLoadProgressBar />)
 
     act(() => {
-      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({ id: 'model-456' })
+      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({
+        model_id: 'model-456'
+      })
       capturedHandlers[SocketEvents.MODEL_LOAD_PROGRESS]({
-        id: 'model-456',
+        model_id: 'model-456',
         step: 5,
         total: 9,
         phase: ModelLoadPhase.LOADING_MODEL,
@@ -90,13 +94,17 @@ describe('ModelLoadProgressBar', () => {
     )
 
     act(() => {
-      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({ id: 'model-789' })
+      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({
+        model_id: 'model-789'
+      })
     })
     rerender(<ModelLoadProgressBar />)
     expect(getByRole('progressbar')).toBeTruthy()
 
     act(() => {
-      capturedHandlers[SocketEvents.MODEL_LOAD_COMPLETED]({ id: 'model-789' })
+      capturedHandlers[SocketEvents.MODEL_LOAD_COMPLETED]({
+        model_id: 'model-789'
+      })
     })
     rerender(<ModelLoadProgressBar />)
     expect(queryByRole('progressbar')).toBeNull()
@@ -106,9 +114,9 @@ describe('ModelLoadProgressBar', () => {
     const { rerender, getByRole } = render(<ModelLoadProgressBar />)
 
     act(() => {
-      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({ id: 'test' })
+      capturedHandlers[SocketEvents.MODEL_LOAD_STARTED]({ model_id: 'test' })
       capturedHandlers[SocketEvents.MODEL_LOAD_PROGRESS]({
-        id: 'test',
+        model_id: 'test',
         step: 1,
         total: 9,
         phase: ModelLoadPhase.INITIALIZATION,
@@ -120,7 +128,7 @@ describe('ModelLoadProgressBar', () => {
 
     act(() => {
       capturedHandlers[SocketEvents.MODEL_LOAD_PROGRESS]({
-        id: 'test',
+        model_id: 'test',
         step: 9,
         total: 9,
         phase: ModelLoadPhase.OPTIMIZATION,

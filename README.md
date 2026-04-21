@@ -1,17 +1,16 @@
-# LocalAI
+# ExoGen
 
 > A desktop application for generating AI images locally using Stable Diffusion models from HuggingFace
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<!-- Add your screenshot here -->
-<!-- ![LocalAI Dashboard](path/to/screenshot.png) -->
+https://github.com/user-attachments/assets/909182ce-e921-4b94-a653-add58d5717d9
 
 ## About
 
-LocalAI is a privacy-focused desktop application that lets you generate AI images completely offline on your own machine. Download models from HuggingFace, configure generation parameters, and create stunning images without sending your data to the cloud.
+ExoGen is a privacy-focused desktop application that lets you generate AI images completely offline on your own machine. Download models from HuggingFace, configure generation parameters, and create stunning images without sending your data to the cloud.
 
-**Why LocalAI?**
+**Why ExoGen?**
 
 - 🔒 **100% Private** - Everything runs locally, your prompts and images never leave your computer
 - 💰 **Free Forever** - No API costs, no subscriptions, completely free and open-source
@@ -24,36 +23,27 @@ LocalAI is a privacy-focused desktop application that lets you generate AI image
 - 🎨 **AI Image Generation** - Create images from text prompts using Stable Diffusion models
 - 🤖 **Smart Model Recommendations** - Get model suggestions based on your hardware capabilities
 - 🔍 **HuggingFace Integration** - Browse and download models directly from HuggingFace
+- 🎭 **LoRA Support** - Apply LoRA models for fine-tuned styles and characters with adjustable weights
+- 🔎 **High-Resolution Upscaling** - Enhance images with Hires.fix using AI upscalers (Real-ESRGAN) or traditional methods
+- 📊 **Real-Time Progress** - See generation phases and model loading progress in real-time
+- 🎨 **Styles System** - Search, filter, and apply style presets with automatic defaults for new users
+- 📜 **Generation History** - Browse past generations in fullscreen photoview with navigation
+- 📝 **Backend Logs** - Stream and monitor backend logs in real-time
+- 💾 **Memory Configuration** - Configure GPU and RAM memory allocation with visual previews
+- 🔄 **Automatic Updates** - Get notified and install updates seamlessly
 - ⚙️ **Advanced Configuration**
   - Sampling methods (Euler, DPM++, etc.)
-  - Custom styles and presets
-  - Output format control (PNG, JPEG, WebP)
   - Seed control for reproducible results
   - Batch generation support
-- 📊 **Automatic GPU Detection** - Detects your GPU and optimizes settings automatically
-- 💾 **Memory Management** - Smart memory allocation based on available VRAM
-- 📜 **Generation History** - View past generations and reuse successful configurations
 - 🖥️ **Fully Offline** - Works completely offline after initial model download
 - 🔒 **Privacy-Focused** - All processing happens locally on your machine
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript, TailwindCSS 4
-- **Desktop**: Electron 38
-- **Backend**: Python FastAPI
-- **State Management**: Zustand, TanStack Query
-- **UI Components**: HeroUI, Framer Motion
-- **Real-time Communication**: Socket.io
-- **Testing**: Vitest, React Testing Library
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** (LTS version recommended)
-- **Python 3.11** (Required - other Python versions may not work)
-- **pnpm** (version 8)
-- **Git**
+- **Python 3.11+** - Required for the AI backend ([Download](https://www.python.org/downloads/))
+- **CUDA** - Required for Nvidia GPU acceleration ([Download](https://developer.nvidia.com/cuda-downloads))
 
 ### System Requirements
 
@@ -64,24 +54,18 @@ Before you begin, ensure you have the following installed:
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/andyngdz/localai.git
-cd localai
+1. Download the latest release for your platform from the [Releases](https://github.com/andyngdz/exogen/releases) page:
+   - Windows: `.exe` installer
+   - macOS: `.dmg` installer
+   - Linux: `.AppImage`, `.deb`, or `.rpm` package
 
-# Install dependencies
-pnpm install
+2. Run the installer and launch ExoGen
 
-# Run the desktop application
-pnpm run desktop
-```
+The application will automatically:
 
-The application will:
-
-1. Set up the Python backend automatically
+1. Set up the Python backend
 2. Install required Python dependencies
-3. Launch the Electron desktop app
-4. Open the application window
+3. Open the application window
 
 ## Development
 
@@ -99,8 +83,15 @@ The application will:
 ### Development Workflow
 
 ```bash
-# Start development with hot reload
-pnpm run desktop
+# Clone the backend repository
+git clone https://github.com/andyngdz/exogen_backend.git
+
+# Start the backend (in the exogen_backend directory)
+cd exogen_backend
+# Follow the backend README for setup instructions
+
+# Start frontend development (in the exogen directory)
+pnpm run desktop:local
 
 # Run tests
 pnpm test
@@ -130,40 +121,9 @@ The build output will be in the `dist/` directory:
 - macOS: `.dmg` installer
 - Linux: `.AppImage`, `.deb`, `.rpm` packages
 
-## Project Structure
-
-```
-localai/
-├── src/
-│   ├── features/       # Feature modules (feature-first architecture)
-│   │   ├── generators/     # Image generation
-│   │   ├── model-search/   # Model browsing
-│   │   ├── histories/      # Generation history
-│   │   └── settings/       # App settings
-│   ├── app/           # Next.js app router pages
-│   ├── types/         # TypeScript type definitions
-│   ├── sockets/       # Socket.io real-time communication
-│   └── services/      # API services
-├── electron/          # Electron main process & preload scripts
-├── scripts/           # Build & backend management scripts
-│   └── backend/       # Python backend setup scripts
-├── .github/           # GitHub Actions CI/CD workflows
-└── types/             # Global TypeScript types
-```
-
-### Architecture
-
-LocalAI follows a **feature-first architecture**:
-
-- Each feature is self-contained in `src/features/`
-- Features contain `presentations/` (React components) and `states/` (state management)
-- Shared utilities live in `src/cores/`
-- Electron IPC bridges frontend and backend via `window.electronAPI`
-- Real-time updates via Socket.io for download progress and generation status
-
 ## Testing
 
-LocalAI uses **Vitest** and **React Testing Library** for comprehensive testing.
+ExoGen uses **Vitest** and **React Testing Library** for comprehensive testing.
 
 ```bash
 # Run all tests
@@ -202,10 +162,6 @@ fix(model-search): resolve download timeout issue
 docs: update installation instructions
 ```
 
-### Release Process
-
-This project uses **semantic-release** for automated versioning and releases. See [RELEASE.md](RELEASE.md) for details.
-
 ## Acknowledgments
 
 - Built with [Next.js](https://nextjs.org/)
@@ -218,9 +174,8 @@ This project uses **semantic-release** for automated versioning and releases. Se
 
 If you encounter any issues or have questions:
 
-1. Check the [Issues](https://github.com/andyngdz/localai/issues) page
-2. Read the [RELEASE.md](RELEASE.md) for release information
-3. Open a new issue with detailed information
+1. Check the [Issues](https://github.com/andyngdz/exogen/issues) page
+2. Open a new issue with detailed information
 
 ---
 

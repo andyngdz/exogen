@@ -87,4 +87,20 @@ describe('useModelRecommendation', () => {
 
     expect(mockReplace).toHaveBeenCalledWith('/editor')
   })
+
+  it('should navigate to editor when onSkip is called', async () => {
+    vi.mocked(useModelRecommendationsQuery).mockReturnValue({
+      data: {}
+    } as ReturnType<typeof useModelRecommendationsQuery>)
+
+    const { mockReplace } = await setupRouterMock()
+
+    const { result } = renderHook(() => useModelRecommendation())
+
+    await act(async () => {
+      result.current.onSkip()
+    })
+
+    expect(mockReplace).toHaveBeenCalledWith('/editor')
+  })
 })

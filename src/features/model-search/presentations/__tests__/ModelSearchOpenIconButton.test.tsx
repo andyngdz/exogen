@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ModelSearchOpenIconButton } from '../ModelSearchOpenIconButton'
@@ -303,7 +303,9 @@ describe('ModelSearchOpenIconButton', () => {
       render(<ModelSearchOpenIconButton />)
 
       const button = screen.getByRole('button')
-      button.focus()
+      act(() => {
+        button.focus()
+      })
 
       expect(button).toHaveFocus()
 

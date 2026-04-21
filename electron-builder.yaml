@@ -1,5 +1,5 @@
-appId: 'dev.andyng.localai'
-productName: 'LocalAI'
+appId: 'dev.andyng.exogen'
+productName: 'ExoGen'
 copyright: 'Copyright (c) 2025 Andy Ng'
 asar: true
 compression: 'normal'
@@ -17,18 +17,18 @@ files:
 publish:
   provider: 'github'
   owner: 'andyngdz'
-  repo: 'localai'
+  repo: 'exogen'
   releaseType: 'release'
 win:
   target: ['nsis', 'portable', 'zip']
-  icon: 'src/assets/logo.png'
+  icon: 'build/icon.png'
 linux:
   target: ['appimage', 'deb', 'zip']
-  icon: 'src/assets/logo.png'
+  icon: 'build/icon.png'
   category: 'Graphics'
 mac:
   target: ['dmg', 'zip']
-  icon: 'src/assets/logo.png'
+  icon: 'build/icon.png'
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: 'build/entitlements.mac.plist'

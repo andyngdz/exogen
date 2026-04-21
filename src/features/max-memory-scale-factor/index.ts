@@ -1,5 +1,7 @@
 export * from './constants'
 export { MaxMemoryScaleFactor as MaxMemory } from './presentations/MaxMemoryScaleFactor'
-export { MaxMemoryScaleFactorItems as MemoryOptionItem } from './presentations/MaxMemoryScaleFactorItems'
-export { MaxMemoryScaleFactorPreview as MemoryPreview } from './presentations/MaxMemoryScaleFactorPreview'
+export {
+  MemoryScaleFactorItems as MemoryOptionItem,
+  MemoryScaleFactorPreview as MemoryPreview
+} from '@/cores/presentations/memory-scale-factor'
 export * from './types'

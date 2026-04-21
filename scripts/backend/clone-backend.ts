@@ -38,7 +38,7 @@ const cloneBackend = async ({ userDataPath, emit }: SetupBackendOptions) => {
   if (!backendExists) {
     emit({
       level: BackendStatusLevel.Info,
-      message: 'Cloning LocalAI backend repository…'
+      message: 'Cloning ExoGen backend repository…'
     })
     await cloneRepository(BACKEND_REPO_URL, backendPath, BACKEND_BRANCH)
     emit({

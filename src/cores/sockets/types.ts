@@ -1,5 +1,5 @@
 interface DownloadStepProgressResponse {
-  id: string
+  model_id: string
   step: number
   total: number
   downloaded_size: number
@@ -8,13 +8,13 @@ interface DownloadStepProgressResponse {
   current_file?: string
 }
 interface DownloadModelResponse {
-  id: string
+  model_id: string
   message: string
   path: string
 }
 
 interface DownloadModelStartResponse {
-  id: string
+  model_id: string
 }
 
 export enum ModelLoadPhase {
@@ -25,7 +25,7 @@ export enum ModelLoadPhase {
 }
 
 export interface ModelLoadProgressResponse {
-  id: string
+  model_id: string
   step: number
   total: number
   phase: ModelLoadPhase
@@ -33,7 +33,18 @@ export interface ModelLoadProgressResponse {
 }
 
 export interface ModelLoadStartedResponse {
-  id: string
+  model_id: string
+}
+
+export enum GenerationPhase {
+  IMAGE_GENERATION = 'image_generation',
+  UPSCALING = 'upscaling',
+  COMPLETED = 'completed'
+}
+
+export interface GenerationPhaseResponse {
+  phases: GenerationPhase[]
+  current: GenerationPhase
 }
 
 export type {

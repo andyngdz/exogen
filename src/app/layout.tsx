@@ -17,7 +17,7 @@ const monoFont = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'LocalAI',
+  title: 'ExoGen',
   description:
     'Generate images with Stable Diffusion, run LLMs, and more, all on your local machine.'
 }

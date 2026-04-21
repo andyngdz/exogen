@@ -1,10 +1,15 @@
+'use client'
+
 import { NumberInputController } from '@/cores/presentations/NumberInputController'
+import { GeneratorConfigHiresFix } from '@/features/generator-config-hires/presentations/GeneratorConfigHiresFix'
 import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 import { Checkbox } from '@heroui/react'
 import { useFormContext } from 'react-hook-form'
+import { useGeneratorConfigFormats } from '../states'
 
 export const GeneratorConfigFormat = () => {
-  const { register, control } = useFormContext<GeneratorConfigFormValues>()
+  const { control } = useFormContext<GeneratorConfigFormValues>()
+  const { isHiresFixEnabled, onHiresFixToggle } = useGeneratorConfigFormats()
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -26,13 +31,15 @@ export const GeneratorConfigFormat = () => {
         />
       </div>
       <Checkbox
-        {...register('hires_fix')}
+        isSelected={isHiresFixEnabled}
+        onValueChange={onHiresFixToggle}
         classNames={{
           label: 'text-sm'
         }}
       >
         Hires.fix
       </Checkbox>
+      {isHiresFixEnabled && <GeneratorConfigHiresFix />}
     </div>
   )
 }

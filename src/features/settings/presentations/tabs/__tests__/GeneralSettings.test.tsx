@@ -8,7 +8,10 @@ vi.mock('../../../states/useGeneralSettings', () => ({
 }))
 
 vi.mock('@heroui/react', () => ({
-  Switch: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+  Switch: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  Divider: () => <hr />
 }))
 
 describe('GeneralSettings', () => {
@@ -21,13 +24,21 @@ describe('GeneralSettings', () => {
     })
   })
 
+  it('renders with SettingsBase title and description', () => {
+    render(<GeneralSettings />)
+    expect(screen.getByText('General')).toBeInTheDocument()
+    expect(
+      screen.getByText('Configure general application settings')
+    ).toBeInTheDocument()
+  })
+
   it('renders safety check switch', () => {
     render(<GeneralSettings />)
     expect(screen.getByText('Safety check')).toBeInTheDocument()
   })
 
-  it('registers safetyCheck field', () => {
+  it('registers safety_check_enabled field', () => {
     render(<GeneralSettings />)
-    expect(mockRegister).toHaveBeenCalledWith('safetyCheck')
+    expect(mockRegister).toHaveBeenCalledWith('safety_check_enabled')
   })
 })

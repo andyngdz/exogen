@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useBackendSetupStatus } from '../useBackendSetupStatus'
 import { useBackendSetupStatusStore } from '../useBackendSetupStatusStore'
@@ -26,13 +26,15 @@ describe('useBackendSetupStatus', () => {
 
     expect(window.electronAPI.onBackendSetupStatus).toHaveBeenCalled()
 
-    // Emit a payload
+    // Emit a payload wrapped in act since it updates state
     const payload: BackendStatusPayload = {
       level: BackendStatusLevel.Info,
       message: 'backend starting',
       commands: [{ label: 'Fix', command: 'echo fix' }]
     }
-    listener?.(payload)
+    act(() => {
+      listener?.(payload)
+    })
 
     await waitFor(() => {
       expect(result.current.entries.length).toBe(1)

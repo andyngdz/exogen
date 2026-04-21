@@ -1,6 +1,6 @@
 import { BackendStatusEmitter, BackendStatusLevel } from '@types'
 import * as path from 'node:path'
-import { $ } from 'zx'
+import { $ } from '../zx-config'
 import { BACKEND_DIRNAME } from './constants'
 import { pathExists } from './utils'
 

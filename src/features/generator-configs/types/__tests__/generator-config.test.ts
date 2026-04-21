@@ -6,11 +6,14 @@ describe('GeneratorConfigFormValues', () => {
     const configValues: GeneratorConfigFormValues = {
       width: 512,
       height: 512,
-      hires_fix: false,
+
+      loras: [],
       number_of_images: 4,
       steps: 24,
       seed: -1,
       cfg_scale: 7.5,
+      clip_skip: 2,
+      sampler: 'EULER_A',
       negative_prompt: '',
       prompt: '',
       styles: []
@@ -25,5 +28,6 @@ describe('GeneratorConfigFormValues', () => {
     expect(configValues.steps).toBe(24)
     expect(configValues.seed).toBe(-1)
     expect(configValues.cfg_scale).toBe(7.5)
+    expect(configValues.clip_skip).toBe(2)
   })
 })

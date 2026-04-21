@@ -8,11 +8,13 @@ import {
   DrawerHeader,
   useDisclosure
 } from '@heroui/react'
-import { SquareChevronRight } from 'lucide-react'
+import { FolderOpen, SquareChevronRight } from 'lucide-react'
+import { useBackendFolder } from '../states'
 import { BackendLogList } from './BackendLogList'
 
 export const BackendLog = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { onOpenBackendFolder } = useBackendFolder()
 
   return (
     <section>
@@ -24,19 +26,21 @@ export const BackendLog = () => {
       >
         Console
       </Button>
-      <Drawer
-        isOpen={isOpen}
-        shouldBlockScroll={false}
-        onClose={onClose}
-        backdrop="opaque"
-        placement="right"
-        scrollBehavior="inside"
-        size="2xl"
-        className="h-full"
-      >
+      <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="5xl">
         <DrawerContent>
-          <DrawerHeader>Backend Logs</DrawerHeader>
-          <DrawerBody>
+          <DrawerHeader className="flex items-center gap-2">
+            Backend Logs
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              onPress={onOpenBackendFolder}
+              aria-label="Open backend folder"
+            >
+              <FolderOpen size={16} />
+            </Button>
+          </DrawerHeader>
+          <DrawerBody className="p-0">
             <BackendLogList />
           </DrawerBody>
         </DrawerContent>

@@ -1,43 +1,17 @@
 'use client'
 
-import { DeviceSelection } from '@/cores/constants'
-import { useBackendInitStore } from '@/cores/backend-initialization'
-import { useHealthQuery } from '@/cores/api-queries'
 import { SetupLayout } from '@/features/setup-layout/presentations'
-import { api } from '@/services'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect } from 'react'
-import { useBackendSetupStatus } from '../states/useBackendSetupStatus'
+import { useBackendSetupStatus, useHealthCheck } from '../states'
 import { HealthCheckContent } from './HealthCheckContent'
 
 export const HealthCheck = () => {
-  const router = useRouter()
-  const isInitialized = useBackendInitStore((state) => state.isInitialized)
-  const { data } = useHealthQuery(isInitialized)
-  const isHealthy = !!data
+  const { isHealthy } = useHealthCheck()
   const { entries } = useBackendSetupStatus()
-
-  const onCheckDeviceIndex = useCallback(async () => {
-    if (isHealthy) {
-      const { device_index } = await api.getDeviceIndex()
-      const isHasDevice = device_index !== DeviceSelection.NOT_FOUND
-
-      if (isHasDevice) {
-        router.push('/editor')
-      } else {
-        router.push('/gpu-detection')
-      }
-    }
-  }, [isHealthy, router])
-
-  useEffect(() => {
-    onCheckDeviceIndex()
-  }, [onCheckDeviceIndex])
 
   return (
     <SetupLayout
       title="Health Check"
-      description="Checking the connection to your LocalAI backend server"
+      description="Checking the connection to your ExoGen backend server"
       isNextDisabled={!isHealthy}
     >
       <HealthCheckContent isHealthy={isHealthy} statuses={entries} />

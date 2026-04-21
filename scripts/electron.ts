@@ -1,7 +1,7 @@
 import { build } from 'esbuild'
 import { cp, mkdir, rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import { $ } from 'zx'
+import { $ } from './zx-config'
 import { projectRoot, setupLog } from './utils'
 
 setupLog($)
@@ -25,7 +25,7 @@ const cleanElectronOutputs = async () => {
 
 const generateTypes = async () => {
   console.log('Generating types...')
-  await $`npx tsc --project tsconfig.electron.json --emitDeclarationOnly`
+  await $`tsc --project tsconfig.electron.json --emitDeclarationOnly`
 }
 
 const bundleElectronFiles = async () => {
@@ -73,7 +73,7 @@ const compileElectron = async () => {
 const startElectron = async () => {
   console.log('Starting Electron...')
   try {
-    await $`npx electron .`
+    await $`electron .`
   } catch (error) {
     console.error('Electron process error:', error)
     throw error

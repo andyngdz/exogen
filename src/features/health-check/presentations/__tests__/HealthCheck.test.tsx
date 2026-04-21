@@ -1,24 +1,17 @@
-import { DeviceSelection } from '@/cores/constants'
-import * as queries from '@/cores/api-queries'
-import {
-  createMockQuery,
-  renderWithAct,
-  setupRouterMock
-} from '@/cores/test-utils'
-import { api } from '@/services'
-import { HealthResponse } from '@/types/api'
+import { renderWithAct } from '@/cores/test-utils'
 import { screen } from '@testing-library/react'
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HealthCheck } from '../HealthCheck'
+import * as useHealthCheckModule from '../../states/useHealthCheck'
 
 // Mock the modules
-vi.mock('next/navigation', () => ({
-  useRouter: vi.fn()
-}))
-
 vi.mock('../states/useBackendSetupStatus', () => ({
   useBackendSetupStatus: () => ({ entries: [] })
+}))
+
+vi.mock('../../states/useHealthCheck', () => ({
+  useHealthCheck: vi.fn()
 }))
 
 vi.mock('@/features/setup-layout/presentations/SetupLayout', () => ({
@@ -65,53 +58,31 @@ vi.mock('../HealthCheckContent', () => ({
   )
 }))
 
-// Mock API and queries
-vi.mock('@/services/api', () => ({
-  api: {
-    getDeviceIndex: vi.fn()
-  }
-}))
-
 describe('HealthCheck', () => {
-  let routerMocks: Awaited<ReturnType<typeof setupRouterMock>>
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks()
-
-    // Default mock implementations
-    vi.mocked(api.getDeviceIndex).mockResolvedValue({
-      device_index: DeviceSelection.NOT_FOUND
-    })
-
-    routerMocks = await setupRouterMock()
   })
 
-  // Helper to setup health query mock
-  const setupHealthQueryMock = (data: HealthResponse | null) => {
-    vi.spyOn(queries, 'useHealthQuery').mockReturnValue(createMockQuery(data))
+  // Helper to setup useHealthCheck mock
+  const setupHealthCheckMock = (isHealthy: boolean) => {
+    vi.mocked(useHealthCheckModule.useHealthCheck).mockReturnValue({
+      isHealthy
+    })
   }
 
   it('renders with correct title and description', async () => {
-    // Mock the useHealthQuery hook to return healthy state
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
+    setupHealthCheckMock(true)
 
     await renderWithAct(<HealthCheck />)
 
     expect(screen.getByText('Health Check')).toBeInTheDocument()
     expect(
-      screen.getByText('Checking the connection to your LocalAI backend server')
+      screen.getByText('Checking the connection to your ExoGen backend server')
     ).toBeInTheDocument()
   })
 
   it('renders HealthCheckContent with isHealthy=true when backend is healthy', async () => {
-    // Mock the useHealthQuery hook to return healthy state
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
+    setupHealthCheckMock(true)
 
     await renderWithAct(<HealthCheck />)
 
@@ -120,8 +91,7 @@ describe('HealthCheck', () => {
   })
 
   it('renders HealthCheckContent with isHealthy=false when backend is not healthy', async () => {
-    // Mock the useHealthQuery hook to return null data (not healthy)
-    setupHealthQueryMock(null)
+    setupHealthCheckMock(false)
 
     await renderWithAct(<HealthCheck />)
 
@@ -130,11 +100,7 @@ describe('HealthCheck', () => {
   })
 
   it('enables the Next button when backend is healthy', async () => {
-    // Mock the useHealthQuery hook to return healthy state
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
+    setupHealthCheckMock(true)
 
     await renderWithAct(<HealthCheck />)
 
@@ -143,81 +109,11 @@ describe('HealthCheck', () => {
   })
 
   it('disables the Next button when backend is not healthy', async () => {
-    // Mock the useHealthQuery hook to return null data (not healthy)
-    setupHealthQueryMock(null)
+    setupHealthCheckMock(false)
 
     await renderWithAct(<HealthCheck />)
 
     const nextButton = screen.getByTestId('next-button')
     expect(nextButton).toBeDisabled()
-  })
-
-  it('checks device index on mount', async () => {
-    // Mock the useHealthQuery hook
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
-
-    await renderWithAct(<HealthCheck />)
-
-    expect(api.getDeviceIndex).toHaveBeenCalledTimes(1)
-  })
-
-  it('redirects to editor if device index is already set', async () => {
-    // Mock getDeviceIndex to return a valid device index
-    vi.mocked(api.getDeviceIndex).mockResolvedValue({ device_index: 0 })
-
-    // Mock router
-    const { mockPush } = routerMocks
-
-    // Mock the useHealthQuery hook
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
-
-    await renderWithAct(<HealthCheck />)
-
-    // Use flush promises to wait for the async operation
-    await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/editor')
-    })
-  })
-
-  it('does not check device index or redirect when backend is not healthy', async () => {
-    // Mock the useHealthQuery hook to return null data (not healthy)
-    setupHealthQueryMock(null)
-
-    const { mockPush } = routerMocks
-
-    await renderWithAct(<HealthCheck />)
-
-    await vi.waitFor(() => {
-      expect(api.getDeviceIndex).not.toHaveBeenCalled()
-      expect(mockPush).not.toHaveBeenCalled()
-    })
-  })
-
-  it('redirects to gpu-detection if device index is not set', async () => {
-    // Mock getDeviceIndex to return NOT_FOUND
-    vi.mocked(api.getDeviceIndex).mockResolvedValue({
-      device_index: DeviceSelection.NOT_FOUND
-    })
-
-    // Mock router
-    const { mockPush } = routerMocks
-
-    // Mock the useHealthQuery hook
-    setupHealthQueryMock({
-      status: 'ok',
-      message: 'Server is running'
-    })
-
-    await renderWithAct(<HealthCheck />)
-
-    await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/gpu-detection')
-    })
   })
 })

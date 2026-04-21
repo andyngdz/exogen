@@ -18,24 +18,24 @@ describe('useDownloadWatcher', () => {
 
     // Default mock: no active download
     mockUseDownloadWatcherStore.mockReturnValue({
-      id: undefined,
+      model_id: undefined,
       step: undefined,
-      onSetId: vi.fn(),
+      onSetModelId: vi.fn(),
       onUpdateStep: vi.fn(),
       onResetStep: vi.fn(),
-      onResetId: vi.fn()
+      onResetModelId: vi.fn()
     })
   })
 
   describe('isDownloading', () => {
-    it('returns true when watchId matches store id', () => {
+    it('returns true when watchId matches store model_id', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: undefined,
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -43,14 +43,14 @@ describe('useDownloadWatcher', () => {
       expect(result.current.isDownloading).toBe(true)
     })
 
-    it('returns false when watchId does not match store id', () => {
+    it('returns false when watchId does not match store model_id', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'other-model',
+        model_id: 'other-model',
         step: undefined,
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -58,7 +58,7 @@ describe('useDownloadWatcher', () => {
       expect(result.current.isDownloading).toBe(false)
     })
 
-    it('returns false when store id is undefined', () => {
+    it('returns false when store model_id is undefined', () => {
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
 
       expect(result.current.isDownloading).toBe(false)
@@ -68,19 +68,19 @@ describe('useDownloadWatcher', () => {
   describe('percent', () => {
     it('calculates percent correctly when step has valid data', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 5,
           total: 10,
           downloaded_size: 5242880, // 5 MB
           total_downloaded_size: 10485760, // 10 MB
           phase: 'downloading'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -96,19 +96,19 @@ describe('useDownloadWatcher', () => {
 
     it('returns 0 when total_downloaded_size is 0', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 0,
           total: 10,
           downloaded_size: 0,
           total_downloaded_size: 0,
           phase: 'starting'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -118,19 +118,19 @@ describe('useDownloadWatcher', () => {
 
     it('calculates percent for partial downloads', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 3,
           total: 10,
           downloaded_size: 3145728, // 3 MB
           total_downloaded_size: 10485760, // 10 MB
           phase: 'downloading'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -140,19 +140,19 @@ describe('useDownloadWatcher', () => {
 
     it('returns 1 when download is complete', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 10,
           total: 10,
           downloaded_size: 10485760, // 10 MB
           total_downloaded_size: 10485760, // 10 MB
           phase: 'complete'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -164,19 +164,19 @@ describe('useDownloadWatcher', () => {
   describe('downloadSized', () => {
     it('returns downloaded_size when step is defined', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 3,
           total: 10,
           downloaded_size: 3145728,
           total_downloaded_size: 10485760,
           phase: 'downloading'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -194,19 +194,19 @@ describe('useDownloadWatcher', () => {
   describe('downloadTotalSized', () => {
     it('returns total_downloaded_size when step is defined', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 3,
           total: 10,
           downloaded_size: 3145728,
           total_downloaded_size: 10485760,
           phase: 'downloading'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -224,9 +224,9 @@ describe('useDownloadWatcher', () => {
   describe('currentFile', () => {
     it('returns current_file when step is defined and has current_file', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 3,
           total: 10,
           downloaded_size: 3145728,
@@ -234,10 +234,10 @@ describe('useDownloadWatcher', () => {
           phase: 'downloading',
           current_file: 'model.safetensors'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -253,19 +253,19 @@ describe('useDownloadWatcher', () => {
 
     it('returns undefined when current_file is not provided', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 3,
           total: 10,
           downloaded_size: 3145728,
           total_downloaded_size: 10485760,
           phase: 'downloading'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -277,7 +277,7 @@ describe('useDownloadWatcher', () => {
   describe('step', () => {
     it('returns the step object from store', () => {
       const mockStep = {
-        id: 'test-model',
+        model_id: 'test-model',
         step: 7,
         total: 10,
         downloaded_size: 7340032,
@@ -287,12 +287,12 @@ describe('useDownloadWatcher', () => {
       }
 
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: mockStep,
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -310,9 +310,9 @@ describe('useDownloadWatcher', () => {
   describe('integration', () => {
     it('provides all expected properties', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 5,
           total: 10,
           downloaded_size: 5242880,
@@ -320,10 +320,10 @@ describe('useDownloadWatcher', () => {
           phase: 'downloading',
           current_file: 'model.bin'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       const { result } = renderHook(() => useDownloadWatcher('test-model'))
@@ -348,9 +348,9 @@ describe('useDownloadWatcher', () => {
 
       // Download starts
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 1,
           total: 10,
           downloaded_size: 1048576,
@@ -358,10 +358,10 @@ describe('useDownloadWatcher', () => {
           phase: 'downloading',
           current_file: 'model.safetensors'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       rerender()
@@ -373,9 +373,9 @@ describe('useDownloadWatcher', () => {
 
       // Download completes
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
+        model_id: 'test-model',
         step: {
-          id: 'test-model',
+          model_id: 'test-model',
           step: 10,
           total: 10,
           downloaded_size: 10485760,
@@ -383,10 +383,10 @@ describe('useDownloadWatcher', () => {
           phase: 'complete',
           current_file: 'model.safetensors'
         },
-        onSetId: vi.fn(),
+        onSetModelId: vi.fn(),
         onUpdateStep: vi.fn(),
         onResetStep: vi.fn(),
-        onResetId: vi.fn()
+        onResetModelId: vi.fn()
       })
 
       rerender()

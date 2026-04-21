@@ -75,7 +75,7 @@ describe('EditorNavbar', () => {
     expect(screen.getByTestId('mock-next-image')).toBeInTheDocument()
     expect(screen.getByTestId('mock-next-image')).toHaveAttribute(
       'data-alt',
-      'LocalAI Logo'
+      'ExoGen Logo'
     )
   })
 
@@ -104,6 +104,7 @@ describe('EditorNavbar', () => {
     render(<EditorNavbar />)
 
     const navbar = screen.getByTestId('mock-navbar')
-    expect(navbar).toHaveClass('bg-content1')
+    // Navbar uses default HeroUI styling with maxWidth="full", isBordered, and isBlurred
+    expect(navbar).toBeInTheDocument()
   })
 })

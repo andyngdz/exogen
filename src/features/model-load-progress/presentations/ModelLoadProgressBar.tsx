@@ -15,6 +15,7 @@ export const ModelLoadProgressBar = () => {
           value={percentage}
           color="primary"
           className="max-w-full"
+          aria-label="Model loading progress"
         />
       </div>
     </Activity>

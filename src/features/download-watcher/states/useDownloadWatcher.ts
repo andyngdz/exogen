@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { useDownloadWatcherStore } from './useDownloadWatchStore'
 
 export const useDownloadWatcher = (watchId: string) => {
-  const { id, step } = useDownloadWatcherStore()
-  const isDownloading = id === watchId
+  const { model_id, step } = useDownloadWatcherStore()
+  const isDownloading = model_id === watchId
 
   const percent = useMemo(() => {
     if (step && step.total_downloaded_size > 0) {

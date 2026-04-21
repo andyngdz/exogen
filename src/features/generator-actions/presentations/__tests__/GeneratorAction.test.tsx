@@ -58,16 +58,8 @@ vi.mock('@heroui/react', () => {
         </div>
       )
     },
-    SelectItem: ({
-      children,
-      key
-    }: {
-      children: React.ReactNode
-      key?: string
-    }) => (
-      <div data-testid="select-item" data-key={key}>
-        {children}
-      </div>
+    SelectItem: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="select-item">{children}</div>
     ),
     Selection: Set
   }
@@ -81,9 +73,8 @@ describe('GeneratorAction', () => {
     setViewModeMock.mockReset()
 
     // Update the mock implementation for useImageViewModeStore
-    const storeModule = await import(
-      '@/features/generator-previewers/states/useImageViewModeStore'
-    )
+    const storeModule =
+      await import('@/features/generator-previewers/states/useImageViewModeStore')
     const mockedStore = vi.mocked(storeModule.useImageViewModeStore)
     mockedStore.mockImplementation(() => ({
       viewMode: 'grid' as ImageViewMode,
@@ -97,7 +88,7 @@ describe('GeneratorAction', () => {
 
   it('should render the component with submit button and view selector', () => {
     // Arrange & Act
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
 
     // Assert
     expect(screen.getByTestId('submit-button-mock')).toBeInTheDocument()
@@ -113,7 +104,7 @@ describe('GeneratorAction', () => {
 
   it('should have the correct CSS classes and attributes', () => {
     // Arrange & Act
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
 
     // Assert
     expect(screen.getByTestId('select-mock')).toHaveClass('max-w-32')
@@ -125,7 +116,7 @@ describe('GeneratorAction', () => {
 
   it('should change view mode when selection changes', async () => {
     // Arrange
-    render(<GeneratorAction />)
+    render(<GeneratorAction onGenerate={vi.fn()} />)
     const select = screen.getByTestId('select-mock')
 
     // Act

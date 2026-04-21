@@ -1,6 +1,6 @@
 import { useGenerationStatusStore } from '@/features/generators/states'
+import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorActionSubmitButton } from '../GeneratorActionSubmitButton'
 
@@ -14,27 +14,31 @@ vi.mock('@heroui/react', () => ({
   Button: ({
     children,
     isDisabled,
-    type
+    type,
+    onPress
   }: {
     children: React.ReactNode
     isDisabled?: boolean
     type?: 'submit' | 'reset' | 'button'
+    onPress?: VoidFunction
   }) => (
-    <button type={type} disabled={isDisabled} data-testid="submit-button">
+    <button
+      type={type}
+      disabled={isDisabled}
+      data-testid="submit-button"
+      onClick={onPress}
+    >
       {children}
     </button>
   )
 }))
 
-// Mock react-hook-form's FormProvider
-const FormProviderWrapper = ({ children }: { children: React.ReactNode }) => {
-  const methods = useForm({
-    defaultValues: {
-      number_of_images: 4
+const createWrapper = (numberOfImages: number) =>
+  createGeneratorConfigFormWrapper({
+    overrides: {
+      number_of_images: numberOfImages
     }
   })
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
 
 describe('GeneratorActionSubmitButton', () => {
   beforeEach(() => {
@@ -50,11 +54,9 @@ describe('GeneratorActionSubmitButton', () => {
     })
 
     // Act
-    render(
-      <FormProviderWrapper>
-        <GeneratorActionSubmitButton />
-      </FormProviderWrapper>
-    )
+    render(<GeneratorActionSubmitButton onPress={vi.fn()} />, {
+      wrapper: createWrapper(4)
+    })
 
     // Assert
     expect(screen.getByTestId('submit-button')).toHaveTextContent(
@@ -72,11 +74,9 @@ describe('GeneratorActionSubmitButton', () => {
     })
 
     // Act
-    render(
-      <FormProviderWrapper>
-        <GeneratorActionSubmitButton />
-      </FormProviderWrapper>
-    )
+    render(<GeneratorActionSubmitButton onPress={vi.fn()} />, {
+      wrapper: createWrapper(4)
+    })
 
     // Assert
     expect(screen.getByTestId('submit-button')).toHaveTextContent(
@@ -93,25 +93,10 @@ describe('GeneratorActionSubmitButton', () => {
       reset: vi.fn()
     })
 
-    const CustomFormProviderWrapper = ({
-      children
-    }: {
-      children: React.ReactNode
-    }) => {
-      const methods = useForm({
-        defaultValues: {
-          number_of_images: 8
-        }
-      })
-      return <FormProvider {...methods}>{children}</FormProvider>
-    }
-
     // Act
-    render(
-      <CustomFormProviderWrapper>
-        <GeneratorActionSubmitButton />
-      </CustomFormProviderWrapper>
-    )
+    render(<GeneratorActionSubmitButton onPress={vi.fn()} />, {
+      wrapper: createWrapper(8)
+    })
 
     // Assert
     expect(screen.getByTestId('submit-button')).toHaveTextContent(

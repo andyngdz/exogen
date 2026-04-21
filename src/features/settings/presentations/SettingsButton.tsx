@@ -1,10 +1,10 @@
 import { Button } from '@heroui/react'
-import { useDisclosure } from '@heroui/use-disclosure'
 import { Settings } from 'lucide-react'
+import { useSettingsStore } from '../states/useSettingsStore'
 import { SettingsModal } from './SettingsModal'
 
 export const SettingsButton = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isModalOpen, openModal, closeModal } = useSettingsStore()
 
   return (
     <div>
@@ -12,12 +12,12 @@ export const SettingsButton = () => {
         isIconOnly
         variant="light"
         aria-label="Settings"
-        onPress={onOpen}
+        onPress={() => openModal()}
         className="text-default-700 hover:text-foreground"
       >
         <Settings size={16} />
       </Button>
-      <SettingsModal isOpen={isOpen} onClose={onClose} />
+      <SettingsModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   )
 }

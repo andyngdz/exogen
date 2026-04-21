@@ -2,23 +2,23 @@ import { ModelLoadProgressResponse } from '@/cores/sockets'
 import { create } from 'zustand'
 
 interface State {
-  id?: string
+  model_id?: string
   progress?: ModelLoadProgressResponse
 }
 
 interface Actions {
   onUpdateProgress: (progress: ModelLoadProgressResponse) => void
-  onSetId: (id: string) => void
+  onSetModelId: (model_id: string) => void
   reset: VoidFunction
 }
 
 export const useModelLoadProgressStore = create<State & Actions>()(
   (set, _get, store) => ({
-    id: undefined,
+    model_id: undefined,
     progress: undefined,
 
     onUpdateProgress: (progress) => set({ progress }),
-    onSetId: (id) => set({ id }),
+    onSetModelId: (model_id) => set({ model_id }),
     reset: () => set(store.getInitialState())
   })
 )

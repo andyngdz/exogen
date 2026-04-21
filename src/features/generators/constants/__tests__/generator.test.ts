@@ -7,12 +7,14 @@ describe('Generator Constants', () => {
       expect(FORM_DEFAULT_VALUES).toEqual({
         width: 512,
         height: 512,
-        hires_fix: false,
         number_of_images: 4,
         steps: 24,
         seed: -1,
         cfg_scale: 7.5,
+        clip_skip: 1,
+        sampler: 'EULER_A',
         styles: [],
+        loras: [],
         prompt: '',
         negative_prompt: ''
       })
@@ -23,12 +25,14 @@ describe('Generator Constants', () => {
       const requiredFields = [
         'width',
         'height',
-        'hires_fix',
         'number_of_images',
         'steps',
         'seed',
         'cfg_scale',
+        'clip_skip',
+        'sampler',
         'styles',
+        'loras',
         'prompt',
         'negative_prompt'
       ]
@@ -45,6 +49,7 @@ describe('Generator Constants', () => {
       expect(typeof FORM_DEFAULT_VALUES.steps).toBe('number')
       expect(typeof FORM_DEFAULT_VALUES.seed).toBe('number')
       expect(typeof FORM_DEFAULT_VALUES.cfg_scale).toBe('number')
+      expect(typeof FORM_DEFAULT_VALUES.clip_skip).toBe('number')
     })
 
     it('should have empty strings for prompt fields', () => {
@@ -57,9 +62,13 @@ describe('Generator Constants', () => {
       expect(FORM_DEFAULT_VALUES.styles.length).toBe(0)
     })
 
-    it('should have boolean value for hires_fix', () => {
-      expect(typeof FORM_DEFAULT_VALUES.hires_fix).toBe('boolean')
-      expect(FORM_DEFAULT_VALUES.hires_fix).toBe(false)
+    it('should have empty array for loras', () => {
+      expect(Array.isArray(FORM_DEFAULT_VALUES.loras)).toBe(true)
+      expect(FORM_DEFAULT_VALUES.loras.length).toBe(0)
+    })
+
+    it('should not have hires_fix by default (applied lazily when enabled)', () => {
+      expect(FORM_DEFAULT_VALUES.hires_fix).toBeUndefined()
     })
   })
 })

@@ -19,7 +19,7 @@ export const ModelSearchContainer = () => {
     <FormProvider {...methods}>
       <Allotment defaultSizes={[300, 0]}>
         <Allotment.Pane maxSize={350} minSize={300} preferredSize={300}>
-          <div className="flex flex-col gap-4 p-4 h-full">
+          <div className="flex flex-col gap-4 p-2 h-full">
             <ModelSearchInput />
             <ModelSearchListModel />
           </div>

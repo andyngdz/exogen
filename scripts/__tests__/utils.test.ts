@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import type { MockInstance } from 'vitest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { $ } from 'zx'
@@ -5,8 +7,12 @@ import { projectRoot, runAsScript, setupLog } from '../utils'
 
 describe('projectRoot', () => {
   it('resolves to the repository root directory', () => {
-    const expectedRoot = process.cwd()
-    expect(projectRoot).toBe(expectedRoot)
+    // Verify projectRoot points to the actual project root
+    expect(projectRoot).not.toMatch(/scripts$/)
+
+    // Verify package.json exists in the root
+    const packageJsonPath = join(projectRoot, 'package.json')
+    expect(existsSync(packageJsonPath)).toBe(true)
   })
 })
 

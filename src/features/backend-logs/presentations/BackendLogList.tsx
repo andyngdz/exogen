@@ -1,48 +1,34 @@
-import { dateFormatter } from '@/services'
 import { ScrollShadow } from '@heroui/react'
-import clsx from 'clsx'
-import { useMemo } from 'react'
-import stripAnsi from 'strip-ansi'
 import { useBackendLog } from '../states'
+import { BackendLogItem } from './BackendLogItem'
 
 export const BackendLogList = () => {
-  const { logs, onGetLogColor, scrollRef, rowVirtualizer } = useBackendLog()
-
-  const LogsComponent = useMemo(() => {
-    return rowVirtualizer.getVirtualItems().map((virtualItem) => {
-      const log = logs[virtualItem.index]
-      const { timestamp, level } = log
-
-      return (
-        <div
-          key={virtualItem.key}
-          data-index={virtualItem.index}
-          ref={rowVirtualizer.measureElement}
-          className="absolute inset-x-0 w-full"
-          style={{
-            transform: `translateY(${virtualItem.start}px)`
-          }}
-        >
-          <div className="flex gap-1 text-sm">
-            <span className="shrink-0 min-w-10 text-default-700">
-              {dateFormatter.timeFromTimestamp(timestamp)}
-            </span>
-            <span className={clsx(`wrap-break-word`, onGetLogColor(level))}>
-              {stripAnsi(log.message)}
-            </span>
-          </div>
-        </div>
-      )
-    })
-  }, [logs, onGetLogColor, rowVirtualizer])
+  const { logs, scrollRef, rowVirtualizer } = useBackendLog()
+  const virtualItems = rowVirtualizer.getVirtualItems()
 
   return (
-    <ScrollShadow ref={scrollRef} className="scrollbar-thin h-96">
+    <ScrollShadow className="py-4" ref={scrollRef}>
       <div
         className="relative w-full"
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
-        {LogsComponent}
+        {virtualItems.map((virtualItem) => {
+          const log = logs[virtualItem.index]
+
+          return (
+            <div
+              className="absolute inset-x-0 w-full"
+              data-index={virtualItem.index}
+              key={virtualItem.key}
+              ref={rowVirtualizer.measureElement}
+              style={{
+                transform: `translateY(${virtualItem.start}px)`
+              }}
+            >
+              <BackendLogItem log={log} />
+            </div>
+          )
+        })}
       </div>
     </ScrollShadow>
   )

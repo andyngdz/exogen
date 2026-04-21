@@ -30,9 +30,12 @@ vi.mock('@/services/formatter', () => ({
   }
 }))
 
-// Mock the state function
+// Mock the state function and store
 vi.mock('../../states', () => ({
-  onUpdateModelId: vi.fn()
+  onUpdateModelId: vi.fn(),
+  useModelSearchSelectorStore: vi.fn(() => ({
+    model_id: ''
+  }))
 }))
 
 describe('ModelSearchItem', () => {

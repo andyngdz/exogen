@@ -22,7 +22,7 @@ export const useUpdaterSettings = () => {
       const result =
         await globalThis.window.electronAPI.updater.checkForUpdates()
 
-      if (!result.updateAvailable) {
+      if (result && !result.updateAvailable) {
         addToast({
           title: "You're already on the latest version",
           description: `Current version: ${version}`,

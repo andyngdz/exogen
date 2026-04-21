@@ -1,4 +1,4 @@
-import { $ } from 'zx'
+import { $ } from '../zx-config'
 import {
   BackendStatusEmitter,
   BackendStatusLevel,

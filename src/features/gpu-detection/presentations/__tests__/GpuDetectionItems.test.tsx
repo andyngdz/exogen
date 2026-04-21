@@ -1,21 +1,14 @@
 import { render, screen } from '@testing-library/react'
-import { FormProvider, useForm } from 'react-hook-form'
+import { createFormProviderWrapper } from '@/cores/test-utils'
 import { describe, expect, it } from 'vitest'
 import { GpuDetectionItems } from '../GpuDetectionItems'
 import { GpuInfo } from '@/types'
 import { GpuDetectionFormProps } from '../../types/gpu-detection'
 
-// Wrapper component to provide form context
-const FormWrapper = ({
-  children,
-  defaultValues = {}
-}: {
-  children: React.ReactNode
-  defaultValues?: Partial<GpuDetectionFormProps>
-}) => {
-  const methods = useForm<GpuDetectionFormProps>({ defaultValues })
-  return <FormProvider {...methods}>{children}</FormProvider>
-}
+const createWrapper = (defaultValues: Partial<GpuDetectionFormProps> = {}) =>
+  createFormProviderWrapper<GpuDetectionFormProps>({
+    formOptions: { defaultValues }
+  })
 
 describe('GpuDetectionItems', () => {
   const mockGpus: GpuInfo[] = [
@@ -40,11 +33,7 @@ describe('GpuDetectionItems', () => {
   ]
 
   it('renders all GPU items', () => {
-    render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={mockGpus} />
-      </FormWrapper>
-    )
+    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
 
     expect(screen.getByText('NVIDIA GeForce RTX 4090')).toBeInTheDocument()
     expect(screen.getByText('NVIDIA GeForce RTX 3080')).toBeInTheDocument()
@@ -52,11 +41,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('defaults to primary GPU selection', () => {
-    render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={mockGpus} />
-      </FormWrapper>
-    )
+    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
 
     // Primary GPU is at index 1, so it should be selected by default
     const radioButtons = screen.getAllByRole('radio')
@@ -69,11 +54,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('handles empty GPU list', () => {
-    render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={[]} />
-      </FormWrapper>
-    )
+    render(<GpuDetectionItems gpus={[]} />, { wrapper: createWrapper() })
 
     // Should not render any radio buttons
     expect(screen.queryAllByRole('radio')).toHaveLength(0)
@@ -95,11 +76,9 @@ describe('GpuDetectionItems', () => {
       }
     ]
 
-    render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={noPrimaryGpus} />
-      </FormWrapper>
-    )
+    render(<GpuDetectionItems gpus={noPrimaryGpus} />, {
+      wrapper: createWrapper()
+    })
 
     // When no primary GPU is found, findIndex returns -1, so defaultValue would be "-1"
     // This means no radio button should be selected by default
@@ -113,11 +92,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('renders correct number of GPU items', () => {
-    render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={mockGpus} />
-      </FormWrapper>
-    )
+    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
 
     // Should render the same number of radio buttons as GPUs
     const radioButtons = screen.getAllByRole('radio')
@@ -130,11 +105,9 @@ describe('GpuDetectionItems', () => {
   })
 
   it('registers form field correctly', () => {
-    const { container } = render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={mockGpus} />
-      </FormWrapper>
-    )
+    const { container } = render(<GpuDetectionItems gpus={mockGpus} />, {
+      wrapper: createWrapper()
+    })
 
     // Check that the RadioGroup has the required validation
     const radioGroup = container.querySelector('[role="radiogroup"]')
@@ -142,11 +115,9 @@ describe('GpuDetectionItems', () => {
   })
 
   it('wraps content in a Card component', () => {
-    const { container } = render(
-      <FormWrapper>
-        <GpuDetectionItems gpus={mockGpus} />
-      </FormWrapper>
-    )
+    const { container } = render(<GpuDetectionItems gpus={mockGpus} />, {
+      wrapper: createWrapper()
+    })
 
     // Check for Card component structure (HeroUI Card typically has specific classes)
     const cardElement = container.firstChild

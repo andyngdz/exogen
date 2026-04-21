@@ -8,14 +8,14 @@ import { useCallback } from 'react'
 import { useModelLoadProgressStore } from './useModelLoadProgressStore'
 
 export const useModelLoadProgress = () => {
-  const { id, progress, onUpdateProgress, onSetId, reset } =
+  const { model_id, progress, onUpdateProgress, onSetModelId, reset } =
     useModelLoadProgressStore()
 
   const onLoadStarted = useCallback(
     (data: ModelLoadStartedResponse) => {
-      onSetId(data.id)
+      onSetModelId(data.model_id)
     },
-    [onSetId]
+    [onSetModelId]
   )
 
   const onLoadProgress = useCallback(
@@ -44,7 +44,7 @@ export const useModelLoadProgress = () => {
     : 0
 
   return {
-    isLoading: !!id,
+    isLoading: !!model_id,
     message: progress?.message || 'Loading model...',
     percentage
   }

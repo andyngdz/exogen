@@ -8,7 +8,8 @@ import * as utilsModule from '../utils'
 // Mock dependencies
 const mock$ = vi.fn()
 vi.mock('zx', () => ({
-  $: (...args: unknown[]) => mock$(...args)
+  $: (...args: unknown[]) => mock$(...args),
+  usePowerShell: vi.fn()
 }))
 vi.mock('../utils')
 

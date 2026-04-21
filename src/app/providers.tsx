@@ -1,5 +1,6 @@
 'use client'
 
+import { BackendLogCollector } from '@/features/backend-logs'
 import { DownloadWatcher } from '@/features/download-watcher'
 import { HeroUIProvider, ToastProvider } from '@heroui/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -20,7 +21,9 @@ export const Providers: FC<PropsWithChildren> = ({ children }) => {
     <HeroUIProvider>
       <ToastProvider />
       <QueryClientProvider client={queryClient}>
-        <DownloadWatcher>{children}</DownloadWatcher>
+        <BackendLogCollector>
+          <DownloadWatcher>{children}</DownloadWatcher>
+        </BackendLogCollector>
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-left" />
       </QueryClientProvider>
     </HeroUIProvider>

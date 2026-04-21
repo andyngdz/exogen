@@ -1,14 +1,33 @@
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import path from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
+  resolve: {
+    alias: {
+      // Ensure framer-motion never touches real `window` in tests.
+      'framer-motion': path.resolve(
+        __dirname,
+        'src/cores/test-utils/framerMotionMock.ts'
+      ),
+      'framer-motion/dist/es/index.mjs': path.resolve(
+        __dirname,
+        'src/cores/test-utils/framerMotionMock.ts'
+      ),
+      'framer-motion/dist/cjs/index.js': path.resolve(
+        __dirname,
+        'src/cores/test-utils/framerMotionMock.ts'
+      ),
+      'framer-motion/dist/es/components/LazyMotion/index.mjs': path.resolve(
+        __dirname,
+        'src/cores/test-utils/framerMotionMock.ts'
+      )
+    }
+  },
   test: {
     pool: 'forks',
-    maxConcurrency: 10,
-    maxWorkers: process.env.CI ? 8 : 4,
-    minWorkers: 1,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,

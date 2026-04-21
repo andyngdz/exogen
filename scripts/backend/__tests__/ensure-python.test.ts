@@ -40,7 +40,8 @@ const { mock$, commandQueue, recordedCommands, platformState } = vi.hoisted(
 )
 
 vi.mock('zx', () => ({
-  $: (...args: Parameters<CommandRecorder>) => mock$(...args)
+  $: (...args: Parameters<CommandRecorder>) => mock$(...args),
+  usePowerShell: vi.fn()
 }))
 
 vi.mock('../utils', () => ({
@@ -124,16 +125,18 @@ describe('ensurePython311', () => {
     expect(result).toEqual({
       command: 'python3.11',
       args: [],
-      version: '3.11.5'
+      version: '3.11.5',
+      minor: 11
     })
     expect(recordedCommands).toEqual(['python3.11 --version'])
     expect(emit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Info,
       message: 'Python 3.11.5 detected.'
     })
+    expect(emit).toHaveBeenCalledTimes(1)
   })
 
-  it('continues through candidates until a 3.11 interpreter is found', async () => {
+  it('continues through candidates until a 3.11+ interpreter is found', async () => {
     setPlatform('linux')
 
     commandQueue.push(
@@ -145,7 +148,12 @@ describe('ensurePython311', () => {
 
     const result = await ensurePython311({ emit })
 
-    expect(result).toEqual({ command: 'python3', args: [], version: '3.11.0' })
+    expect(result).toEqual({
+      command: 'python3',
+      args: [],
+      version: '3.11.0',
+      minor: 11
+    })
     expect(recordedCommands).toEqual([
       'python3.11 --version',
       'python3 --version'
@@ -153,6 +161,106 @@ describe('ensurePython311', () => {
     expect(emit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Info,
       message: 'Python 3.11.0 detected.'
+    })
+  })
+
+  describe('Python 3.12+ support with warning', () => {
+    it('accepts Python 3.12 and emits a warning', async () => {
+      setPlatform('linux')
+      commandQueue.push(makeResult({ stdout: 'Python 3.12.3\n' }))
+
+      const emit = vi.fn()
+
+      const result = await ensurePython311({ emit })
+
+      expect(result).toEqual({
+        command: 'python3.11',
+        args: [],
+        version: '3.12.3',
+        minor: 12
+      })
+      expect(emit).toHaveBeenNthCalledWith(1, {
+        level: BackendStatusLevel.Info,
+        message: 'Python 3.12.3 detected.'
+      })
+      expect(emit).toHaveBeenNthCalledWith(2, {
+        level: BackendStatusLevel.Info,
+        message:
+          'Python 3.12.3 may not be fully tested. Python 3.11 is recommended.'
+      })
+      expect(emit).toHaveBeenCalledTimes(2)
+    })
+
+    it('accepts Python 3.13 and emits a warning', async () => {
+      setPlatform('linux')
+      commandQueue.push(makeResult({ stdout: 'Python 3.13.7\n' }))
+
+      const emit = vi.fn()
+
+      const result = await ensurePython311({ emit })
+
+      expect(result).toEqual({
+        command: 'python3.11',
+        args: [],
+        version: '3.13.7',
+        minor: 13
+      })
+      expect(emit).toHaveBeenNthCalledWith(1, {
+        level: BackendStatusLevel.Info,
+        message: 'Python 3.13.7 detected.'
+      })
+      expect(emit).toHaveBeenNthCalledWith(2, {
+        level: BackendStatusLevel.Info,
+        message:
+          'Python 3.13.7 may not be fully tested. Python 3.11 is recommended.'
+      })
+      expect(emit).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not emit warning for Python 3.11', async () => {
+      setPlatform('linux')
+      commandQueue.push(makeResult({ stdout: 'Python 3.11.9\n' }))
+
+      const emit = vi.fn()
+
+      await ensurePython311({ emit })
+
+      expect(emit).toHaveBeenCalledTimes(1)
+      expect(emit).toHaveBeenCalledWith({
+        level: BackendStatusLevel.Info,
+        message: 'Python 3.11.9 detected.'
+      })
+    })
+  })
+
+  describe('Python 3.10 and older rejection', () => {
+    it('rejects Python 3.10 and throws error', async () => {
+      setPlatform('linux')
+
+      commandQueue.push(
+        makeResult({ stdout: 'Python 3.10.12\n' }),
+        makeResult({ stdout: 'Python 3.10.12\n' }),
+        makeResult({ stdout: 'Python 3.10.12\n' })
+      )
+
+      const emit = vi.fn()
+
+      await expect(ensurePython311({ emit })).rejects.toThrow(
+        'Python 3.11+ is not installed.'
+      )
+
+      expect(emit).toHaveBeenCalledWith({
+        level: BackendStatusLevel.Error,
+        message:
+          'Python 3.11+ is required. Install it with your system package manager.',
+        commands: [
+          { label: 'Update packages', command: 'sudo apt update' },
+          {
+            label: 'Install Python 3.11',
+            command: 'sudo apt install python3.11'
+          }
+        ]
+      })
     })
   })
 
@@ -172,7 +280,7 @@ describe('ensurePython311', () => {
     const emit = vi.fn()
 
     await expect(ensurePython311({ emit })).rejects.toThrow(
-      'Python 3.11 is not installed.'
+      'Python 3.11+ is not installed.'
     )
 
     expect(recordedCommands).toEqual([
@@ -186,7 +294,7 @@ describe('ensurePython311', () => {
     expect(emit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Error,
       message:
-        'Python 3.11 is required. Install it using winget, Chocolatey, or from python.org.',
+        'Python 3.11+ is required. Install it using winget, Chocolatey, or from python.org.',
       commands: [
         {
           label: 'Install with winget',
@@ -214,7 +322,7 @@ describe('ensurePython311', () => {
     const emit = vi.fn()
 
     await expect(ensurePython311({ emit })).rejects.toThrow(
-      'Python 3.11 is not installed.'
+      'Python 3.11+ is not installed.'
     )
 
     expect(recordedCommands).toEqual([
@@ -226,7 +334,7 @@ describe('ensurePython311', () => {
     expect(emit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Error,
       message:
-        'Python 3.11 is required. Install it via Homebrew or download it from python.org.',
+        'Python 3.11+ is required. Install it via Homebrew or download it from python.org.',
       commands: [
         {
           label: 'Install with Homebrew',
@@ -248,7 +356,7 @@ describe('ensurePython311', () => {
     const emit = vi.fn()
 
     await expect(ensurePython311({ emit })).rejects.toThrow(
-      'Python 3.11 is not installed.'
+      'Python 3.11+ is not installed.'
     )
 
     expect(recordedCommands).toEqual([
@@ -260,7 +368,7 @@ describe('ensurePython311', () => {
     expect(emit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Error,
       message:
-        'Python 3.11 is required. Install it with your system package manager.',
+        'Python 3.11+ is required. Install it with your system package manager.',
       commands: [
         { label: 'Update packages', command: 'sudo apt update' },
         { label: 'Install Python 3.11', command: 'sudo apt install python3.11' }

@@ -77,8 +77,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     // Default mock implementations
     mockUseDownloadWatcherStore.mockReturnValue({
-      id: undefined,
-      onSetId: vi.fn()
+      model_id: undefined,
+      onSetModelId: vi.fn()
     })
 
     mockUseDownloadWatcher.mockReturnValue({
@@ -146,8 +146,8 @@ describe('ModelRecommendationsDownloadButton', () => {
   describe('This Model Downloading', () => {
     beforeEach(() => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
 
       mockUseDownloadWatcher.mockReturnValue({
@@ -225,8 +225,8 @@ describe('ModelRecommendationsDownloadButton', () => {
   describe('Another Model Downloading', () => {
     beforeEach(() => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'other-model',
-        onSetId: vi.fn()
+        model_id: 'other-model',
+        onSetModelId: vi.fn()
       })
 
       mockUseDownloadWatcher.mockReturnValue({
@@ -269,8 +269,8 @@ describe('ModelRecommendationsDownloadButton', () => {
   describe('Progress Bar Widths', () => {
     it('shows 1% width at start', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 0.01,
@@ -291,8 +291,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     it('shows 50% width at halfway', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 0.5,
@@ -313,8 +313,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     it('shows 100% width when complete', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 1,
@@ -337,8 +337,8 @@ describe('ModelRecommendationsDownloadButton', () => {
   describe('Bytes Display', () => {
     it('displays formatted bytes correctly', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 0.456,
@@ -359,8 +359,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     it('shows 0 bytes at start', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 0.001,
@@ -381,8 +381,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     it('shows equal bytes when complete', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 1,
@@ -424,8 +424,8 @@ describe('ModelRecommendationsDownloadButton', () => {
 
     it('applies transition classes to progress bar', () => {
       mockUseDownloadWatcherStore.mockReturnValue({
-        id: 'test-model',
-        onSetId: vi.fn()
+        model_id: 'test-model',
+        onSetModelId: vi.fn()
       })
       mockUseDownloadWatcher.mockReturnValue({
         percent: 0.5,

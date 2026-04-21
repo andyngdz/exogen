@@ -1,4 +1,4 @@
-import { $ } from 'zx'
+import { $ } from '../zx-config'
 
 const isGitAvailable = async (): Promise<boolean> => {
   try {

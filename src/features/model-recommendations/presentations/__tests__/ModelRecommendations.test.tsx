@@ -12,7 +12,8 @@ import { ModelRecommendations } from '../ModelRecommendations'
 // Mock the dependencies
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    back: vi.fn()
+    back: vi.fn(),
+    replace: vi.fn()
   })
 }))
 
@@ -74,6 +75,7 @@ vi.mock('@/features/setup-layout/presentations/SetupLayout', () => ({
 
 // Mock the useModelRecommendation hook
 const mockOnNext = vi.fn()
+const mockOnSkip = vi.fn()
 
 // Create a mock function that we can access in our tests
 const mockUseModelRecommendation = vi.fn()
@@ -95,6 +97,22 @@ vi.mock('@/services/queries', () => ({
     isLoading: false,
     error: null
   })
+}))
+
+// Mock HeroUI Button
+vi.mock('@heroui/react', () => ({
+  Button: ({
+    children,
+    onPress,
+    ...props
+  }: {
+    children: React.ReactNode
+    onPress: VoidFunction
+  }) => (
+    <button onClick={onPress} {...props}>
+      {children}
+    </button>
+  )
 }))
 
 describe('ModelRecommendations', () => {
@@ -124,12 +142,12 @@ describe('ModelRecommendations', () => {
 
   const setDownloadWatcherState = (downloadingId: string | null) => {
     downloadWatcherState = {
-      id: downloadingId ?? undefined,
+      model_id: downloadingId ?? undefined,
       step: undefined,
       onUpdateStep: vi.fn(),
-      onSetId: vi.fn(),
+      onSetModelId: vi.fn(),
       onResetStep: vi.fn(),
-      onResetId: vi.fn()
+      onResetModelId: vi.fn()
     }
 
     vi.mocked(useDownloadWatcherStore).mockImplementation(((
@@ -145,6 +163,7 @@ describe('ModelRecommendations', () => {
     // Set up the mock return value
     mockUseModelRecommendation.mockReturnValue({
       onNext: mockOnNext,
+      onSkip: mockOnSkip,
       data: mockData
     })
 
@@ -168,6 +187,7 @@ describe('ModelRecommendations', () => {
   it('renders without crashing when data is available', () => {
     mockUseModelRecommendation.mockReturnValueOnce({
       onNext: mockOnNext,
+      onSkip: mockOnSkip,
       data: mockData
     })
 
@@ -181,6 +201,7 @@ describe('ModelRecommendations', () => {
   it('does not render ModelRecommendationsList when data is not available', () => {
     mockUseModelRecommendation.mockReturnValue({
       onNext: mockOnNext,
+      onSkip: mockOnSkip,
       data: null
     })
 
@@ -215,5 +236,25 @@ describe('ModelRecommendations', () => {
     const setupLayout = screen.getByTestId('mock-setup-layout')
     expect(setupLayout).toHaveAttribute('data-is-next-disabled', 'false')
     expect(setupLayout).toHaveAttribute('data-is-back-disabled', 'false')
+  })
+
+  it('renders skip button when not downloading', () => {
+    setDownloadWatcherState(null)
+
+    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
+
+    const skipButton = screen.getByRole('button', { name: /skip for now/i })
+    expect(skipButton).toBeInTheDocument()
+    expect(skipButton).toHaveTextContent('Skip for now, I will download later')
+  })
+
+  it('does not render skip button when downloading', () => {
+    setDownloadWatcherState('downloading-model')
+
+    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
+
+    expect(
+      screen.queryByRole('button', { name: /skip for now/i })
+    ).not.toBeInTheDocument()
   })
 })

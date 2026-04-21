@@ -40,7 +40,8 @@ describe('startBackend', () => {
     vi.mocked(ensurePython311).mockResolvedValue({
       command: 'python3.11',
       args: [],
-      version: '3.11.0'
+      version: '3.11.0',
+      minor: 11
     })
     vi.mocked(installUv).mockResolvedValue({
       version: '1.0.0'

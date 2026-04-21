@@ -5,6 +5,7 @@ import type {
 } from '@/cores/sockets'
 import { SocketEvents } from '@/cores/sockets'
 import { ModelDownloaded } from '@/types'
+import { ModelFamily } from '@/types'
 import { QueryClient } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { cleanup, render } from '@testing-library/react'
@@ -30,9 +31,12 @@ vi.mock('@/cores/sockets', async () => {
 
 // Mock model selector store
 const mockSetSelectedModelId = vi.fn()
+const mockSetLoadedModelFamily = vi.fn()
 const mockUseModelSelectorStore = vi.fn(() => ({
   selected_model_id: '',
-  setSelectedModelId: mockSetSelectedModelId
+  loaded_model_family: ModelFamily.UNKNOWN,
+  setSelectedModelId: mockSetSelectedModelId,
+  setLoadedModelFamily: mockSetLoadedModelFamily
 }))
 
 vi.mock('@/features/model-selectors/states', () => ({
@@ -51,9 +55,9 @@ vi.mock('@tanstack/react-query', async () => {
 
 describe('DownloadWatcher', () => {
   let mockOnUpdateStep: MockInstance
-  let mockOnSetId: MockInstance
+  let mockOnSetModelId: MockInstance
   let mockOnResetStep: MockInstance
-  let mockOnResetId: MockInstance
+  let mockOnResetModelId: MockInstance
 
   const QueryClientWrapper = createQueryClientWrapper()
 
@@ -64,14 +68,16 @@ describe('DownloadWatcher', () => {
     // Reset mock model selector store to default state
     mockUseModelSelectorStore.mockReturnValue({
       selected_model_id: '',
-      setSelectedModelId: mockSetSelectedModelId
+      loaded_model_family: ModelFamily.UNKNOWN,
+      setSelectedModelId: mockSetSelectedModelId,
+      setLoadedModelFamily: mockSetLoadedModelFamily
     })
 
     // Create mock functions
     mockOnUpdateStep = vi.fn()
-    mockOnSetId = vi.fn()
+    mockOnSetModelId = vi.fn()
     mockOnResetStep = vi.fn()
-    mockOnResetId = vi.fn()
+    mockOnResetModelId = vi.fn()
 
     // Create real QueryClient with mock invalidateQueries
     mockQueryClient = new QueryClient({
@@ -84,12 +90,12 @@ describe('DownloadWatcher', () => {
       useDownloadWatcherStoreModule,
       'useDownloadWatcherStore'
     ).mockReturnValue({
-      id: undefined,
+      model_id: undefined,
       step: undefined,
       onUpdateStep: mockOnUpdateStep,
-      onSetId: mockOnSetId,
+      onSetModelId: mockOnSetModelId,
       onResetStep: mockOnResetStep,
-      onResetId: mockOnResetId
+      onResetModelId: mockOnResetModelId
     })
   })
 
@@ -141,7 +147,7 @@ describe('DownloadWatcher', () => {
     )
   })
 
-  it('handles download start event by calling onSetId', () => {
+  it('handles download start event by calling onSetModelId', () => {
     render(
       <QueryClientWrapper>
         <DownloadWatcher>
@@ -150,13 +156,13 @@ describe('DownloadWatcher', () => {
       </QueryClientWrapper>
     )
 
-    const startData: DownloadModelStartResponse = { id: 'model-123' }
+    const startData: DownloadModelStartResponse = { model_id: 'model-123' }
 
     // Simulate socket event
     capturedHandlers[SocketEvents.DOWNLOAD_START](startData)
 
-    expect(mockOnSetId).toHaveBeenCalledWith('model-123')
-    expect(mockOnSetId).toHaveBeenCalledTimes(1)
+    expect(mockOnSetModelId).toHaveBeenCalledWith('model-123')
+    expect(mockOnSetModelId).toHaveBeenCalledTimes(1)
   })
 
   it('handles download progress event by calling onUpdateStep', () => {
@@ -169,7 +175,7 @@ describe('DownloadWatcher', () => {
     )
 
     const progressData: DownloadStepProgressResponse = {
-      id: 'model-456',
+      model_id: 'model-456',
       step: 3,
       total: 10,
       downloaded_size: 1024,
@@ -197,7 +203,7 @@ describe('DownloadWatcher', () => {
     capturedHandlers[SocketEvents.DOWNLOAD_COMPLETED](undefined)
 
     expect(mockOnResetStep).toHaveBeenCalledTimes(1)
-    expect(mockOnResetId).toHaveBeenCalledTimes(1)
+    expect(mockOnResetModelId).toHaveBeenCalledTimes(1)
     // Note: invalidateQueries is tested at integration level
   })
 
@@ -212,7 +218,7 @@ describe('DownloadWatcher', () => {
 
     const progressUpdates: DownloadStepProgressResponse[] = [
       {
-        id: 'model-1',
+        model_id: 'model-1',
         step: 1,
         total: 5,
         downloaded_size: 512,
@@ -220,7 +226,7 @@ describe('DownloadWatcher', () => {
         phase: 'downloading'
       },
       {
-        id: 'model-1',
+        model_id: 'model-1',
         step: 2,
         total: 5,
         downloaded_size: 1024,
@@ -228,7 +234,7 @@ describe('DownloadWatcher', () => {
         phase: 'downloading'
       },
       {
-        id: 'model-1',
+        model_id: 'model-1',
         step: 3,
         total: 5,
         downloaded_size: 1536,
@@ -258,7 +264,7 @@ describe('DownloadWatcher', () => {
     )
 
     const edgeCaseData: DownloadStepProgressResponse = {
-      id: 'model-edge',
+      model_id: 'model-edge',
       step: 1,
       total: 0,
       downloaded_size: 0,
@@ -314,12 +320,12 @@ describe('DownloadWatcher', () => {
     )
 
     // 1. Download starts
-    capturedHandlers[SocketEvents.DOWNLOAD_START]({ id: 'model-full' })
-    expect(mockOnSetId).toHaveBeenCalledWith('model-full')
+    capturedHandlers[SocketEvents.DOWNLOAD_START]({ model_id: 'model-full' })
+    expect(mockOnSetModelId).toHaveBeenCalledWith('model-full')
 
     // 2. Progress updates
     capturedHandlers[SocketEvents.DOWNLOAD_STEP_PROGRESS]({
-      id: 'model-full',
+      model_id: 'model-full',
       step: 1,
       total: 2,
       downloaded_size: 500,
@@ -330,7 +336,7 @@ describe('DownloadWatcher', () => {
 
     // 3. More progress
     capturedHandlers[SocketEvents.DOWNLOAD_STEP_PROGRESS]({
-      id: 'model-full',
+      model_id: 'model-full',
       step: 2,
       total: 2,
       downloaded_size: 500,
@@ -342,7 +348,7 @@ describe('DownloadWatcher', () => {
     // 4. Download completes
     capturedHandlers[SocketEvents.DOWNLOAD_COMPLETED](undefined)
     expect(mockOnResetStep).toHaveBeenCalled()
-    expect(mockOnResetId).toHaveBeenCalled()
+    expect(mockOnResetModelId).toHaveBeenCalled()
   })
 
   describe('Auto-selection behavior', () => {
@@ -350,7 +356,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with first downloaded model
@@ -383,7 +391,9 @@ describe('DownloadWatcher', () => {
       // Setup: model already selected
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: 'existing-model',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with one model
@@ -415,7 +425,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with multiple models
@@ -456,7 +468,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with empty models
@@ -481,7 +495,9 @@ describe('DownloadWatcher', () => {
       // Setup: empty selected_model_id
       mockUseModelSelectorStore.mockReturnValue({
         selected_model_id: '',
-        setSelectedModelId: mockSetSelectedModelId
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetSelectedModelId,
+        setLoadedModelFamily: mockSetLoadedModelFamily
       })
 
       // Setup QueryClient with undefined (no data)

@@ -63,14 +63,14 @@ describe('ModelSearchListModel', () => {
   it('renders a spinner when loading', () => {
     // Setup mock for this test case
     useModelSearchMock.mockReturnValue({
-      data: undefined,
+      data: [],
       isLoading: true
     })
 
     render(<ModelSearchListModel />)
 
     // Should show a spinner when loading
-    expect(screen.getByLabelText('Loading')).toBeInTheDocument()
+    expect(screen.getByLabelText('Loading...')).toBeInTheDocument()
     expect(screen.queryByText('No models found')).not.toBeInTheDocument()
     expect(
       screen.queryByTestId('mock-model-search-item')
@@ -80,7 +80,7 @@ describe('ModelSearchListModel', () => {
   it('shows an alert when no models are found', () => {
     // Setup mock for this test case
     useModelSearchMock.mockReturnValue({
-      data: { models_search_info: [] },
+      data: [],
       isLoading: false
     })
 
@@ -97,7 +97,7 @@ describe('ModelSearchListModel', () => {
   it('renders a list of models when available', () => {
     // Setup mock for this test case
     useModelSearchMock.mockReturnValue({
-      data: { models_search_info: mockModels },
+      data: mockModels,
       isLoading: false
     })
 
@@ -129,9 +129,9 @@ describe('ModelSearchListModel', () => {
 
     render(<ModelSearchListModel />)
 
-    // When data is undefined and not loading, component should render nothing
+    // When data is undefined and not loading, component should show the empty state alert
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
-    expect(screen.queryByText('No models found')).not.toBeInTheDocument()
+    expect(screen.getByText('No models found')).toBeInTheDocument()
     expect(
       screen.queryByTestId('mock-model-search-item')
     ).not.toBeInTheDocument()

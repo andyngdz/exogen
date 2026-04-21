@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react'
-import { HistoryItemContainer } from '../HistoryItemContainer'
-import { HistoryItem } from '@/types'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { dateFormatter } from '@/services'
+import { HistoryItem } from '@/types'
+import { HistoryItemContainer } from '../HistoryItemContainer'
+import { useHistoryPhotoviewStore } from '../../states/useHistoryPhotoviewStore'
 
-// Mock dependencies
 vi.mock('next/image', () => ({
   __esModule: true,
   default: ({ src, alt }: { src: string; alt: string }) => (
@@ -12,7 +13,6 @@ vi.mock('next/image', () => ({
   )
 }))
 
-// Mock dateFormatter from @/services
 vi.mock('@/services', () => ({
   dateFormatter: {
     time: vi.fn().mockReturnValue('10:00 AM')
@@ -27,11 +27,19 @@ vi.mock('../HistoryUseConfigButton', () => ({
   )
 }))
 
-// Use the mocked dateFormatter
+vi.mock('../../states/useHistoryPhotoviewStore')
 
 describe('HistoryItemContainer', () => {
+  const mockOpenPhotoview = vi.fn()
+
   beforeEach(() => {
     vi.mocked(dateFormatter.time).mockReturnValue('10:00 AM')
+    vi.mocked(useHistoryPhotoviewStore).mockReturnValue({
+      isOpen: false,
+      currentHistoryId: null,
+      openPhotoview: mockOpenPhotoview,
+      closePhotoview: vi.fn()
+    })
   })
 
   afterEach(() => {
@@ -48,11 +56,13 @@ describe('HistoryItemContainer', () => {
       config: {
         width: 512,
         height: 512,
-        hires_fix: false,
+
+        loras: [],
         number_of_images: 1,
         prompt: 'Test prompt',
         negative_prompt: '',
         cfg_scale: 7,
+        clip_skip: 2,
         steps: 20,
         seed: -1,
         sampler: 'Euler a',
@@ -80,11 +90,13 @@ describe('HistoryItemContainer', () => {
       config: {
         width: 512,
         height: 512,
-        hires_fix: false,
+
+        loras: [],
         number_of_images: 1,
         prompt: 'Test prompt',
         negative_prompt: '',
         cfg_scale: 7,
+        clip_skip: 2,
         steps: 20,
         seed: -1,
         sampler: 'Euler a',
@@ -138,11 +150,13 @@ describe('HistoryItemContainer', () => {
       config: {
         width: 512,
         height: 512,
-        hires_fix: false,
+
+        loras: [],
         number_of_images: 1,
         prompt: 'Test prompt',
         negative_prompt: '',
         cfg_scale: 7,
+        clip_skip: 2,
         steps: 20,
         seed: -1,
         sampler: 'Euler a',
@@ -154,5 +168,119 @@ describe('HistoryItemContainer', () => {
     render(<HistoryItemContainer history={mockHistory} />)
 
     expect(screen.queryByTestId('next-image')).not.toBeInTheDocument()
+  })
+
+  it('should call openPhotoview when card is clicked', async () => {
+    const user = userEvent.setup()
+    const mockHistory: HistoryItem = {
+      id: 123,
+      created_at: '2023-01-01T10:00:00Z',
+      updated_at: '2023-01-01T10:00:00Z',
+      prompt: 'Test prompt',
+      model: 'test-model',
+      config: {
+        width: 512,
+        height: 512,
+
+        loras: [],
+        number_of_images: 1,
+        prompt: 'Test prompt',
+        negative_prompt: '',
+        cfg_scale: 7,
+        clip_skip: 2,
+        steps: 20,
+        seed: -1,
+        sampler: 'Euler a',
+        styles: []
+      },
+      generated_images: []
+    }
+
+    render(<HistoryItemContainer history={mockHistory} />)
+
+    const card = screen.getByRole('button', {
+      name: /view details for test-model generated at 10:00 AM/i
+    })
+    await user.click(card)
+
+    expect(mockOpenPhotoview).toHaveBeenCalledWith(123)
+  })
+
+  it('should have accessible label with model and time', () => {
+    const mockHistory: HistoryItem = {
+      id: 1,
+      created_at: '2023-01-01T10:00:00Z',
+      updated_at: '2023-01-01T10:00:00Z',
+      prompt: 'Test prompt',
+      model: 'stable-diffusion-v1',
+      config: {
+        width: 512,
+        height: 512,
+
+        loras: [],
+        number_of_images: 1,
+        prompt: 'Test prompt',
+        negative_prompt: '',
+        cfg_scale: 7,
+        clip_skip: 2,
+        steps: 20,
+        seed: -1,
+        sampler: 'Euler a',
+        styles: []
+      },
+      generated_images: []
+    }
+
+    render(<HistoryItemContainer history={mockHistory} />)
+
+    expect(
+      screen.getByRole('button', {
+        name: /view details for stable-diffusion-v1 generated at 10:00 AM/i
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('should render CardHeader, CardBody, and conditionally CardFooter', () => {
+    const mockHistory: HistoryItem = {
+      id: 1,
+      created_at: '2023-01-01T10:00:00Z',
+      updated_at: '2023-01-01T10:00:00Z',
+      prompt: 'Test prompt',
+      model: 'test-model',
+      config: {
+        width: 512,
+        height: 512,
+
+        loras: [],
+        number_of_images: 1,
+        prompt: 'Test prompt',
+        negative_prompt: '',
+        cfg_scale: 7,
+        clip_skip: 2,
+        steps: 20,
+        seed: -1,
+        sampler: 'Euler a',
+        styles: []
+      },
+      generated_images: [
+        {
+          id: 101,
+          path: 'static/images/image1.png',
+          is_nsfw: false,
+          file_name: 'image1.png',
+          created_at: '2023-01-01T10:00:00Z',
+          updated_at: '2023-01-01T10:00:00Z',
+          history_id: 1
+        }
+      ]
+    }
+
+    render(<HistoryItemContainer history={mockHistory} />)
+
+    expect(screen.getByText('10:00 AM')).toBeInTheDocument()
+    expect(screen.getByText('test-model')).toBeInTheDocument()
+    expect(screen.getByText('Test prompt')).toBeInTheDocument()
+    expect(screen.getByTestId('use-config-button')).toBeInTheDocument()
+    expect(screen.getByTestId('next-image')).toBeInTheDocument()
   })
 })

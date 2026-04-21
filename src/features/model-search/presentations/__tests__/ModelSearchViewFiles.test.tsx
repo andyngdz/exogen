@@ -20,6 +20,7 @@ vi.mock('../ModelSearchViewHeader', () => ({
 vi.mock('@heroui/react', () => ({
   Table: ({
     children,
+    removeWrapper: _removeWrapper,
     ...rest
   }: PropsWithChildren<Record<string, unknown>>) => (
     <div data-testid="table" {...rest}>

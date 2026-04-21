@@ -33,7 +33,9 @@
     "dist/renderer/types/**/*.ts",
     "src/types/**/*.d.ts",
     "electron/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

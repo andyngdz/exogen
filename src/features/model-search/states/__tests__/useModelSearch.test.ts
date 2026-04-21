@@ -78,7 +78,7 @@ describe('useModelSearch', () => {
 
     // Assert
     expect(mockSearchModel).toHaveBeenCalledWith(mockQuery)
-    expect(result.current.data).toEqual(typedResponse)
+    expect(result.current.data).toEqual(typedResponse.models_search_info)
     expect(mockOnResetModelId).toHaveBeenCalled()
     expect(mockOnUpdateModelId).toHaveBeenCalledWith('model-1')
   })
@@ -105,7 +105,7 @@ describe('useModelSearch', () => {
 
     // Assert
     expect(mockSearchModel).toHaveBeenCalledWith(mockQuery)
-    expect(result.current.data).toEqual(emptyResponse)
+    expect(result.current.data).toEqual(emptyResponse.models_search_info)
     expect(mockOnResetModelId).toHaveBeenCalled()
     expect(mockOnUpdateModelId).not.toHaveBeenCalled()
   })
@@ -130,7 +130,7 @@ describe('useModelSearch', () => {
 
     // Assert
     expect(mockSearchModel).toHaveBeenCalledWith(mockQuery)
-    expect(result.current.data).toBeUndefined()
+    expect(result.current.data).toEqual([])
     expect(mockOnResetModelId).toHaveBeenCalled()
     expect(mockOnUpdateModelId).not.toHaveBeenCalled()
   })

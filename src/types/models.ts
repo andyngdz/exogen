@@ -1,11 +1,21 @@
 interface LoadModelRequest {
-  id: string
+  model_id: string
+}
+
+export enum ModelFamily {
+  SD15 = 'sd15',
+  SDXL = 'sdxl',
+  SD2 = 'sd2',
+  SD3 = 'sd3',
+  FLUX = 'flux',
+  UNKNOWN = 'unknown'
 }
 
 interface LoadModelResponse {
-  id: string
+  model_id: string
   config: Record<string, unknown>
   sample_size: number
+  family: ModelFamily
 }
 
 interface ModelSearchInfo {

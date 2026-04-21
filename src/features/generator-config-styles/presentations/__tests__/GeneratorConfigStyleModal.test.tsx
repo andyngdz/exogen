@@ -1,5 +1,6 @@
 import { StyleSection } from '@/types'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleModal } from '../GeneratorConfigStyleModal'
 
@@ -17,6 +18,7 @@ vi.mock('@heroui/react', async () => {
       isOpen,
       backdrop,
       isDismissable,
+      onOpenChange: _onOpenChange,
       ...props
     }: {
       children: React.ReactNode
@@ -123,6 +125,37 @@ vi.mock('../GeneratorConfigStyleSection', () => ({
         </div>
       ))}
     </div>
+  )
+}))
+
+// Mock GeneratorConfigStyleSearchInput component
+vi.mock('../GeneratorConfigStyleSearchInput', () => ({
+  GeneratorConfigStyleSearchInput: ({
+    value,
+    onChange,
+    onClear
+  }: {
+    value: string
+    onChange: (value: string) => void
+    onClear: VoidFunction
+  }) => (
+    <div data-testid="search-input">
+      <input
+        data-testid="search-input-field"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button data-testid="search-clear-button" onClick={onClear}>
+        Clear
+      </button>
+    </div>
+  )
+}))
+
+// Mock GeneratorConfigStyleEmptyState component
+vi.mock('../GeneratorConfigStyleEmptyState', () => ({
+  GeneratorConfigStyleEmptyState: ({ query }: { query: string }) => (
+    <div data-testid="empty-state">No results for &quot;{query}&quot;</div>
   )
 }))
 
@@ -346,6 +379,86 @@ describe('GeneratorConfigStyleModal', () => {
       expect(() =>
         render(<GeneratorConfigStyleModal {...propsWithoutChildren} />)
       ).not.toThrow()
+    })
+  })
+
+  describe('Search Functionality', () => {
+    it('renders search input', () => {
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      expect(screen.getByTestId('search-input')).toBeInTheDocument()
+      expect(screen.getByTestId('search-input-field')).toBeInTheDocument()
+    })
+
+    it('renders search input in separate filter row', () => {
+      const { container } = render(
+        <GeneratorConfigStyleModal {...defaultProps} />
+      )
+
+      const filterRow = container.querySelector('.px-6.pb-4')
+      expect(filterRow).toBeInTheDocument()
+      expect(filterRow).toContainElement(screen.getByTestId('search-input'))
+    })
+
+    it('allows user to type in search input', async () => {
+      const user = userEvent.setup()
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      const searchInput = screen.getByTestId('search-input-field')
+      await user.type(searchInput, 'abstract')
+
+      expect(searchInput).toHaveValue('abstract')
+    })
+
+    it('clears search when clear button is clicked', async () => {
+      const user = userEvent.setup()
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      const searchInput = screen.getByTestId('search-input-field')
+      await user.type(searchInput, 'test')
+
+      const clearButton = screen.getByTestId('search-clear-button')
+      await user.click(clearButton)
+
+      expect(searchInput).toHaveValue('')
+    })
+
+    it('shows empty state when no results match search query', async () => {
+      const user = userEvent.setup()
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      const searchInput = screen.getByTestId('search-input-field')
+      await user.type(searchInput, 'nonexistent')
+
+      await waitFor(
+        () => {
+          expect(screen.queryByTestId('empty-state')).toBeInTheDocument()
+        },
+        { timeout: 500 }
+      )
+
+      expect(
+        screen.queryByTestId('generator-config-style-section')
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows style sections when search has results', () => {
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      expect(
+        screen.getByTestId('generator-config-style-section')
+      ).toBeInTheDocument()
+      expect(screen.queryByTestId('empty-state')).not.toBeInTheDocument()
+    })
+
+    it('filters style sections based on search query', async () => {
+      const user = userEvent.setup()
+      render(<GeneratorConfigStyleModal {...defaultProps} />)
+
+      const searchInput = screen.getByTestId('search-input-field')
+      await user.type(searchInput, 'abstract')
+
+      expect(screen.getByTestId('style-section-abstract')).toBeInTheDocument()
     })
   })
 })

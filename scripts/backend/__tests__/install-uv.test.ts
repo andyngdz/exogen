@@ -7,7 +7,8 @@ const { mock$ } = vi.hoisted(() => ({
 }))
 
 vi.mock('zx', () => ({
-  $: (...args: unknown[]) => mock$(...args)
+  $: (...args: unknown[]) => mock$(...args),
+  usePowerShell: vi.fn()
 }))
 
 const { mockNormalizeError } = vi.hoisted(() => ({
@@ -50,6 +51,8 @@ const makeProcessResult = (
 })
 
 describe('installUv', () => {
+  const originalPlatform = process.platform
+
   beforeEach(() => {
     mock$.mockReset()
     mockNormalizeError.mockReset()
@@ -63,10 +66,15 @@ describe('installUv', () => {
 
     vi.unstubAllEnvs()
     vi.stubEnv('HOME', '/home/tester')
+    // Stub LOCALAPPDATA to prevent Windows path from being added on Windows test runners
+    delete process.env.LOCALAPPDATA
   })
 
   afterEach(() => {
     vi.unstubAllEnvs()
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform
+    })
   })
 
   it('returns the detected uv version when already installed', async () => {
@@ -129,6 +137,10 @@ describe('installUv', () => {
 
   it('uses the Windows installation command when running on Windows', async () => {
     mockIsWindows = true
+    Object.defineProperty(process, 'platform', {
+      value: 'win32'
+    })
+    process.env.LOCALAPPDATA = 'C:\\Users\\tester\\AppData\\Local'
 
     mock$
       .mockReturnValueOnce({
@@ -159,7 +171,8 @@ describe('installUv', () => {
       message: 'uv 1.1.0 installed successfully.'
     })
     expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin')
+      path.join('/home/tester', '.local', 'bin'),
+      path.join('C:\\Users\\tester\\AppData\\Local', 'uv', 'bin')
     ])
   })
 

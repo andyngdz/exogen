@@ -111,6 +111,14 @@ export function checkForUpdates(): Promise<UpdateCheckResult> {
     return Promise.resolve({ updateAvailable: false })
   }
 
+  // Skip update check for pre-release versions (beta, alpha, rc, etc.)
+  // Pre-releases don't have latest-*.yml files since builds only run for stable releases
+  const version = app.getVersion()
+  if (version.includes('-')) {
+    log.info('Skipping update check for pre-release version:', version)
+    return Promise.resolve({ updateAvailable: false })
+  }
+
   return new Promise((resolve, reject) => {
     new UpdateChecker(resolve, reject).check()
   })

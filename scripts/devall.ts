@@ -10,6 +10,8 @@ const concurrentlyArgs = [
   '-c',
   'yellow,blue',
   '--kill-others',
+  '--success',
+  'first',
   'pnpm run dev',
   'tsx scripts/desktop.ts'
 ]

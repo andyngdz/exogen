@@ -84,7 +84,7 @@ describe('RootLayout', () => {
 describe('metadata', () => {
   it('exports correct metadata', () => {
     expect(metadata).toEqual({
-      title: 'LocalAI',
+      title: 'ExoGen',
       description:
         'Generate images with Stable Diffusion, run LLMs, and more, all on your local machine.'
     })

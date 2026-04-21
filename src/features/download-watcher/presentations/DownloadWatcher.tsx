@@ -15,16 +15,16 @@ import { useDownloadWatcherStore } from '../states'
 
 export const DownloadWatcher: FC<PropsWithChildren> = ({ children }) => {
   const queryClient = useQueryClient()
-  const { onUpdateStep, onSetId, onResetStep, onResetId } =
+  const { onUpdateStep, onSetModelId, onResetStep, onResetModelId } =
     useDownloadWatcherStore()
   const { selected_model_id, setSelectedModelId } = useModelSelectorStore()
 
   // Handle download start event
   const handleDownloadStart = useCallback(
     (data: DownloadModelStartResponse) => {
-      onSetId(data.id)
+      onSetModelId(data.model_id)
     },
-    [onSetId]
+    [onSetModelId]
   )
 
   // Handle download progress event
@@ -38,7 +38,7 @@ export const DownloadWatcher: FC<PropsWithChildren> = ({ children }) => {
   // Handle download completed event
   const handleDownloadCompleted = useCallback(() => {
     onResetStep()
-    onResetId()
+    onResetModelId()
     queryClient.invalidateQueries({
       queryKey: ['getDownloadedModels']
     })
@@ -52,7 +52,7 @@ export const DownloadWatcher: FC<PropsWithChildren> = ({ children }) => {
     }
   }, [
     onResetStep,
-    onResetId,
+    onResetModelId,
     queryClient,
     selected_model_id,
     setSelectedModelId

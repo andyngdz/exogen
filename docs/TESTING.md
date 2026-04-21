@@ -1,40 +1,37 @@
-# Testing Guide
+# Testing
 
-**Framework:** Vitest + React Testing Library
+This project uses Vitest + React Testing Library.
 
-**Core Principles:**
+## Rules
 
-- Test behavior, not implementation details (what it does, not how)
-- Mock external dependencies (APIs, React Query, Electron, sockets)
-- Keep tests focused and readable
-- **Verification:** Always run `pnpm run type-check && pnpm run lint && pnpm run format && pnpm test -- path/to/test` before completing
+- Test behavior and contracts, not implementation details.
+- Avoid redundant tests. If a higher-level test already covers a behavior, do not re-test it at a lower level.
+- Prefer one high-signal assertion over many low-signal ones (e.g. avoid “renders without crashing”).
+- Do not assert third-party library internals (HeroUI, React Hook Form, React Query, Allotment, etc.).
+- Keep mocks minimal and realistic; mock boundaries (network, Electron, sockets), not pure UI composition.
 
-**Setup:**
+## What To Test
 
-- Location: `__tests__/` folders next to source
-- Mocking: Reset Zustand stores in `beforeEach`, mock Electron via `global.window.electronAPI`
+- State transitions and derived state (Zustand stores, hooks that transform data).
+- Critical user flows (submit, error states, loading states, empty states).
+- Validation/guards that can block a user action.
 
-**Coverage Goals:**
+## What NOT To Test
 
-- Aim for 100% on critical paths (state management, data flow, business logic)
-- Command: `pnpm run test:coverage -- path/to/files`
-- Focus on behavior coverage, not just line coverage
+- Provider wiring (e.g. “FormProvider was called”). Instead, assert behavior that would fail without context.
+- Styling/classnames unless the class is part of a functional contract (e.g. a disabled state).
+- Pure pass-through rendering of mocked children.
 
-**Testing Patterns (Simplified):**
+## Project Patterns
 
-```typescript
-// Socket Events - Capture handlers
-let handlers: Record<string, (data: unknown) => void> = {}
-vi.mock('@/cores/sockets', () => ({
-  useSocketEvent: (event, handler) => (handlers[event] = handler)
-}))
-handlers[SocketEvents.DOWNLOAD_START]({ id: 'model-123' })
+- React Query: use `createQueryClientWrapper()` from `src/cores/test-utils/query-client.tsx`.
+- Electron: `window.electronAPI` is globally mocked in `vitest.setup.ts`.
+- Sockets: components MUST use `useSocketEvent()`; tests should mock `useSocketEvent()` and trigger captured handlers.
+- Zustand: reset stores in `beforeEach/afterEach` to avoid cross-test leakage.
 
-// Zustand Stores
-const { result } = renderHook(() => useMyStore())
-act(() => result.current.setValue('new'))
+## Reusable Test Wrappers
 
-// React Query
-const Wrapper = createQueryClientWrapper()
-render(<Wrapper><MyComponent /></Wrapper>)
-```
+Use the shared React Hook Form test wrapper(s) from `@/cores/test-utils` instead of creating local `MockFormProvider` / `FormWrapper` components in each test.
+
+- `createFormProviderWrapper()` for general RHF usage
+- `createGeneratorConfigFormWrapper()` for generator config form defaults

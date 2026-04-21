@@ -45,4 +45,17 @@ describe('dateFormatter', () => {
       expect(dateFormatter.date('not-a-date')).toBe('Invalid Date')
     })
   })
+
+  describe('datetime', () => {
+    it('formats an ISO string as date and time', () => {
+      const isoString = '2024-01-15T14:30:45Z'
+      const expected = dayjs(isoString).format('MMM D, YYYY [at] HH:mm')
+
+      expect(dateFormatter.datetime(isoString)).toBe(expected)
+    })
+
+    it('returns Invalid Date for unparsable input', () => {
+      expect(dateFormatter.datetime('not-a-date')).toBe('Invalid Date')
+    })
+  })
 })

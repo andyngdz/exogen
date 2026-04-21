@@ -45,7 +45,8 @@ vi.mock('../utils', () => ({
   setupLog: vi.fn()
 }))
 vi.mock('zx', () => ({
-  $: (...args: unknown[]) => mock$(...args)
+  $: (...args: unknown[]) => mock$(...args),
+  usePowerShell: vi.fn()
 }))
 vi.mock('esbuild', () => ({
   build: (...args: unknown[]) => mockBuild(...args)
@@ -135,7 +136,7 @@ describe('electron toolchain', () => {
       await compileElectron()
 
       expect(recordedCommands).toContain(
-        'npx tsc --project tsconfig.electron.json --emitDeclarationOnly'
+        'tsc --project tsconfig.electron.json --emitDeclarationOnly'
       )
     })
 
@@ -281,10 +282,15 @@ describe('electron toolchain', () => {
     it('runs the Electron binary', async () => {
       await startElectron()
 
-      expect(recordedCommands).toEqual(['npx electron .'])
+      expect(recordedCommands).toEqual(['electron .'])
     })
 
     it('surfaces Electron start failures', async () => {
+      // Suppress console.error for this error path test
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
       const electronError = new Error('Electron failed to start')
       mock$.mockImplementation(
         (pieces: TemplateStringsArray, ...args: unknown[]) => {
@@ -294,6 +300,8 @@ describe('electron toolchain', () => {
       )
 
       await expect(startElectron()).rejects.toThrow('Electron failed to start')
+
+      consoleErrorSpy.mockRestore()
     })
   })
 
@@ -302,9 +310,9 @@ describe('electron toolchain', () => {
       await startDesktopDev()
 
       expect(recordedCommands).toContain(
-        'npx tsc --project tsconfig.electron.json --emitDeclarationOnly'
+        'tsc --project tsconfig.electron.json --emitDeclarationOnly'
       )
-      expect(recordedCommands).toContain('npx electron .')
+      expect(recordedCommands).toContain('electron .')
       expect(mockBuild).toHaveBeenCalled()
     })
 
@@ -313,16 +321,21 @@ describe('electron toolchain', () => {
       mockBuild.mockRejectedValue(compilationError)
 
       await expect(startDesktopDev()).rejects.toThrow('Compilation failed')
-      expect(recordedCommands).not.toContain('npx electron .')
+      expect(recordedCommands).not.toContain('electron .')
     })
 
     it('surfaces Electron failures after successful compilation', async () => {
+      // Suppress console.error for this error path test
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
       const electronError = new Error('Electron startup failed')
       mock$.mockImplementation(
         (pieces: TemplateStringsArray, ...args: unknown[]) => {
           const command = toCommandString(pieces, args).trim()
           recordedCommands.push(command)
-          if (command.includes('npx electron')) {
+          if (command.includes('electron .')) {
             return Promise.reject(electronError)
           }
           return Promise.resolve()
@@ -331,6 +344,8 @@ describe('electron toolchain', () => {
 
       await expect(startDesktopDev()).rejects.toThrow('Electron startup failed')
       expect(mockBuild).toHaveBeenCalled()
+
+      consoleErrorSpy.mockRestore()
     })
   })
 
@@ -338,7 +353,7 @@ describe('electron toolchain', () => {
     it('runs concurrently with predefined arguments', async () => {
       await startFullDev()
 
-      expect(recordedCommands[0]).toContain('npx concurrently ')
+      expect(recordedCommands[0]).toContain('concurrently ')
       concurrentlyArgs.forEach((arg) => {
         expect(recordedCommands[0]).toContain(String(arg))
       })

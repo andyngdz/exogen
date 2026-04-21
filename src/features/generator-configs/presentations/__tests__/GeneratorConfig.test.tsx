@@ -84,7 +84,7 @@ vi.mock('@heroui/react', async () => {
 })
 
 describe('GeneratorConfig', () => {
-  it('should render all sub-components and dividers', () => {
+  it('should render all sub-components with divide-y styling', () => {
     render(<GeneratorConfig />)
 
     // Verify all sub-components are rendered
@@ -95,8 +95,8 @@ describe('GeneratorConfig', () => {
     expect(screen.getByTestId('generator-config-seed')).toBeInTheDocument()
     expect(screen.getByTestId('generator-config-style')).toBeInTheDocument()
 
-    // Verify dividers are rendered (should be 5 dividers between 6 components)
-    const dividers = screen.getAllByTestId('divider')
-    expect(dividers.length).toBe(5)
+    // Verify ScrollShadow has divide-y styling
+    const scrollShadow = screen.getByTestId('scrollshadow')
+    expect(scrollShadow).toHaveClass('divide-y', 'divide-default')
   })
 })

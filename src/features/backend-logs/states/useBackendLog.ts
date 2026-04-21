@@ -1,28 +1,12 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useBackendLogStore } from './useBackendLogStore'
 
 export const useBackendLog = () => {
-  'use no memo'
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { logs, isStreaming, addLog, clearLogs, setIsStreaming } =
-    useBackendLogStore()
-
-  const onGetLogColor = (level: string) => {
-    switch (level) {
-      case 'error':
-        return 'text-danger'
-      case 'warn':
-        return 'text-warning'
-      case 'info':
-        return 'text-secondary'
-      case 'log':
-      default:
-        return 'text-default-700'
-    }
-  }
+  const { logs, isStreaming, clearLogs } = useBackendLogStore()
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
@@ -33,27 +17,21 @@ export const useBackendLog = () => {
     measureElement: (element) => element.getBoundingClientRect().height
   })
 
-  useEffect(() => {
-    globalThis.window.electronAPI.backend.isLogStreaming().then(setIsStreaming)
+  useLayoutEffect(() => {
+    const lastLogIndex = logs.length - 1
 
-    const unsubscribe = globalThis.window.electronAPI.backend.onLog((log) => {
-      addLog(log)
-    })
-
-    return unsubscribe
-  }, [addLog, setIsStreaming])
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    if (lastLogIndex >= 0) {
+      rowVirtualizer.scrollToIndex(lastLogIndex, {
+        align: 'end',
+        behavior: 'smooth'
+      })
     }
-  }, [logs])
+  }, [logs.length, rowVirtualizer])
 
   return {
     logs,
     isStreaming,
     clearLogs,
-    onGetLogColor,
     scrollRef,
     rowVirtualizer
   }

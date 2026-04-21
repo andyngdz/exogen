@@ -103,11 +103,13 @@ describe('Histories', () => {
             config: {
               width: 512,
               height: 512,
-              hires_fix: false,
+
+              loras: [],
               number_of_images: 1,
               prompt: 'Test prompt',
               negative_prompt: '',
               cfg_scale: 7,
+              clip_skip: 2,
               steps: 20,
               seed: -1,
               sampler: 'Euler a',
@@ -129,11 +131,13 @@ describe('Histories', () => {
             config: {
               width: 512,
               height: 512,
-              hires_fix: false,
+
+              loras: [],
               number_of_images: 1,
               prompt: 'Test prompt 2',
               negative_prompt: '',
               cfg_scale: 7,
+              clip_skip: 2,
               steps: 20,
               seed: -1,
               sampler: 'Euler a',

@@ -1,11 +1,16 @@
+import type { HiresFixConfig } from './generators'
+import type { LoRAConfigItem } from './loras'
+
 interface HistoryGeneratorFormConfigValues {
   width: number
   height: number
-  hires_fix: boolean
+  hires_fix?: HiresFixConfig
+  loras: LoRAConfigItem[]
   number_of_images: number
   prompt: string
   negative_prompt: string
   cfg_scale: number
+  clip_skip: number
   steps: number
   seed: number
   sampler: string
@@ -33,7 +38,7 @@ interface HistoryItem {
 }
 
 export type {
-  HistoryItem,
   HistoryGeneratedImage,
-  HistoryGeneratorFormConfigValues
+  HistoryGeneratorFormConfigValues,
+  HistoryItem
 }

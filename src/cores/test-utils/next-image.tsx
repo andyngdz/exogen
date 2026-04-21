@@ -7,22 +7,30 @@ const MockNextImage = ({
   alt,
   width,
   height,
+  fill: _fill,
+  priority: _priority,
+  loading: _loading,
+  quality: _quality,
+  className,
   ...props
 }: {
   src: string
   alt: string
   width?: number | string
   height?: number | string
+  fill?: boolean
   className?: string
   priority?: boolean
   loading?: 'eager' | 'lazy'
   quality?: number | string
+  [key: string]: unknown
 }) => {
   return (
     <div
       data-testid="mock-next-image"
       data-src={src}
       data-alt={alt}
+      className={className}
       style={{
         width: width ? `${width}px` : 'auto',
         height: height ? `${height}px` : 'auto'

@@ -1,3 +1,4 @@
+import { useSafetyCheckMutation } from '@/cores/api-queries'
 import { act, renderHook } from '@testing-library/react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useShallowCompareEffect } from 'react-use'
@@ -20,6 +21,10 @@ vi.mock('../useSettingsStore', () => ({
   useSettingsStore: vi.fn()
 }))
 
+vi.mock('@/cores/api-queries', () => ({
+  useSafetyCheckMutation: vi.fn()
+}))
+
 // Mock zustand/middleware to avoid localStorage issues in tests
 vi.mock('zustand/middleware', async () => {
   const actual = await vi.importActual('zustand/middleware')
@@ -34,13 +39,14 @@ describe('useGeneralSettings', () => {
   const mockRegister = vi.fn()
   const mockControl = {}
   const mockSetValues = vi.fn()
+  const mockMutate = vi.fn()
 
   const mockValues: SettingFormValues = {
-    safetyCheck: true
+    safety_check_enabled: true
   }
 
   const mockFormValues: SettingFormValues = {
-    safetyCheck: false
+    safety_check_enabled: false
   }
 
   beforeEach(() => {
@@ -61,6 +67,11 @@ describe('useGeneralSettings', () => {
 
     // Mock useWatch to return form values
     vi.mocked(useWatch).mockReturnValue(mockFormValues)
+
+    // Mock useSafetyCheckMutation
+    vi.mocked(useSafetyCheckMutation).mockReturnValue({
+      mutate: mockMutate
+    } as unknown as ReturnType<typeof useSafetyCheckMutation>)
 
     // Mock useShallowCompareEffect to call the effect immediately
     vi.mocked(useShallowCompareEffect).mockImplementation((effect) => {
@@ -107,7 +118,7 @@ describe('useGeneralSettings', () => {
 
       expect(useShallowCompareEffect).toHaveBeenCalledWith(
         expect.any(Function),
-        [mockFormValues, mockSetValues]
+        [mockFormValues, mockSetValues, mockMutate]
       )
     })
 
@@ -141,7 +152,7 @@ describe('useGeneralSettings', () => {
 
     it('should work with different initial values from store', () => {
       const differentValues: SettingFormValues = {
-        safetyCheck: false
+        safety_check_enabled: false
       }
 
       vi.mocked(useSettingsStore).mockReturnValue({
@@ -162,7 +173,7 @@ describe('useGeneralSettings', () => {
   describe('store synchronization', () => {
     it('should update store when form values change', () => {
       const updatedFormValues: SettingFormValues = {
-        safetyCheck: true
+        safety_check_enabled: true
       }
 
       vi.mocked(useWatch).mockReturnValue(updatedFormValues)
@@ -195,18 +206,18 @@ describe('useGeneralSettings', () => {
   })
 
   describe('dependency arrays', () => {
-    it('should include formValues and setValues in useShallowCompareEffect dependencies', () => {
+    it('should include formValues, setValues, and setSafetyCheck in useShallowCompareEffect dependencies', () => {
       renderHook(() => useGeneralSettings())
 
       expect(useShallowCompareEffect).toHaveBeenCalledWith(
         expect.any(Function),
-        [mockFormValues, mockSetValues]
+        [mockFormValues, mockSetValues, mockMutate]
       )
     })
 
     it('should update dependencies when form values change', () => {
       const newFormValues: SettingFormValues = {
-        safetyCheck: false
+        safety_check_enabled: false
       }
 
       const { rerender } = renderHook(() => useGeneralSettings())
@@ -218,7 +229,7 @@ describe('useGeneralSettings', () => {
 
       expect(useShallowCompareEffect).toHaveBeenLastCalledWith(
         expect.any(Function),
-        [newFormValues, mockSetValues]
+        [newFormValues, mockSetValues, mockMutate]
       )
     })
   })
@@ -234,18 +245,21 @@ describe('useGeneralSettings', () => {
     it('should allow register function to be called', () => {
       const { result } = renderHook(() => useGeneralSettings())
 
-      result.current.register('safetyCheck')
+      result.current.register('safety_check_enabled')
 
-      expect(mockRegister).toHaveBeenCalledWith('safetyCheck')
+      expect(mockRegister).toHaveBeenCalledWith('safety_check_enabled')
     })
 
     it('should support register function with options', () => {
       const { result } = renderHook(() => useGeneralSettings())
       const registerOptions = { required: true }
 
-      result.current.register('safetyCheck', registerOptions)
+      result.current.register('safety_check_enabled', registerOptions)
 
-      expect(mockRegister).toHaveBeenCalledWith('safetyCheck', registerOptions)
+      expect(mockRegister).toHaveBeenCalledWith(
+        'safety_check_enabled',
+        registerOptions
+      )
     })
   })
 
@@ -264,7 +278,7 @@ describe('useGeneralSettings', () => {
       const { rerender } = renderHook(() => useGeneralSettings())
 
       const newValues: SettingFormValues = {
-        safetyCheck: false
+        safety_check_enabled: false
       }
 
       vi.mocked(useSettingsStore).mockReturnValue({
@@ -314,11 +328,11 @@ describe('useGeneralSettings', () => {
   describe('integration scenarios', () => {
     it('should work with realistic form data flow', () => {
       const initialValues: SettingFormValues = {
-        safetyCheck: false
+        safety_check_enabled: false
       }
 
       const updatedValues: SettingFormValues = {
-        safetyCheck: true
+        safety_check_enabled: true
       }
 
       // Start with initial values
@@ -352,8 +366,8 @@ describe('useGeneralSettings', () => {
         effect()
       })
 
-      const values1: SettingFormValues = { safetyCheck: true }
-      const values2: SettingFormValues = { safetyCheck: false }
+      const values1: SettingFormValues = { safety_check_enabled: true }
+      const values2: SettingFormValues = { safety_check_enabled: false }
 
       vi.mocked(useWatch)
         .mockReturnValueOnce(values1)

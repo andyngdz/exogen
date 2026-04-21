@@ -1,14 +1,11 @@
 'use client'
 
-import { useBackendUrl } from '@/cores/backend-initialization'
-import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { ImageGenerationStepEndResponse } from '@/types'
-import { Button, Skeleton } from '@heroui/react'
-import { Download } from 'lucide-react'
-import NextImage from 'next/image'
-import { FC, useCallback, useMemo } from 'react'
-import { useFormContext } from 'react-hook-form'
-import { useDownloadImages, useGeneratorPreviewer } from '../states'
+import { FC } from 'react'
+import { useGeneratorPreviewerItemModel } from '@/features/generator-previewers/states'
+import { GeneratorImageDownloadButton } from './GeneratorImageDownloadButton'
+import { GeneratorImageRenderer } from './GeneratorImageRenderer'
+import { GeneratorPreviewTile } from './GeneratorPreviewTile'
 
 export interface GeneratorPreviewerItemProps {
   imageStepEnd: ImageGenerationStepEndResponse
@@ -17,76 +14,42 @@ export interface GeneratorPreviewerItemProps {
 export const GeneratorPreviewerItem: FC<GeneratorPreviewerItemProps> = ({
   imageStepEnd
 }) => {
-  const baseURL = useBackendUrl()
-  const { onDownloadImage } = useDownloadImages()
-  const { watch } = useFormContext<GeneratorConfigFormValues>()
-  const { items } = useGeneratorPreviewer()
-  const width = watch('width')
-  const height = watch('height')
-  const aspectRatio = width / height
+  const model = useGeneratorPreviewerItemModel(imageStepEnd)
 
-  const onHandleDownloadImage = useCallback(() => {
-    const item = items[imageStepEnd.index]
-    const url = `${baseURL}/${item.path}`
-
-    onDownloadImage(url)
-  }, [baseURL, imageStepEnd, items, onDownloadImage])
-
-  const ImageComponent = useMemo(() => {
-    const item = items[imageStepEnd.index]
-
-    if (item.path.length > 0) {
-      return (
-        <NextImage
-          src={`${baseURL}/${item.path}`}
-          alt={`Image ${imageStepEnd.index}`}
-          className="rounded-2xl object-cover"
-          fill
-        />
-      )
-    }
-
-    if (imageStepEnd.image_base64.length === 0) {
-      return <Skeleton className="rounded-2xl w-full h-full" />
-    }
-
-    const src = `data:image/png;base64,${imageStepEnd.image_base64}`
-
-    return (
-      <NextImage
-        src={src}
-        alt={`Image ${imageStepEnd.index}`}
-        className="rounded-2xl object-cover"
-        fill
-      />
-    )
-  }, [baseURL, imageStepEnd, items])
-
-  const hasImage =
-    items[imageStepEnd.index]?.path.length > 0 ||
-    imageStepEnd.image_base64.length > 0
+  const topRight = model.canDownload && (
+    <GeneratorImageDownloadButton onDownload={model.onHandleDownloadImage} />
+  )
 
   return (
-    <div
-      className="relative self-start group"
-      style={{
-        aspectRatio
-      }}
-    >
-      {ImageComponent}
-      {hasImage && (
-        <Button
-          isIconOnly
-          size="sm"
-          variant="solid"
-          color="default"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onPress={onHandleDownloadImage}
-          aria-label="Download image"
+    <>
+      {model.canOpenPhotoview ? (
+        <GeneratorPreviewTile
+          aspectRatio={model.aspectRatio}
+          onPress={model.onOpenPhotoview}
+          ariaLabel={model.ariaLabel}
+          topRight={topRight}
         >
-          <Download size={16} />
-        </Button>
+          <GeneratorImageRenderer
+            imagePath={model.imagePath}
+            imageBase64={model.imageBase64}
+            imageIndex={model.imageIndex}
+            baseURL={model.baseURL}
+          />
+        </GeneratorPreviewTile>
+      ) : (
+        <GeneratorPreviewTile
+          aspectRatio={model.aspectRatio}
+          ariaLabel={model.ariaLabel}
+          topRight={topRight}
+        >
+          <GeneratorImageRenderer
+            imagePath={model.imagePath}
+            imageBase64={model.imageBase64}
+            imageIndex={model.imageIndex}
+            baseURL={model.baseURL}
+          />
+        </GeneratorPreviewTile>
       )}
-    </div>
+    </>
   )
 }

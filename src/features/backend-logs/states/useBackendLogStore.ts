@@ -1,5 +1,6 @@
 import type { LogEntry } from '@types'
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export const MAX_LOGS = 250
 
@@ -9,31 +10,43 @@ interface BackendLogStore {
   addLog: (log: LogEntry) => void
   clearLogs: () => void
   setIsStreaming: (isStreaming: boolean) => void
+  reset: () => void
 }
 
-const getInitialState = () => ({
+const initialState = {
   logs: [],
   isStreaming: false
-})
+}
 
-export const useBackendLogStore = create<BackendLogStore>((set) => ({
-  ...getInitialState(),
+export const useBackendLogStore = create<BackendLogStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
 
-  addLog: (log: LogEntry) => {
-    set((state) => {
-      const newLogs = [...state.logs, log]
+      addLog: (log: LogEntry) => {
+        set((state) => {
+          const newLogs = [...state.logs, log]
 
-      return {
-        logs: newLogs.length > MAX_LOGS ? newLogs.slice(-MAX_LOGS) : newLogs
+          return {
+            logs: newLogs.length > MAX_LOGS ? newLogs.slice(-MAX_LOGS) : newLogs
+          }
+        })
+      },
+
+      clearLogs: () => {
+        set({ logs: [] })
+      },
+
+      setIsStreaming: (isStreaming: boolean) => {
+        set({ isStreaming })
+      },
+
+      reset: () => {
+        set(initialState)
       }
-    })
-  },
-
-  clearLogs: () => {
-    set({ logs: [] })
-  },
-
-  setIsStreaming: (isStreaming: boolean) => {
-    set({ isStreaming })
-  }
-}))
+    }),
+    {
+      name: 'backend-log-store'
+    }
+  )
+)

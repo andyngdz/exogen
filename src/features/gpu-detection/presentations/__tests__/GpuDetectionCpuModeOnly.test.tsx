@@ -8,7 +8,7 @@ describe('GpuDetectionCpuModeOnly', () => {
     render(<GpuDetectionCpuModeOnly onCheckAgain={() => {}} />)
 
     expect(screen.getByText('CPU Mode Only')).toBeInTheDocument()
-    expect(screen.getByText(/LocalAI will run on CPU/)).toBeInTheDocument()
+    expect(screen.getByText(/ExoGen will run on CPU/)).toBeInTheDocument()
     expect(
       screen.getByText(/Consider installing CUDA drivers/)
     ).toBeInTheDocument()
@@ -25,7 +25,7 @@ describe('GpuDetectionCpuModeOnly', () => {
     const title = screen.getByText('CPU Mode Only')
     expect(title).toHaveClass('text-lg', 'font-bold')
 
-    const description = screen.getByText(/LocalAI will run on CPU/)
+    const description = screen.getByText(/ExoGen will run on CPU/)
     expect(description).toHaveClass('text-center')
   })
 
