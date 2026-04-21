@@ -43,7 +43,7 @@
     "@tanstack/react-virtual": "^3.13.13",
     "@uidotdev/usehooks": "^2.4.1",
     "allotment": "^1.20.4",
-    "axios": "^1.13.2",
+    "axios": "^1.15.0",
     "clsx": "^2.1.1",
     "core-js": "^3.47.0",
     "dayjs": "^1.11.19",
