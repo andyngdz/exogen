@@ -95,7 +95,7 @@
     "concurrently": "^9.2.1",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "cross-env": "^10.1.0",
-    "electron": "^38.7.2",
+    "electron": "^39.8.5",
     "electron-builder": "^26.0.12",
     "esbuild": "^0.25.12",
     "eslint": "^9.39.2",
