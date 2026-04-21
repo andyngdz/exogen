@@ -52,7 +52,7 @@ Before you begin, ensure you have the following installed:
 
 - **Node.js** (LTS version recommended)
 - **Python 3.11** (Required - other Python versions may not work)
-- **npm** or **yarn**
+- **pnpm** (version 8)
 - **Git**
 
 ### System Requirements
@@ -70,10 +70,10 @@ git clone https://github.com/andyngdz/localai.git
 cd localai
 
 # Install dependencies
-npm install
+pnpm install
 
 # Run the desktop application
-npm run desktop
+pnpm run desktop
 ```
 
 The application will:
@@ -87,41 +87,41 @@ The application will:
 
 ### Available Scripts
 
-- **`npm run dev`** - Start Next.js development server with Turbopack
-- **`npm run desktop`** - Run full desktop app (Next.js + Electron + Python backend)
-- **`npm run desktop:local`** - Run frontend only (for Python backend development)
-- **`npm test`** - Run test suite
-- **`npm run type-check`** - Run TypeScript type checking
-- **`npm run lint`** - Run ESLint
-- **`npm run format`** - Format code with Prettier
-- **`npm run build`** - Build for production distribution
+- **`pnpm run dev`** - Start Next.js development server with Turbopack
+- **`pnpm run desktop`** - Run full desktop app (Next.js + Electron + Python backend)
+- **`pnpm run desktop:local`** - Run frontend only (for Python backend development)
+- **`pnpm test`** - Run test suite
+- **`pnpm run type-check`** - Run TypeScript type checking
+- **`pnpm run lint`** - Run ESLint
+- **`pnpm run format`** - Format code with Prettier
+- **`pnpm run build`** - Build for production distribution
 
 ### Development Workflow
 
 ```bash
 # Start development with hot reload
-npm run desktop
+pnpm run desktop
 
 # Run tests
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm test -- --watch
+pnpm test -- --watch
 
 # Run tests with coverage
-npm run test:coverage
+pnpm run test:coverage
 
 # Check code quality
-npm run type-check
-npm run lint
-npm run format
+pnpm run type-check
+pnpm run lint
+pnpm run format
 ```
 
 ## Building for Production
 
 ```bash
 # Build the application
-npm run build
+pnpm run build
 ```
 
 The build output will be in the `dist/` directory:
@@ -167,16 +167,16 @@ LocalAI uses **Vitest** and **React Testing Library** for comprehensive testing.
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm test -- --watch
+pnpm test -- --watch
 
 # Run tests with coverage report
-npm run test:coverage
+pnpm run test:coverage
 
 # Run specific test file
-npm test -- path/to/test.tsx
+pnpm test -- path/to/test.tsx
 ```
 
 Tests are co-located with source files in `__tests__/` directories.

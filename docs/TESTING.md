@@ -7,7 +7,7 @@
 - Test behavior, not implementation details (what it does, not how)
 - Mock external dependencies (APIs, React Query, Electron, sockets)
 - Keep tests focused and readable
-- **Verification:** Always run `npm run type-check && npm run lint && npm run format && npm test -- path/to/test` before completing
+- **Verification:** Always run `pnpm run type-check && pnpm run lint && pnpm run format && pnpm test -- path/to/test` before completing
 
 **Setup:**
 
@@ -17,7 +17,7 @@
 **Coverage Goals:**
 
 - Aim for 100% on critical paths (state management, data flow, business logic)
-- Command: `npm run test:coverage -- path/to/files`
+- Command: `pnpm run test:coverage -- path/to/files`
 - Focus on behavior coverage, not just line coverage
 
 **Testing Patterns (Simplified):**

@@ -1,8 +1,8 @@
 # Development Commands
 
-- **Dev server**: `npm run dev` (Next.js with Turbopack)
-- **Desktop dev**: `npm run desktop` (Next.js + Electron concurrently)
-- **Build**: `npm run build`
-- **Tests**: `npm test` or `npm test -- path/to/test.tsx`
-- **Type check**: `npm run type-check`
-- **Lint/Format**: `npm run lint` / `npm run format`
+- **Dev server**: `pnpm run dev` (Next.js with Turbopack)
+- **Desktop dev**: `pnpm run desktop` (Next.js + Electron concurrently)
+- **Build**: `pnpm run build`
+- **Tests**: `pnpm test` or `pnpm test -- path/to/test.tsx`
+- **Type check**: `pnpm run type-check`
+- **Lint/Format**: `pnpm run lint` / `pnpm run format`

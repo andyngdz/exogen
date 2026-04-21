@@ -101,7 +101,7 @@ chore(no-release): update internal tooling
 To manually trigger a release (not recommended):
 
 ```bash
-npm run semantic-release
+pnpm run semantic-release
 ```
 
 **Note**: This requires the `GITHUB_TOKEN` environment variable to be set.
@@ -119,9 +119,9 @@ The release workflow (`.github/workflows/release.yml`) runs automatically when:
 The release workflow performs these steps:
 
 1. **Checkout**: Fetches full git history for semantic-release analysis
-2. **Setup Node.js**: Installs Node.js (latest version) with npm cache
-3. **Install Dependencies**: Runs `npm ci --prefer-offline --no-audit --no-fund`
-4. **Run Semantic Release**: Executes `npx semantic-release` to:
+2. **Setup Node.js**: Installs Node.js (latest version) with pnpm cache
+3. **Install Dependencies**: Runs `pnpm install --frozen-lockfile`
+4. **Run Semantic Release**: Executes `pnpm exec semantic-release` to:
    - Analyze commits since last release
    - Determine version bump (major/minor/patch)
    - Generate changelog

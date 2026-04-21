@@ -44,7 +44,7 @@ describe('SuggestedCommands', () => {
     },
     {
       label: 'Run setup',
-      command: 'npm run setup'
+      command: 'pnpm run setup'
     }
   ]
 
@@ -86,7 +86,7 @@ describe('SuggestedCommands', () => {
     expect(
       screen.getByText('curl -LsSf https://astral.sh/uv/install.sh | sh')
     ).toBeInTheDocument()
-    expect(screen.getByText('npm run setup')).toBeInTheDocument()
+    expect(screen.getByText('pnpm run setup')).toBeInTheDocument()
   })
 
   it('renders single command correctly', () => {

@@ -50,22 +50,28 @@ jobs:
         uses: actions/setup-node@v4 # Use latest setup-node action
         with:
           node-version: "latest"
-          cache: "npm" # Enable caching for npm dependencies
+          cache: "pnpm" # Enable caching for pnpm dependencies
+
+      # Step 2.5: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       # Step 3: Install dependencies (will use cache if available)
       - name: Install dependencies
-        run: npm ci # Use 'ci' for clean installs in CI environments
+        run: pnpm install --frozen-lockfile
 
       # Step 4: Run Prettier format check
       - name: Check Prettier formatting
         id: format
-        run: npm run ci:format
+        run: pnpm run ci:format
         continue-on-error: true # Allow workflow to continue even if this step fails
 
       # Step 5: Run ESLint check
       - name: Check ESLint
         id: lint
-        run: npm run ci:lint
+        run: pnpm run ci:lint
         continue-on-error: true # Allow workflow to continue even if this step fails
 
       # Step 6: Upload ESLint report artifact (only if lint step ran)
@@ -136,17 +142,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
-          cache: "npm" # Enable caching for npm dependencies
+          cache: "pnpm" # Enable caching for pnpm dependencies
+
+      # Step 2.5: Install pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       # Step 3: Install dependencies (will use cache if available)
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # Step 4: Run unit tests
       # Combine test and coverage to avoid running tests twice
       - name: Run tests with coverage
         id: test_coverage # Changed id to avoid conflict with job name
-        run: npm run test:coverage # This script runs tests AND generates coverage
+        run: pnpm run test:coverage # This script runs tests AND generates coverage
 
       # Step 5: Upload coverage report artifact
       - name: Upload coverage reports

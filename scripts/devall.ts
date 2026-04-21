@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { $ } from 'zx'
+import { $ } from './zx-config'
 import { runAsScript, setupLog } from './utils'
 
 setupLog($)
@@ -10,13 +10,13 @@ const concurrentlyArgs = [
   '-c',
   'yellow,blue',
   '--kill-others',
-  'npm run dev',
+  'pnpm run dev',
   'tsx scripts/desktop.ts'
 ]
 
 const startFullDev = async () => {
   console.log('Starting full development environment...')
-  await $`npx concurrently ${concurrentlyArgs}`
+  await $`concurrently ${concurrentlyArgs}`
 }
 
 runAsScript(startFullDev, 'Full development startup failed:')
