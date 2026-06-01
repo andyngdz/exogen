@@ -111,7 +111,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.15",
+    "vitest": "^4.1.0",
     "vitest-localstorage-mock": "^0.1.2",
     "vitest-sonar-reporter": "^3.0.0",
     "wait-on": "^9.0.3"
