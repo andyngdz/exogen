@@ -8,6 +8,7 @@ on:
     paths:
       - "scripts/backend/**"
       - "scripts/smoke-install-uv.ts"
+      - "scripts/smoke/**"
       - "scripts/utils.ts"
       - "scripts/zx-config.ts"
       - ".github/workflows/backend-setup-smoke.yml"
@@ -16,6 +17,7 @@ on:
     paths:
       - "scripts/backend/**"
       - "scripts/smoke-install-uv.ts"
+      - "scripts/smoke/**"
       - "scripts/utils.ts"
       - "scripts/zx-config.ts"
       - ".github/workflows/backend-setup-smoke.yml"
