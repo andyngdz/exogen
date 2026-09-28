@@ -47,8 +47,9 @@ describe('useHealthCheck', () => {
       forward: vi.fn(),
       refresh: vi.fn(),
       replace: vi.fn(),
-      prefetch: vi.fn()
-    } as ReturnType<typeof useRouter>)
+      prefetch: vi.fn(),
+      bfcacheId: 'test-bfcache-id'
+    } satisfies ReturnType<typeof useRouter>)
 
     const { useBackendInitStore } =
       await import('@/cores/backend-initialization')

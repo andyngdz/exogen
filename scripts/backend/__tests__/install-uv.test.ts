@@ -1,4 +1,5 @@
 import { BackendStatusLevel } from '@types'
+import * as os from 'node:os'
 import * as path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -50,6 +51,8 @@ const makeProcessResult = (
   ...overrides
 })
 
+const uvBinDir = path.join(os.homedir(), '.local', 'bin')
+
 describe('installUv', () => {
   const originalPlatform = process.platform
 
@@ -63,15 +66,9 @@ describe('installUv', () => {
       (error: unknown, defaultMessage: string) =>
         error instanceof Error ? error : new Error(defaultMessage)
     )
-
-    vi.unstubAllEnvs()
-    vi.stubEnv('HOME', '/home/tester')
-    // Stub LOCALAPPDATA to prevent Windows path from being added on Windows test runners
-    delete process.env.LOCALAPPDATA
   })
 
   afterEach(() => {
-    vi.unstubAllEnvs()
     Object.defineProperty(process, 'platform', {
       value: originalPlatform
     })
@@ -93,25 +90,18 @@ describe('installUv', () => {
     })
     expect(mock$).toHaveBeenCalledTimes(1)
     expect(mockNormalizeError).not.toHaveBeenCalled()
-    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin')
-    ])
+    expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(1)
+    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([uvBinDir])
   })
 
   it('installs uv on Unix-like systems when missing', async () => {
+    const installShell = vi.fn(() => Promise.resolve())
+
     mock$
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockImplementationOnce(
-        (strings: TemplateStringsArray, command: string) => {
-          expect(strings).toEqual(['', ''])
-          expect(command).toBe(
-            'curl -LsSf https://astral.sh/uv/install.sh | sh'
-          )
-          return Promise.resolve()
-        }
-      )
+      .mockReturnValueOnce(installShell)
       .mockReturnValueOnce({
         nothrow: () =>
           Promise.resolve(makeProcessResult({ stdout: 'uv 0.9.0\n' }))
@@ -129,10 +119,19 @@ describe('installUv', () => {
       level: BackendStatusLevel.Info,
       message: 'uv 0.9.0 installed successfully.'
     })
-    expect(mock$).toHaveBeenCalledTimes(3)
-    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin')
-    ])
+    expect(mock$).toHaveBeenNthCalledWith(2, {
+      env: expect.objectContaining({ UV_INSTALL_DIR: uvBinDir })
+    })
+    // The pipeline must reach the shell through `sh -c`, not as one quoted word.
+    expect(installShell).toHaveBeenCalledWith(
+      ['sh -c ', ''],
+      'curl -LsSf https://astral.sh/uv/install.sh | sh'
+    )
+    expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(2)
+    expect(mockEnsurePathIncludes).toHaveBeenNthCalledWith(2, [uvBinDir])
+    expect(mockEnsurePathIncludes.mock.invocationCallOrder[1]).toBeGreaterThan(
+      installShell.mock.invocationCallOrder[0]
+    )
   })
 
   it('uses the Windows installation command when running on Windows', async () => {
@@ -140,19 +139,14 @@ describe('installUv', () => {
     Object.defineProperty(process, 'platform', {
       value: 'win32'
     })
-    process.env.LOCALAPPDATA = 'C:\\Users\\tester\\AppData\\Local'
+
+    const installShell = vi.fn(() => Promise.resolve())
 
     mock$
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockImplementationOnce(
-        (strings: TemplateStringsArray, command: string) => {
-          expect(strings).toEqual(['', ''])
-          expect(command).toContain('powershell -ExecutionPolicy ByPass')
-          return Promise.resolve()
-        }
-      )
+      .mockReturnValueOnce(installShell)
       .mockReturnValueOnce({
         nothrow: () =>
           Promise.resolve(makeProcessResult({ stdout: 'uv 1.1.0\n' }))
@@ -170,20 +164,27 @@ describe('installUv', () => {
       level: BackendStatusLevel.Info,
       message: 'uv 1.1.0 installed successfully.'
     })
-    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin'),
-      path.join('C:\\Users\\tester\\AppData\\Local', 'uv', 'bin')
-    ])
+    expect(mock$).toHaveBeenNthCalledWith(2, {
+      env: expect.objectContaining({ UV_INSTALL_DIR: uvBinDir })
+    })
+    expect(mock$.mock.calls[1][0].env).toHaveProperty('PSModulePath', undefined)
+    expect(installShell).toHaveBeenCalledWith(
+      ['powershell -ExecutionPolicy ByPass -c ', ''],
+      'irm https://astral.sh/uv/install.ps1 | iex'
+    )
+    expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(2)
+    expect(mockEnsurePathIncludes).toHaveBeenNthCalledWith(2, [uvBinDir])
   })
 
   it('emits an error with manual commands when installation fails', async () => {
     const installError = new Error('install failed')
+    const installShell = vi.fn(() => Promise.reject(installError))
 
     mock$
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockImplementationOnce(() => Promise.reject(installError))
+      .mockReturnValueOnce(installShell)
 
     const normalizedError = new Error('normalized error')
     mockNormalizeError.mockReturnValue(normalizedError)
@@ -210,9 +211,8 @@ describe('installUv', () => {
       installError,
       'Failed to install uv via provided command.'
     )
-    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin')
-    ])
+    expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(1)
+    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([uvBinDir])
   })
 
   it('throws when version cannot be detected after installation', async () => {
@@ -220,7 +220,7 @@ describe('installUv', () => {
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockImplementationOnce(() => Promise.resolve())
+      .mockReturnValueOnce(vi.fn(() => Promise.resolve()))
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ stdout: '' }))
       })
@@ -239,8 +239,7 @@ describe('installUv', () => {
       level: BackendStatusLevel.Error,
       message: 'uv installation finished but version could not be detected.'
     })
-    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([
-      path.join('/home/tester', '.local', 'bin')
-    ])
+    expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(2)
+    expect(mockEnsurePathIncludes).toHaveBeenCalledWith([uvBinDir])
   })
 })

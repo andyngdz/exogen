@@ -3,8 +3,9 @@ import {
   BackendStatusEmitter,
   BackendStatusLevel
 } from '@types'
+import * as os from 'node:os'
 import * as path from 'node:path'
-import { $ } from '../zx-config'
+import { $ } from '@scripts/zx-config'
 import { ensurePathIncludes, isWindows, normalizeError } from './utils'
 
 interface InstallUvOptions {
@@ -35,16 +36,24 @@ const detectUv = async () => {
   return { version: match[1] }
 }
 
-const getInstallCommand = (): InstallCommand => {
+const getInstallCommand = (installDir: string) => {
+  // A PSModulePath inherited from PowerShell 7 makes Windows PowerShell load
+  // incompatible modules and fail on Get-ExecutionPolicy, so let it rebuild
+  // the default. Node drops undefined env values when spawning.
+  const installShell = $({
+    env: { ...process.env, UV_INSTALL_DIR: installDir, PSModulePath: undefined }
+  })
+
+  // zx quotes an interpolated value as one argument, so the pipeline has to
+  // go through `-c` instead of being interpolated as the whole command.
   if (isWindows) {
-    const command =
-      'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"'
+    const script = 'irm https://astral.sh/uv/install.ps1 | iex'
 
     return {
       label: 'Install uv via PowerShell',
-      command,
-      run: () => $`${command}`
-    }
+      command: `powershell -ExecutionPolicy ByPass -c "${script}"`,
+      run: () => installShell`powershell -ExecutionPolicy ByPass -c ${script}`
+    } satisfies InstallCommand
   }
 
   const command = 'curl -LsSf https://astral.sh/uv/install.sh | sh'
@@ -52,11 +61,11 @@ const getInstallCommand = (): InstallCommand => {
   return {
     label: 'Install uv via shell script',
     command,
-    run: () => $`${command}`
-  }
+    run: () => installShell`sh -c ${command}`
+  } satisfies InstallCommand
 }
 
-const installationCommandsByPlatform = (): BackendStatusCommand[] => {
+const installationCommandsByPlatform = () => {
   if (isWindows) {
     return [
       {
@@ -64,7 +73,7 @@ const installationCommandsByPlatform = (): BackendStatusCommand[] => {
         command:
           'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"'
       }
-    ]
+    ] satisfies BackendStatusCommand[]
   }
 
   return [
@@ -72,21 +81,14 @@ const installationCommandsByPlatform = (): BackendStatusCommand[] => {
       label: 'Install with shell script',
       command: 'curl -LsSf https://astral.sh/uv/install.sh | sh'
     }
-  ]
+  ] satisfies BackendStatusCommand[]
 }
 
 const installUv = async ({ emit }: InstallUvOptions) => {
-  const candidatePaths: string[] = []
+  // os.homedir() also resolves on Windows, where HOME is usually unset.
+  const uvBinDir = path.join(os.homedir(), '.local', 'bin')
 
-  if (process.env.HOME) {
-    candidatePaths.push(path.join(process.env.HOME, '.local', 'bin'))
-  }
-
-  if (isWindows && process.env.LOCALAPPDATA) {
-    candidatePaths.push(path.join(process.env.LOCALAPPDATA, 'uv', 'bin'))
-  }
-
-  ensurePathIncludes(candidatePaths)
+  ensurePathIncludes([uvBinDir])
 
   const existing = await detectUv()
 
@@ -99,7 +101,7 @@ const installUv = async ({ emit }: InstallUvOptions) => {
     return existing
   }
 
-  const install = getInstallCommand()
+  const install = getInstallCommand(uvBinDir)
 
   emit({
     level: BackendStatusLevel.Info,
@@ -119,6 +121,9 @@ const installUv = async ({ emit }: InstallUvOptions) => {
 
     throw normalizeError(error, 'Failed to install uv via provided command.')
   }
+
+  // A fresh install creates the directory, which the first call skipped.
+  ensurePathIncludes([uvBinDir])
 
   const installed = await detectUv()
 

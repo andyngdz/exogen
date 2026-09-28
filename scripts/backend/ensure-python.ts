@@ -3,7 +3,7 @@ import {
   BackendStatusEmitter,
   BackendStatusLevel
 } from '@types'
-import { $ } from '../zx-config'
+import { $ } from '@scripts/zx-config'
 import { isMac, isWindows } from './utils'
 
 interface PythonCandidate {
@@ -35,7 +35,7 @@ const versionRegex = /Python\s+(\d+)\.(\d+)(?:\.(\d+))?/i
 
 const MIN_MINOR_VERSION = 11
 
-const pythonCandidates = (): PythonCandidate[] => {
+const pythonCandidates = () => {
   if (process.platform === 'win32') {
     return [
       { command: 'py', baseArgs: ['-3.11'] },
@@ -43,14 +43,14 @@ const pythonCandidates = (): PythonCandidate[] => {
       { command: 'python3', baseArgs: [] },
       { command: 'python', baseArgs: [] },
       { command: 'py', baseArgs: ['-3'] }
-    ]
+    ] satisfies PythonCandidate[]
   }
 
   return [
     { command: 'python3.11', baseArgs: [] },
     { command: 'python3', baseArgs: [] },
     { command: 'python', baseArgs: [] }
-  ]
+  ] satisfies PythonCandidate[]
 }
 
 const parseVersion = (output: string) => {
@@ -102,7 +102,7 @@ const findPython = async () => {
   }
 }
 
-const missingInstructions = (): MissingInstruction => {
+const missingInstructions = () => {
   if (isMac) {
     return {
       message:
@@ -113,7 +113,7 @@ const missingInstructions = (): MissingInstruction => {
           command: 'brew install python@3.11'
         }
       ]
-    }
+    } satisfies MissingInstruction
   }
 
   if (isWindows) {
@@ -131,7 +131,7 @@ const missingInstructions = (): MissingInstruction => {
           command: 'choco install python --version=3.11.9 -y'
         }
       ]
-    }
+    } satisfies MissingInstruction
   }
 
   return {
@@ -147,7 +147,7 @@ const missingInstructions = (): MissingInstruction => {
         command: 'sudo apt install python3.11'
       }
     ]
-  }
+  } satisfies MissingInstruction
 }
 
 const ensurePython311 = async ({ emit }: EnsurePythonOptions) => {
