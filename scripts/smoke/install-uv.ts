@@ -22,7 +22,7 @@ const systemPath = () => {
     return '/usr/bin:/bin'
   }
 
-  const systemRoot = process.env.SystemRoot ?? 'C:\\Windows'
+  const systemRoot = process.env.SystemRoot ?? String.raw`C:\Windows`
 
   return [
     path.join(systemRoot, 'System32'),
