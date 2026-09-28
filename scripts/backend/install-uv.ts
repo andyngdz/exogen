@@ -5,7 +5,7 @@ import {
 } from '@types'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { $ } from '../zx-config'
+import { $ } from '@scripts/zx-config'
 import { ensurePathIncludes, isWindows, normalizeError } from './utils'
 
 interface InstallUvOptions {

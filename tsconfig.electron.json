@@ -14,6 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@scripts/*": ["./scripts/*"],
       "@types": ["./types"],
       "@types/*": ["./types/*"],
       "./scripts/*": ["../scripts/*"]
