@@ -167,6 +167,7 @@ describe('installUv', () => {
     expect(mock$).toHaveBeenNthCalledWith(2, {
       env: expect.objectContaining({ UV_INSTALL_DIR: uvBinDir })
     })
+    expect(mock$.mock.calls[1][0].env).toHaveProperty('PSModulePath', undefined)
     expect(installShell).toHaveBeenCalledWith(
       ['powershell -ExecutionPolicy ByPass -c ', ''],
       'irm https://astral.sh/uv/install.ps1 | iex'

@@ -37,8 +37,11 @@ const detectUv = async () => {
 }
 
 const getInstallCommand = (installDir: string) => {
+  // A PSModulePath inherited from PowerShell 7 makes Windows PowerShell load
+  // incompatible modules and fail on Get-ExecutionPolicy, so let it rebuild
+  // the default. Node drops undefined env values when spawning.
   const installShell = $({
-    env: { ...process.env, UV_INSTALL_DIR: installDir }
+    env: { ...process.env, UV_INSTALL_DIR: installDir, PSModulePath: undefined }
   })
 
   // zx quotes an interpolated value as one argument, so the pipeline has to
