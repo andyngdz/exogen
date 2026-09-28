@@ -4,8 +4,7 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   trailingSlash: true,
   experimental: {
-    typedEnv: true,
-    viewTransition: true
+    typedEnv: true
   },
   images: {
     unoptimized: true

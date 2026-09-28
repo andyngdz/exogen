@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation'
 import { vi } from 'vitest'
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 
@@ -12,16 +13,15 @@ export const setupRouterMock = async () => {
   const mockReplace = vi.fn()
   const mockPrefetch = vi.fn()
 
-  const { useRouter } = await import('next/navigation')
-
   vi.mocked(useRouter).mockReturnValue({
     push: mockPush,
     back: mockBack,
     forward: mockForward,
     refresh: mockRefresh,
     replace: mockReplace,
-    prefetch: mockPrefetch
-  } as AppRouterInstance)
+    prefetch: mockPrefetch,
+    bfcacheId: 'test-bfcache-id'
+  } satisfies AppRouterInstance)
 
   return {
     useRouter,

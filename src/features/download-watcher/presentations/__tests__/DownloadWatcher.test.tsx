@@ -9,7 +9,7 @@ import { ModelFamily } from '@/types'
 import { QueryClient } from '@tanstack/react-query'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { cleanup, render } from '@testing-library/react'
-import type { MockInstance } from '@vitest/spy'
+import type { Mock } from 'vitest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as useDownloadWatcherStoreModule from '../../states/useDownloadWatchStore'
 import { DownloadWatcher } from '../DownloadWatcher'
@@ -54,10 +54,10 @@ vi.mock('@tanstack/react-query', async () => {
 })
 
 describe('DownloadWatcher', () => {
-  let mockOnUpdateStep: MockInstance
-  let mockOnSetModelId: MockInstance
-  let mockOnResetStep: MockInstance
-  let mockOnResetModelId: MockInstance
+  let mockOnUpdateStep: Mock
+  let mockOnSetModelId: Mock
+  let mockOnResetStep: Mock
+  let mockOnResetModelId: Mock
 
   const QueryClientWrapper = createQueryClientWrapper()
 

@@ -1,0 +1,56 @@
+# Runs the real uv installer the app uses at startup on every OS. Unit tests
+# mock zx, so a broken install command (#268) only shows up here.
+name: Backend Setup Smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/backend/**"
+      - "scripts/smoke-install-uv.ts"
+      - "scripts/smoke/**"
+      - "scripts/utils.ts"
+      - "scripts/zx-config.ts"
+      - ".github/workflows/backend-setup-smoke.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/backend/**"
+      - "scripts/smoke-install-uv.ts"
+      - "scripts/smoke/**"
+      - "scripts/utils.ts"
+      - "scripts/zx-config.ts"
+      - ".github/workflows/backend-setup-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install-uv:
+    name: Install uv on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "latest"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install uv from an isolated home
+        run: pnpm exec tsx scripts/smoke-install-uv.ts
