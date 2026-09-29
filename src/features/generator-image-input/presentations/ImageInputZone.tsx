@@ -6,7 +6,7 @@ import { useImagePaste } from '@/features/generator-image-input/states/useImageP
 import { ValueChanged } from '@/types'
 import { Button } from '@heroui/react'
 import { useEffect } from 'react'
-import { FileTrigger } from 'react-aria-components'
+import { DropZone, FileTrigger } from 'react-aria-components'
 import { ImageInputBody } from './ImageInputBody'
 
 interface ImageInputZoneProps {
@@ -25,8 +25,9 @@ export const ImageInputZone = ({
   onDragActiveChange
 }: ImageInputZoneProps) => {
   const { onFilesSelect } = useImageFilePicker({ onFile })
-  const { isDragActive, onDrop, onDragEnter, onDragOver, onDragLeave } =
-    useImageDropzone({ onFile })
+  const { isDragActive, onDropEnter, onDropExit, onDrop } = useImageDropzone({
+    onFile
+  })
 
   useEffect(() => {
     onDragActiveChange(isDragActive)
@@ -35,11 +36,11 @@ export const ImageInputZone = ({
   useImagePaste({ onFile })
 
   return (
-    <div
+    <DropZone
+      aria-label="Drop an input image"
       className="h-full w-full"
-      onDragEnter={onDragEnter}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
+      onDropEnter={onDropEnter}
+      onDropExit={onDropExit}
       onDrop={onDrop}
     >
       <FileTrigger acceptedFileTypes={['image/*']} onSelect={onFilesSelect}>
@@ -55,6 +56,6 @@ export const ImageInputZone = ({
           />
         </Button>
       </FileTrigger>
-    </div>
+    </DropZone>
   )
 }
