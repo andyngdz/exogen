@@ -29,15 +29,17 @@ export const GeneratorConfigStyleItem: FC<GeneratorConfigStyleItemProps> = ({
         className="cursor-pointer"
       >
         <Chip
-          variant="tertiary"
+          variant="secondary"
           className={clsx('transition-all', {
-            'border-accent': isSelected
+            'ring-2 ring-accent': isSelected
           })}
         >
-          <Avatar size="sm">
-            <Avatar.Image src={imageUrl} alt={styleItem.name} />
-          </Avatar>
-          {styleItem.name}
+          <span className="flex items-center gap-2">
+            <Avatar size="sm" className="size-5">
+              <Avatar.Image src={imageUrl} alt={styleItem.name} />
+            </Avatar>
+            <Chip.Label>{styleItem.name}</Chip.Label>
+          </span>
         </Chip>
       </Tooltip.Trigger>
       <Tooltip.Content className="pointer-events-none p-0 rounded-lg overflow-hidden">

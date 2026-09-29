@@ -48,13 +48,13 @@ describe('GeneratorConfigStyleItem', () => {
   it('shows as not selected when style is not in the form', () => {
     renderStyleItem()
 
-    expect(getChip()).not.toHaveClass('border-accent')
+    expect(getChip()).not.toHaveClass('ring-accent')
   })
 
   it('shows as selected when style is in the form', () => {
     renderStyleItem({ styles: ['test-style-id'] })
 
-    expect(getChip()).toHaveClass('border-accent')
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
   it('adds style to selection when pressed and not selected', async () => {
@@ -64,7 +64,7 @@ describe('GeneratorConfigStyleItem', () => {
     await user.click(getTrigger())
 
     expect(getMethods().getValues('styles')).toEqual(['test-style-id'])
-    expect(getChip()).toHaveClass('border-accent')
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
   it('removes style from selection when pressed and already selected', async () => {
@@ -74,7 +74,7 @@ describe('GeneratorConfigStyleItem', () => {
     await user.click(getTrigger())
 
     expect(getMethods().getValues('styles')).toEqual([])
-    expect(getChip()).not.toHaveClass('border-accent')
+    expect(getChip()).not.toHaveClass('ring-accent')
   })
 
   it('handles multiple styles in selection correctly', () => {
@@ -82,7 +82,7 @@ describe('GeneratorConfigStyleItem', () => {
       styles: ['other-style', 'test-style-id', 'another-style']
     })
 
-    expect(getChip()).toHaveClass('border-accent')
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
   it('previews the style image in a tooltip that ignores pointer events', async () => {

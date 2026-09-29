@@ -48,7 +48,7 @@ export const ModelSearchViewCard: FC<ModelSearchViewCardProps> = ({
           <div className="flex gap-2">
             {map(tags, (tag) => {
               return (
-                <Chip variant="tertiary" key={tag}>
+                <Chip variant="secondary" key={tag}>
                   {tag}
                 </Chip>
               )

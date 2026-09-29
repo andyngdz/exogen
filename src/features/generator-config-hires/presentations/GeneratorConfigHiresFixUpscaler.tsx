@@ -39,12 +39,14 @@ export const GeneratorConfigHiresFixUpscaler = () => {
                     id={option.value}
                     textValue={option.name}
                   >
-                    <Label>{option.name}</Label>
-                    {option.is_recommended && (
-                      <Description className="text-success">
-                        Recommended
-                      </Description>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      <Label>{option.name}</Label>
+                      {option.is_recommended && (
+                        <Description className="text-success">
+                          Recommended
+                        </Description>
+                      )}
+                    </div>
                     <ListBox.ItemIndicator />
                   </ListBox.Item>
                 ))}

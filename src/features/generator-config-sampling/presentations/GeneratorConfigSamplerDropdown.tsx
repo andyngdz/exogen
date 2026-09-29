@@ -52,8 +52,10 @@ export const GeneratorConfigSamplerDropdown = () => {
                   id={samplerOption.value}
                   textValue={samplerOption.name}
                 >
-                  <Label>{samplerOption.name}</Label>
-                  <Description>{samplerOption.description}</Description>
+                  <div className="flex flex-col gap-1">
+                    <Label>{samplerOption.name}</Label>
+                    <Description>{samplerOption.description}</Description>
+                  </div>
                   <ListBox.ItemIndicator />
                 </ListBox.Item>
               ))}

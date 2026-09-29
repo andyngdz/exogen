@@ -28,9 +28,15 @@ export const ModelSearchViewSpaces: FC<ModelSearchViewSpacesProps> = ({
       <div className="flex flex-wrap gap-2">
         {map(showSpaces, (space) => {
           return (
-            <Chip variant="tertiary" key={space}>
-              <AuthorAvatar id={split(space, '/')[0]} size="sm" />
-              {space}
+            <Chip variant="secondary" key={space}>
+              <span className="flex items-center gap-2">
+                <AuthorAvatar
+                  id={split(space, '/')[0]}
+                  size="sm"
+                  className="size-5"
+                />
+                <Chip.Label>{space}</Chip.Label>
+              </span>
             </Chip>
           )
         })}

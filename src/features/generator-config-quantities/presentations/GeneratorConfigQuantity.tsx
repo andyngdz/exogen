@@ -18,7 +18,7 @@ export const GeneratorConfigQuantity = () => {
           endContent={
             <Tooltip delay={0}>
               <Tooltip.Trigger aria-label="About number of images">
-                <Info className="text-foreground" />
+                <Info size={16} className="text-foreground" />
               </Tooltip.Trigger>
               <Tooltip.Content>
                 Number of images will be generated
