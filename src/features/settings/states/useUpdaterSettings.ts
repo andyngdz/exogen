@@ -39,7 +39,7 @@ export const useUpdaterSettings = () => {
   }, [version])
 
   useEffect(() => {
-    onGetVersion()
+    void onGetVersion()
   }, [onGetVersion])
 
   return {

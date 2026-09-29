@@ -8,6 +8,7 @@ import { GeneratorPhotoviewCarousel } from './GeneratorPhotoviewCarousel'
 
 export const GeneratorPhotoviewModal = () => {
   const model = useGeneratorPhotoviewModalModel()
+  const { onUseAsInput } = model
 
   const onOpenChange = (isOpen: boolean) => {
     if (isOpen) return
@@ -49,7 +50,7 @@ export const GeneratorPhotoviewModal = () => {
                     <Button
                       variant="primary"
                       isPending={model.isUsingAsInput}
-                      onPress={model.onUseAsInput}
+                      onPress={() => void onUseAsInput()}
                       aria-label="Use current image as input"
                     >
                       <ImageUp size={16} />

@@ -14,11 +14,13 @@ export const useGeneratorPreviewerItemModel = (
 ) => {
   const baseURL = useBackendUrl()
   const aspectRatio = useGeneratorAspectRatio()
-  const { isGenerating } = useGenerationStatusStore()
+  const isGenerating = useGenerationStatusStore((state) => state.isGenerating)
 
-  const { items } = useUseImageGenerationStore()
+  const items = useUseImageGenerationStore((state) => state.items)
   const { onDownloadImage } = useDownloadImages()
-  const { openPhotoview } = useGeneratorPhotoviewStore()
+  const openPhotoview = useGeneratorPhotoviewStore(
+    (state) => state.openPhotoview
+  )
 
   const item = items[imageStepEnd.index]
 
@@ -33,7 +35,7 @@ export const useGeneratorPreviewerItemModel = (
   }, [imageStepEnd.index, openPhotoview])
 
   const onHandleDownloadImage = useCallback(() => {
-    onDownloadImage(`${baseURL}/${item.path}`)
+    void onDownloadImage(`${baseURL}/${item.path}`)
   }, [baseURL, item.path, onDownloadImage])
 
   return {

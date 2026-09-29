@@ -15,6 +15,8 @@ import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 
 export const useImage2ImageGenerator = () => {
   const queryClient = useQueryClient()
+  const refetchHistories = () =>
+    queryClient.refetchQueries({ queryKey: ['getHistories'] })
   const onCompleted = useUseImageGenerationStore((state) => state.onCompleted)
   const onInit = useUseImageGenerationStore((state) => state.onInit)
   const onSetIsGenerating = useGenerationStatusStore(
@@ -66,7 +68,7 @@ export const useImage2ImageGenerator = () => {
         isHiresFixEnabled
       )
       const history_id = await addHistory.mutateAsync(historyConfig)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
 
       onInit(config.number_of_images)
 
@@ -80,7 +82,7 @@ export const useImage2ImageGenerator = () => {
       await img2img.mutateAsync({ history_id, config: img2imgConfig })
     } finally {
       onSetIsGenerating(false)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
     }
   }
 

@@ -8,7 +8,7 @@ export const UpdateSettings = () => {
   return (
     <SettingsBase title="Updates" description={`Current version: ${version}`}>
       <Button
-        onPress={onCheck}
+        onPress={() => void onCheck()}
         variant="primary"
         isPending={isChecking}
         fullWidth

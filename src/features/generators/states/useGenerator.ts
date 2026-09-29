@@ -12,6 +12,8 @@ import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 
 export const useGenerator = () => {
   const queryClient = useQueryClient()
+  const refetchHistories = () =>
+    queryClient.refetchQueries({ queryKey: ['getHistories'] })
   const onCompleted = useUseImageGenerationStore((state) => state.onCompleted)
   const onInit = useUseImageGenerationStore((state) => state.onInit)
   const onSetIsGenerating = useGenerationStatusStore(
@@ -46,14 +48,14 @@ export const useGenerator = () => {
         isHiresFixEnabled
       )
       const history_id = await addHistory.mutateAsync(historyConfig)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
 
       onInit(config.number_of_images)
 
       await generator.mutateAsync({ history_id, config: historyConfig })
     } finally {
       onSetIsGenerating(false)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
     }
   }
 

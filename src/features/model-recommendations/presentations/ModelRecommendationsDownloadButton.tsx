@@ -37,7 +37,7 @@ export const ModelRecommendationsDownloadButton: FC<
       <Button
         variant={isDownloading ? 'outline' : 'tertiary'}
         isDisabled={isDisabled}
-        onPress={onDownload}
+        onPress={() => void onDownload()}
         className="w-full relative z-10"
         size="sm"
       >

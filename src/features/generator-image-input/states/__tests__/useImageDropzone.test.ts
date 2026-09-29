@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import type { DropItem, DropZoneProps } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -55,8 +55,8 @@ describe('useImageDropzone', () => {
   it('does nothing when the drop carries no file', async () => {
     const { onFile, result } = renderDropzone()
 
-    await act(async () => {
-      await result.current.onDrop(createDropEvent([createTextItem('hello')]))
+    act(() => {
+      result.current.onDrop(createDropEvent([createTextItem('hello')]))
     })
 
     expect(onFile).not.toHaveBeenCalled()
@@ -72,8 +72,8 @@ describe('useImageDropzone', () => {
       result.current.onDropEnter()
     })
 
-    await act(async () => {
-      await result.current.onDrop(
+    act(() => {
+      result.current.onDrop(
         createDropEvent([
           createTextItem('ignored'),
           createFileItem(firstFile),
@@ -82,8 +82,10 @@ describe('useImageDropzone', () => {
       )
     })
 
+    await waitFor(() => {
+      expect(onFile).toHaveBeenCalledWith(firstFile)
+    })
     expect(onFile).toHaveBeenCalledTimes(1)
-    expect(onFile).toHaveBeenCalledWith(firstFile)
     expect(result.current.isDragActive).toBe(false)
   })
 })

@@ -2,7 +2,7 @@ import { ValueChanged } from '@/types'
 import { find } from 'es-toolkit/compat'
 import { useCallback, useState } from 'react'
 import { isFileDropItem } from 'react-aria'
-import type { DropZoneProps } from 'react-aria-components'
+import type { DropZoneProps, FileDropItem } from 'react-aria-components'
 
 interface UseImageDropzoneParams {
   onFile: ValueChanged<File, Promise<void>>
@@ -20,16 +20,23 @@ export const useImageDropzone = ({ onFile }: UseImageDropzoneParams) => {
     setIsDragActive(false)
   }, [])
 
+  const readDroppedFile = useCallback(
+    async (fileItem: FileDropItem) => {
+      await onFile(await fileItem.getFile())
+    },
+    [onFile]
+  )
+
   const onDrop: NonNullable<DropZoneProps['onDrop']> = useCallback(
-    async (event) => {
+    (event) => {
       setIsDragActive(false)
 
       const fileItem = find(event.items, isFileDropItem)
       if (!fileItem) return
 
-      await onFile(await fileItem.getFile())
+      void readDroppedFile(fileItem)
     },
-    [onFile]
+    [readDroppedFile]
   )
 
   return { isDragActive, onDropEnter, onDropExit, onDrop }

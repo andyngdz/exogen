@@ -22,7 +22,7 @@ export const MaxMemoryScaleFactor = () => {
     <SetupLayout
       title="Max Memory"
       description="Configure the maximum memory allocation for AI models"
-      onNext={onNext}
+      onNext={() => void onNext()}
       onBack={onBack}
     >
       <div className="flex flex-col items-center gap-8">

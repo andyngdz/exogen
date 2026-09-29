@@ -43,7 +43,10 @@ export const ImageInputZone = ({
       onDropExit={onDropExit}
       onDrop={onDrop}
     >
-      <FileTrigger acceptedFileTypes={['image/*']} onSelect={onFilesSelect}>
+      <FileTrigger
+        acceptedFileTypes={['image/*']}
+        onSelect={(files) => void onFilesSelect(files)}
+      >
         <Button
           aria-label={hasImage ? 'Change input image' : 'Upload input image'}
           className="h-full w-full min-h-0 p-0"

@@ -32,7 +32,7 @@ export const useGeneratorPhotoviewModalModel = () => {
   const imageUrl = `${baseURL}/${items[safeIndex].path}`
 
   const onDownload = useCallback(() => {
-    onDownloadImage(imageUrl)
+    void onDownloadImage(imageUrl)
   }, [imageUrl, onDownloadImage])
 
   const onUseAsInput = useCallback(async () => {

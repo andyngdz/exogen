@@ -9,7 +9,7 @@ export const UploadLoraButton = () => {
 
   return (
     <Button
-      onPress={onUpload}
+      onPress={() => void onUpload()}
       isPending={isUploading}
       variant="primary"
       fullWidth
