@@ -36,7 +36,7 @@ export const GeneratorConfigStyleSection: FC<
                 transform: `translateY(${virtualItem.start}px)`
               }}
             >
-              <Card>
+              <Card variant="secondary">
                 <Card.Header className="text-lg font-medium capitalize">
                   {styleSection.id}
                 </Card.Header>
@@ -46,6 +46,8 @@ export const GeneratorConfigStyleSection: FC<
                       <GeneratorConfigStyleItem
                         key={styleItem.id}
                         styleItem={styleItem}
+                        color="accent"
+                        variant="soft"
                       />
                     ))}
                   </div>

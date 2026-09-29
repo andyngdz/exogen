@@ -3,18 +3,23 @@
 import { useBackendUrl } from '@/cores/backend-initialization'
 import { useGeneratorConfigStyle } from '@/features/generator-config-styles/states'
 import { StyleItem } from '@/types'
-import { Avatar, Chip, Tooltip } from '@heroui/react'
+import { Avatar, Chip, ChipProps, Tooltip } from '@heroui/react'
 import clsx from 'clsx'
 import NextImage from 'next/image'
 import { FC } from 'react'
 import { usePress } from 'react-aria'
 
-export interface GeneratorConfigStyleItemProps {
+export interface GeneratorConfigStyleItemProps extends Pick<
+  ChipProps,
+  'color' | 'variant'
+> {
   styleItem: StyleItem
 }
 
 export const GeneratorConfigStyleItem: FC<GeneratorConfigStyleItemProps> = ({
-  styleItem
+  styleItem,
+  color,
+  variant = 'secondary'
 }) => {
   const baseURL = useBackendUrl()
   const { isSelected, onClick } = useGeneratorConfigStyle(styleItem.id)
@@ -29,7 +34,8 @@ export const GeneratorConfigStyleItem: FC<GeneratorConfigStyleItemProps> = ({
         className="cursor-pointer"
       >
         <Chip
-          variant="secondary"
+          color={color}
+          variant={variant}
           className={clsx('transition-all', {
             'ring-2 ring-accent': isSelected
           })}
