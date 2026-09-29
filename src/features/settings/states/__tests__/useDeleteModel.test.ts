@@ -1,7 +1,8 @@
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { createQueryClientWrapper } from '@/cores/test-utils/query-client'
 import { useModelSelectorStore } from '@/features/model-selectors/states/useModelSelectorStores'
 import { api } from '@/services/api'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDeleteModel } from '../useDeleteModel'
@@ -19,7 +20,7 @@ vi.mock('@/services/api', () => ({
 }))
 
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn()
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('useDeleteModel', () => {
@@ -27,12 +28,14 @@ describe('useDeleteModel', () => {
     vi.clearAllMocks()
 
     // Mock useModelSelectorStore
-    vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-2',
-      loaded_model_family: ModelFamily.UNKNOWN,
-      setSelectedModelId: vi.fn(),
-      setLoadedModelFamily: vi.fn()
-    })
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-2',
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: vi.fn(),
+        setLoadedModelFamily: vi.fn()
+      })
+    )
 
     // Mock successful API response by default
     vi.mocked(api.deleteModel).mockResolvedValue({ success: true })
@@ -88,10 +91,8 @@ describe('useDeleteModel', () => {
 
       await result.current.mutateAsync('model-1')
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Model deleted',
-        description: 'The model was removed successfully.',
-        color: 'success'
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Model deleted', {
+        description: 'The model was removed successfully.'
       })
     })
 
@@ -107,10 +108,8 @@ describe('useDeleteModel', () => {
         expect(result.current.isSuccess).toBe(true)
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Model deleted',
-        description: 'The model was removed successfully.',
-        color: 'success'
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Model deleted', {
+        description: 'The model was removed successfully.'
       })
     })
   })
@@ -129,10 +128,8 @@ describe('useDeleteModel', () => {
         errorMessage
       )
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Delete failed',
-        description: errorMessage,
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Delete failed', {
+        description: errorMessage
       })
     })
 
@@ -158,9 +155,11 @@ describe('useDeleteModel', () => {
   describe('integration scenarios', () => {
     it('should handle different model selection states', async () => {
       // Test with no selected model
-      vi.mocked(useModelSelectorStore).mockReturnValueOnce({
-        selected_model_id: undefined
-      })
+      vi.mocked(useModelSelectorStore).mockImplementationOnce(
+        createStoreSelectorMock({
+          selected_model_id: undefined
+        })
+      )
 
       const { result, rerender } = renderHook(() => useDeleteModel(), {
         wrapper: createQueryClientWrapper()
@@ -173,9 +172,11 @@ describe('useDeleteModel', () => {
       vi.clearAllMocks()
 
       // Test with a different selected model
-      vi.mocked(useModelSelectorStore).mockReturnValueOnce({
-        selected_model_id: 'model-3'
-      })
+      vi.mocked(useModelSelectorStore).mockImplementationOnce(
+        createStoreSelectorMock({
+          selected_model_id: 'model-3'
+        })
+      )
 
       rerender()
 
@@ -186,9 +187,11 @@ describe('useDeleteModel', () => {
       vi.clearAllMocks()
 
       // Test with the same model selected
-      vi.mocked(useModelSelectorStore).mockReturnValueOnce({
-        selected_model_id: 'model-1'
-      })
+      vi.mocked(useModelSelectorStore).mockImplementationOnce(
+        createStoreSelectorMock({
+          selected_model_id: 'model-1'
+        })
+      )
 
       rerender()
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { ModelRecommendationItem } from '@/types/api'
-import { Card, CardBody, CardFooter, CardHeader } from '@heroui/react'
+import { Card } from '@heroui/react'
 import { Gpu, HardDrive } from 'lucide-react'
 import { FC } from 'react'
 import { ModelRecommendationMemoryBox } from './ModelRecommendationMemoryBox'
@@ -18,9 +18,9 @@ export const ModelRecommendationsCard: FC<ModelRecommendationsCardProps> = ({
 }) => {
   return (
     <Card>
-      <CardHeader>
+      <Card.Header>
         <div className="flex flex-col gap-2 flex-1">
-          <section className="flex justify-between">
+          <section className="flex justify-between gap-2">
             <div className="flex items-center gap-2">
               <h4 className="font-bold text-lg">{model.name}</h4>
               {model.is_recommended && <ModelRecommendationsBadge />}
@@ -30,21 +30,21 @@ export const ModelRecommendationsCard: FC<ModelRecommendationsCardProps> = ({
               content={model.model_size}
             />
           </section>
-          <section className="flex justify-between">
-            <span className="text-default-700">{model.description}</span>
+          <section className="flex justify-between gap-2">
+            <span className="text-foreground">{model.description}</span>
             <ModelRecommendationMemoryBox
               icon={<Gpu size={16} />}
               content={`${model.memory_requirement_gb} GB`}
             />
           </section>
         </div>
-      </CardHeader>
-      <CardBody>
+      </Card.Header>
+      <Card.Content>
         <ModelRecommendationsTags tags={model.tags} />
-      </CardBody>
-      <CardFooter>
+      </Card.Content>
+      <Card.Footer>
         <ModelRecommendationsDownloadButton modelId={model.id} />
-      </CardFooter>
+      </Card.Footer>
     </Card>
   )
 }

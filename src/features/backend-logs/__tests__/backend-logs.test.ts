@@ -11,22 +11,20 @@ describe('BackendLogsService', () => {
       expect(backendLogsService.onGetLogColor('warn')).toBe('text-warning')
     })
 
-    it('should return "text-default-500" for "info" level', () => {
-      expect(backendLogsService.onGetLogColor('info')).toBe('text-default-500')
+    it('should return "text-muted" for "info" level', () => {
+      expect(backendLogsService.onGetLogColor('info')).toBe('text-muted')
     })
 
-    it('should return "text-default-500" for "log" level', () => {
-      expect(backendLogsService.onGetLogColor('log')).toBe('text-default-500')
+    it('should return "text-muted" for "log" level', () => {
+      expect(backendLogsService.onGetLogColor('log')).toBe('text-muted')
     })
 
-    it('should return "text-default-500" for unknown levels', () => {
-      expect(backendLogsService.onGetLogColor('unknown')).toBe(
-        'text-default-500'
-      )
+    it('should return "text-muted" for unknown levels', () => {
+      expect(backendLogsService.onGetLogColor('unknown')).toBe('text-muted')
     })
 
-    it('should return "text-default-500" for any other level', () => {
-      expect(backendLogsService.onGetLogColor('debug')).toBe('text-default-500')
+    it('should return "text-muted" for any other level', () => {
+      expect(backendLogsService.onGetLogColor('debug')).toBe('text-muted')
     })
   })
 

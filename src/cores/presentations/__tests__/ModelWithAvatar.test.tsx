@@ -13,15 +13,13 @@ import { ModelWithAvatar, ModelWithAvatarProps } from '../ModelWithAvatar'
 
 // Mock the AuthorAvatar component
 vi.mock('../AuthorAvatar', () => ({
-  AuthorAvatar: vi.fn(({ id, size, radius, alt, className, isBordered }) => (
+  AuthorAvatar: vi.fn(({ id, size, alt, className }) => (
     <div
       data-testid="mock-author-avatar"
       data-author-id={id}
       data-size={size}
-      data-radius={radius}
       data-alt={alt}
       data-class-name={className}
-      data-is-bordered={isBordered ? 'true' : 'false'}
     >
       Mock Avatar
     </div>
@@ -47,10 +45,8 @@ describe('ModelWithAvatar', () => {
     expect(avatarElement).toBeInTheDocument()
     expect(avatarElement).toHaveAttribute('data-author-id', 'test-author')
     expect(avatarElement).toHaveAttribute('data-size', 'sm')
-    expect(avatarElement).toHaveAttribute('data-radius', 'full')
     expect(avatarElement).toHaveAttribute('data-alt', 'test-model')
     expect(avatarElement).toHaveAttribute('data-class-name', 'w-4 h-4')
-    expect(avatarElement).toHaveAttribute('data-is-bordered', 'true')
 
     // Verify model ID is displayed
     expect(modelIdText).toBeInTheDocument()
@@ -92,7 +88,7 @@ describe('ModelWithAvatar', () => {
     const container = screen.getByText('test-model').parentElement
 
     // Assert
-    expect(container).toHaveClass('flex', 'items-center', 'gap-3')
+    expect(container).toHaveClass('flex', 'items-center', 'gap-2')
     expect(screen.getByText('test-model')).toHaveClass('text-left', 'text-sm')
   })
 })

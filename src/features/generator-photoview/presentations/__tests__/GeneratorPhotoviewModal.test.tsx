@@ -9,7 +9,8 @@ import {
 } from '@/features/generators'
 import { dataUrlService } from '@/services/data-url'
 import { GeneratorMode } from '@/types'
-import { addToast } from '@heroui/react'
+import { createStoreSelectorMock } from '@/cores/test-utils'
+import { toast } from '@heroui/react'
 import { useGeneratorPhotoviewStore } from '../../states/useGeneratorPhotoviewStore'
 import { GeneratorPhotoviewModal } from '../GeneratorPhotoviewModal'
 
@@ -33,59 +34,35 @@ vi.mock('../GeneratorPhotoviewCarousel', () => ({
   GeneratorPhotoviewCarousel: () => <div data-testid="carousel" />
 }))
 
-vi.mock('@heroui/react', async () => {
-  const actual =
-    await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
-  return {
-    ...actual,
-    Modal: ({
-      children,
-      isOpen
-    }: {
-      children: React.ReactNode
-      isOpen?: boolean
-    }) => (isOpen ? <div data-testid="modal">{children}</div> : null),
-    ModalContent: ({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
-    ModalBody: ({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
-    Button: ({
-      children,
-      onPress,
-      isDisabled,
-      isLoading,
-      startContent: _startContent,
-      ...props
-    }: {
-      children: React.ReactNode
-      onPress?: () => void
-      isDisabled?: boolean
-      isLoading?: boolean
-      startContent?: React.ReactNode
-      [key: string]: unknown
-    }) => (
-      <button
-        type="button"
-        disabled={isDisabled || isLoading}
-        onClick={onPress}
-        {...props}
-      >
-        {children}
-      </button>
-    ),
-    ButtonGroup: ({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
-    addToast: vi.fn()
-  }
-})
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
+}))
 
 vi.mock('lucide-react', () => ({
   Download: () => <span data-testid="download-icon" />,
   ImageUp: () => <span data-testid="use-icon" />
 }))
+
+const mockStores = ({
+  setInitImageBase64 = vi.fn(),
+  setMode = vi.fn()
+} = {}) => {
+  vi.mocked(useImage2ImageConfigStore).mockImplementation(
+    createStoreSelectorMock({ setInitImageBase64 })
+  )
+  vi.mocked(useGeneratorModeStore).mockImplementation(
+    createStoreSelectorMock({ setMode })
+  )
+  vi.mocked(useUseImageGenerationStore).mockImplementation(
+    createStoreSelectorMock({
+      items: [{ path: 'images/out.png', file_name: 'out.png' }],
+      imageStepEnds: [
+        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
+      ]
+    })
+  )
+}
 
 describe('GeneratorPhotoviewModal', () => {
   beforeEach(() => {
@@ -94,24 +71,13 @@ describe('GeneratorPhotoviewModal', () => {
   })
 
   it('should not render when closed', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [{ path: 'images/out.png', file_name: 'out.png' }],
-      imageStepEnds: [
-        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
-      ]
-    } as never)
-    vi.mocked(useImage2ImageConfigStore).mockReturnValue({
-      setInitImageBase64: vi.fn()
-    } as never)
-    vi.mocked(useGeneratorModeStore).mockReturnValue({
-      setMode: vi.fn()
-    } as never)
     vi.mocked(useDownloadImages).mockReturnValue({
       onDownloadImage: vi.fn()
     })
 
+    mockStores()
     render(<GeneratorPhotoviewModal />)
-    expect(screen.queryByTestId('modal')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('should download and use image as input', async () => {
@@ -123,19 +89,9 @@ describe('GeneratorPhotoviewModal', () => {
     )
 
     const setInitImageBase64 = vi.fn()
-    vi.mocked(useImage2ImageConfigStore).mockReturnValue({
-      setInitImageBase64
-    } as never)
 
     const setMode = vi.fn()
-    vi.mocked(useGeneratorModeStore).mockReturnValue({ setMode } as never)
-
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [{ path: 'images/out.png', file_name: 'out.png' }],
-      imageStepEnds: [
-        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
-      ]
-    } as never)
+    mockStores({ setInitImageBase64, setMode })
 
     useGeneratorPhotoviewStore.setState({
       isOpen: true,
@@ -174,19 +130,9 @@ describe('GeneratorPhotoviewModal', () => {
     )
 
     const setInitImageBase64 = vi.fn()
-    vi.mocked(useImage2ImageConfigStore).mockReturnValue({
-      setInitImageBase64
-    } as never)
 
     const setMode = vi.fn()
-    vi.mocked(useGeneratorModeStore).mockReturnValue({ setMode } as never)
-
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [{ path: 'images/out.png', file_name: 'out.png' }],
-      imageStepEnds: [
-        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
-      ]
-    } as never)
+    mockStores({ setInitImageBase64, setMode })
 
     useGeneratorPhotoviewStore.setState({
       isOpen: true,
@@ -200,10 +146,8 @@ describe('GeneratorPhotoviewModal', () => {
     )
 
     await waitFor(() => {
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Use as input',
-        description: 'Failed to convert image',
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Use as input', {
+        description: 'Failed to convert image'
       })
       expect(setInitImageBase64).not.toHaveBeenCalled()
       expect(setMode).not.toHaveBeenCalled()
@@ -214,21 +158,10 @@ describe('GeneratorPhotoviewModal', () => {
   it('uses fallback toast message for unknown errors', async () => {
     vi.mocked(useDownloadImages).mockReturnValue({ onDownloadImage: vi.fn() })
     vi.mocked(dataUrlService.fetchUrlToDataUrl).mockRejectedValue('failed')
-    vi.mocked(useImage2ImageConfigStore).mockReturnValue({
-      setInitImageBase64: vi.fn()
-    } as never)
-    vi.mocked(useGeneratorModeStore).mockReturnValue({
-      setMode: vi.fn()
-    } as never)
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [{ path: 'images/out.png', file_name: 'out.png' }],
-      imageStepEnds: [
-        { index: 0, current_step: 0, timestep: 0, image_base64: 'abc' }
-      ]
-    } as never)
 
     useGeneratorPhotoviewStore.setState({ isOpen: true, currentIndex: 0 })
 
+    mockStores()
     render(<GeneratorPhotoviewModal />)
 
     fireEvent.click(
@@ -236,10 +169,8 @@ describe('GeneratorPhotoviewModal', () => {
     )
 
     await waitFor(() => {
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Use as input',
-        description: 'Failed to use image as input',
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Use as input', {
+        description: 'Failed to use image as input'
       })
     })
   })

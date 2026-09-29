@@ -3,6 +3,7 @@
 import { GeneratorAction } from '@/features/generator-actions'
 import { PromptInputs } from '@/features/generator-prompts'
 import { ReactNode } from 'react'
+import clsx from 'clsx'
 
 interface GeneratorModePanelLayoutProps {
   onGenerate: VoidFunction
@@ -19,7 +20,13 @@ export const GeneratorModePanelLayout = ({
     <div className="flex flex-col h-full min-h-0 gap-4">
       <PromptInputs />
       <div className="flex-1 min-h-0">{children}</div>
-      <div className="sticky bottom-0 z-10 mt-auto shrink-0 border-t border-default bg-background/90 backdrop-blur-md py-3">
+      <div
+        className={clsx(
+          'sticky bottom-0 z-10 shrink-0',
+          'border-t border-border py-2',
+          'bg-background/90 backdrop-blur-md'
+        )}
+      >
         <GeneratorAction
           onGenerate={onGenerate}
           isGenerateDisabled={isGenerateDisabled}

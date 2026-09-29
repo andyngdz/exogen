@@ -54,7 +54,7 @@ describe('HistoryPhotoviewConfigRow', () => {
 
     const row = container.firstChild as HTMLElement
     expect(row).toHaveClass('border-b')
-    expect(row).toHaveClass('border-default')
+    expect(row).toHaveClass('border-border')
   })
 
   it('should have justify-between layout', () => {

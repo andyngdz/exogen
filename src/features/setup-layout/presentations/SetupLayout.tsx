@@ -26,7 +26,7 @@ export const SetupLayout: FC<SetupLayoutProps> = ({
   isBackDisabled = false
 }) => {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center gap-4">
       <SetupLayoutBackground />
       <SetupLayoutContent title={title} description={description}>
         {children}
@@ -34,12 +34,24 @@ export const SetupLayout: FC<SetupLayoutProps> = ({
       <div className="w-full">
         <div className="flex justify-center items-center gap-8 py-2">
           {onBack && (
-            <Button onPress={onBack} isIconOnly disabled={isBackDisabled}>
+            <Button
+              onPress={onBack}
+              variant="tertiary"
+              aria-label="Back"
+              isIconOnly
+              isDisabled={isBackDisabled}
+            >
               <ChevronLeft />
             </Button>
           )}
           {onNext && (
-            <Button onPress={onNext} isIconOnly disabled={isNextDisabled}>
+            <Button
+              onPress={onNext}
+              variant="tertiary"
+              aria-label="Next"
+              isIconOnly
+              isDisabled={isNextDisabled}
+            >
               <ChevronRight />
             </Button>
           )}

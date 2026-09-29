@@ -1,13 +1,12 @@
 'use client'
 
-import { Input } from '@heroui/react'
-import { isEmpty } from 'es-toolkit/compat'
-import { Search } from 'lucide-react'
+import { ValueChanged } from '@/types'
+import { SearchField } from '@heroui/react'
 import { FC } from 'react'
 
 export interface GeneratorConfigStyleSearchInputProps {
   value: string
-  onChange: (value: string) => void
+  onChange: ValueChanged<string>
   onClear: VoidFunction
 }
 
@@ -15,13 +14,17 @@ export const GeneratorConfigStyleSearchInput: FC<
   GeneratorConfigStyleSearchInputProps
 > = ({ value, onChange, onClear }) => {
   return (
-    <Input
-      placeholder="Search styles by name, category, or keywords..."
+    <SearchField
+      aria-label="Search styles"
       value={value}
-      onValueChange={onChange}
-      startContent={<Search size={18} />}
-      isClearable={!isEmpty(value)}
+      onChange={onChange}
       onClear={onClear}
-    />
+    >
+      <SearchField.Group>
+        <SearchField.SearchIcon />
+        <SearchField.Input placeholder="Search styles by name, category, or keywords..." />
+        <SearchField.ClearButton aria-label="Clear search" />
+      </SearchField.Group>
+    </SearchField>
   )
 }

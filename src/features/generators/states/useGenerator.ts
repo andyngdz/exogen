@@ -1,10 +1,10 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { api } from '@/services'
 import { ImageGenerationRequest } from '@/types'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SubmitHandler } from 'react-hook-form'
-import { getGenerationHistoryConfig } from '../services/getGenerationHistoryConfig'
+import { getGenerationHistoryConfig } from '@/features/generators/services/getGenerationHistoryConfig'
 import { useGenerationStatusStore } from './useGenerationStatusStore'
 import { useAddHistoryMutation } from './useAddHistoryMutation'
 import { useHiresFixEnabledStore } from './useHiresFixEnabledStore'
@@ -12,9 +12,14 @@ import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 
 export const useGenerator = () => {
   const queryClient = useQueryClient()
-  const { onCompleted, onInit } = useUseImageGenerationStore()
-  const { onSetIsGenerating } = useGenerationStatusStore()
-  const { isHiresFixEnabled } = useHiresFixEnabledStore()
+  const onCompleted = useUseImageGenerationStore((state) => state.onCompleted)
+  const onInit = useUseImageGenerationStore((state) => state.onInit)
+  const onSetIsGenerating = useGenerationStatusStore(
+    (state) => state.onSetIsGenerating
+  )
+  const isHiresFixEnabled = useHiresFixEnabledStore(
+    (state) => state.isHiresFixEnabled
+  )
 
   const addHistory = useAddHistoryMutation()
 
@@ -24,10 +29,8 @@ export const useGenerator = () => {
       return api.generator(request)
     },
     onError: () => {
-      addToast({
-        title: 'Something went wrong',
-        description: 'There was an error generating your image.',
-        color: 'danger'
+      toast.danger('Something went wrong', {
+        description: 'There was an error generating your image.'
       })
     },
     onSuccess: onCompleted

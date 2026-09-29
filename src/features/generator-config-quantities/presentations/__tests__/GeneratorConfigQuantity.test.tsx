@@ -1,47 +1,12 @@
 import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
-import { ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
 import { GeneratorConfigQuantity } from '../GeneratorConfigQuantity'
 
-// Mock the NumberInputController component
-vi.mock('@/cores/presentations/NumberInputController', () => ({
-  NumberInputController: ({
-    'aria-label': ariaLabel,
-    controlName,
-    startContent,
-    endContent
-  }: {
-    'aria-label': string
-    controlName: string
-    startContent: ReactNode
-    endContent: ReactNode
-    [key: string]: unknown
-  }) => (
-    <div data-testid={`number-input-${controlName}`}>
-      <span>{ariaLabel}</span>
-      {startContent}
-      <div data-testid="end-content">{endContent}</div>
-    </div>
-  )
-}))
-
-// Mock the Tooltip component from @heroui/react
-vi.mock('@heroui/react', () => ({
-  Tooltip: ({
-    content,
-    children
-  }: {
-    content: string
-    children: ReactNode
-  }) => (
-    <div data-testid="tooltip" data-tooltip-content={content}>
-      {children}
-    </div>
-  )
-}))
-
-const Wrapper = createGeneratorConfigFormWrapper()
+const Wrapper = createGeneratorConfigFormWrapper({
+  overrides: { number_of_images: 4 }
+})
 
 describe('GeneratorConfigQuantity', () => {
   it("should render the component with 'Quantity' heading", () => {
@@ -54,19 +19,23 @@ describe('GeneratorConfigQuantity', () => {
     render(<GeneratorConfigQuantity />, { wrapper: Wrapper })
 
     expect(
-      screen.getByTestId('number-input-number_of_images')
-    ).toBeInTheDocument()
-    expect(screen.getByText('Number of images')).toBeInTheDocument()
+      screen.getByRole('textbox', { name: 'Number of images' })
+    ).toHaveValue('4')
     expect(screen.getByText('Images')).toBeInTheDocument()
   })
 
-  it('should render tooltip with correct content', () => {
+  it('should show the tooltip content when the info icon is focused', async () => {
+    const user = userEvent.setup()
     render(<GeneratorConfigQuantity />, { wrapper: Wrapper })
 
-    const tooltip = screen.getByTestId('tooltip')
-    expect(tooltip).toBeInTheDocument()
-    expect(tooltip).toHaveAttribute(
-      'data-tooltip-content',
+    await user.tab()
+    await user.tab()
+
+    expect(
+      screen.getByRole('button', { name: 'About number of images' })
+    ).toHaveFocus()
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'Number of images will be generated'
     )
   })

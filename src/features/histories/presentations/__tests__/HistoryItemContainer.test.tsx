@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { dateFormatter } from '@/services'
 import { HistoryItem } from '@/types'
 import { HistoryItemContainer } from '../HistoryItemContainer'
@@ -34,12 +35,14 @@ describe('HistoryItemContainer', () => {
 
   beforeEach(() => {
     vi.mocked(dateFormatter.time).mockReturnValue('10:00 AM')
-    vi.mocked(useHistoryPhotoviewStore).mockReturnValue({
-      isOpen: false,
-      currentHistoryId: null,
-      openPhotoview: mockOpenPhotoview,
-      closePhotoview: vi.fn()
-    })
+    vi.mocked(useHistoryPhotoviewStore).mockImplementation(
+      createStoreSelectorMock({
+        isOpen: false,
+        currentHistoryId: null,
+        openPhotoview: mockOpenPhotoview,
+        closePhotoview: vi.fn()
+      })
+    )
   })
 
   afterEach(() => {
@@ -128,16 +131,17 @@ describe('HistoryItemContainer', () => {
 
     const images = screen.getAllByTestId('next-image')
     expect(images).toHaveLength(2)
-    expect(images[0]).toHaveAttribute(
+    const [firstImage, secondImage] = images
+    expect(firstImage).toHaveAttribute(
       'data-src',
       'http://localhost:8000/static/images/image1.png'
     )
-    expect(images[0]).toHaveAttribute('data-alt', 'Generated image 1')
-    expect(images[1]).toHaveAttribute(
+    expect(firstImage).toHaveAttribute('data-alt', 'Generated image 1')
+    expect(secondImage).toHaveAttribute(
       'data-src',
       'http://localhost:8000/static/images/image2.png'
     )
-    expect(images[1]).toHaveAttribute('data-alt', 'Generated image 2')
+    expect(secondImage).toHaveAttribute('data-alt', 'Generated image 2')
   })
 
   it('should not render images section when no images are available', () => {
@@ -240,7 +244,7 @@ describe('HistoryItemContainer', () => {
     ).toBeInTheDocument()
   })
 
-  it('should render CardHeader, CardBody, and conditionally CardFooter', () => {
+  it('should render the card header, content, and conditionally the footer', () => {
     const mockHistory: HistoryItem = {
       id: 1,
       created_at: '2023-01-01T10:00:00Z',

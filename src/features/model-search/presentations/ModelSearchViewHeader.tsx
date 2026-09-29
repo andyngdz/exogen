@@ -1,6 +1,6 @@
-import { Button } from '@heroui/react'
-import { Link, LucideProps } from 'lucide-react'
-import NextLink from 'next/link'
+import { Link } from '@heroui/react'
+import { buttonVariants } from '@heroui/styles'
+import { LinkIcon, LucideProps } from 'lucide-react'
 import { ComponentType, FC } from 'react'
 
 export interface ModelSearchViewHeaderProps {
@@ -17,21 +17,22 @@ export const ModelSearchViewHeader: FC<ModelSearchViewHeaderProps> = ({
   return (
     <div className="flex gap-2">
       <div className="flex items-center gap-2">
-        <Icon className="text-primary" />
-        <span className="text-default-700 text font-bold">{title}</span>
+        <Icon className="text-accent" />
+        <span className="text-foreground font-bold">{title}</span>
       </div>
       {href && (
-        <Button
-          as={NextLink}
+        <Link
           href={href}
-          size="sm"
-          variant="light"
-          className="text-default-700"
           target="_blank"
-          isIconOnly
+          aria-label={`Open ${title} on Hugging Face`}
+          className={buttonVariants({
+            variant: 'ghost',
+            size: 'sm',
+            isIconOnly: true
+          })}
         >
-          <Link size={16} />
-        </Button>
+          <LinkIcon size={16} />
+        </Link>
       )}
     </div>
   )

@@ -1,125 +1,61 @@
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
+import { act, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
 import { GeneratorPrompt } from '../GeneratorPrompt'
-import { useFormContext } from 'react-hook-form'
-import type { UseFormReturn, FieldValues } from 'react-hook-form'
 
-// Mock react-hook-form
-vi.mock('react-hook-form', () => ({
-  useFormContext: vi.fn().mockImplementation((hasErrors = false) => {
-    // Using type assertion to avoid complex type matching issues
-    return {
-      register: vi.fn(),
-      formState: {
-        errors: hasErrors
-          ? { prompt: { type: 'required', message: 'Required' } }
-          : {}
-      },
-      watch: vi.fn()
-    } as unknown as UseFormReturn<FieldValues>
+const renderPrompt = () => {
+  const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper({
+    overrides: { prompt: 'a cat', negative_prompt: 'blurry' }
   })
-}))
 
-// Mock @heroui/react
-vi.mock('@heroui/react', () => ({
-  Textarea: ({
-    label,
-    className,
-    name,
-    maxLength,
-    isInvalid,
-    value
-  }: {
-    label: string
-    className: string
-    value?: string
-    onChange?: () => void
-    onBlur?: () => void
-    name?: string
-    maxLength?: number
-    isInvalid?: boolean
-  }) => (
-    <div
-      data-testid={sanitizeLabelTestId(label)}
-      className={className}
-      data-name={name}
-      data-maxlength={maxLength}
-      data-invalid={isInvalid ? 'true' : 'false'}
-      data-value={value}
-    >
-      {label} Mock
-    </div>
-  )
-}))
+  render(<GeneratorPrompt />, { wrapper: Wrapper })
 
-// Helper to make test id generation explicit and easier to read
-function sanitizeLabelTestId(label: string) {
-  return `textarea-${label.toLowerCase().replace(/\s+/g, '-')}`
+  return { getMethods }
 }
 
-// useFormContext is already imported at the top
+const getPrompt = () => screen.getByRole('textbox', { name: 'Prompt' })
+const getNegativePrompt = () =>
+  screen.getByRole('textbox', { name: 'Negative prompt' })
 
 describe('GeneratorPrompt', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+  it('should render prompt and negative prompt text areas with form values', () => {
+    renderPrompt()
+
+    expect(getPrompt()).toHaveValue('a cat')
+    expect(getPrompt()).not.toHaveAttribute('aria-invalid')
+    expect(getNegativePrompt()).toHaveValue('blurry')
   })
 
-  it('should render prompt and negative prompt text areas', () => {
-    render(<GeneratorPrompt />)
+  it('should write typed text back to the form', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderPrompt()
 
-    // Check if the text areas are rendered
-    const promptTextarea = screen.getByTestId('textarea-prompt')
-    const negativePromptTextarea = screen.getByTestId(
-      'textarea-negative-prompt'
-    )
+    await user.type(getPrompt(), ', sitting')
+    await user.type(getNegativePrompt(), ', noisy')
 
-    expect(promptTextarea).toBeInTheDocument()
-    expect(promptTextarea).toHaveClass('font-mono')
-    expect(promptTextarea).toHaveTextContent('Prompt Mock')
-    expect(promptTextarea).toHaveAttribute('data-invalid', 'false')
-
-    expect(negativePromptTextarea).toBeInTheDocument()
-    expect(negativePromptTextarea).toHaveClass('font-mono')
-    expect(negativePromptTextarea).toHaveTextContent('Negative prompt Mock')
-    expect(negativePromptTextarea).toHaveAttribute('data-invalid', 'false')
+    expect(getMethods().getValues('prompt')).toBe('a cat, sitting')
+    expect(getMethods().getValues('negative_prompt')).toBe('blurry, noisy')
   })
 
-  it('should render error state when there are errors', () => {
-    vi.mocked(useFormContext).mockImplementation(
-      () =>
-        ({
-          register: vi.fn(),
-          formState: {
-            errors: { prompt: { type: 'required', message: 'Required' } }
-          },
-          watch: vi.fn()
-        }) as unknown as UseFormReturn<FieldValues>
-    )
+  it('should render error state on the prompt only when it is empty', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderPrompt()
 
-    render(<GeneratorPrompt />)
+    await user.clear(getPrompt())
+    await act(async () => {
+      await getMethods().trigger()
+    })
 
-    // Use data-testid to find the textarea elements
-    const promptTextarea = screen.getByTestId('textarea-prompt')
-    const negativePromptTextarea = screen.getByTestId(
-      'textarea-negative-prompt'
-    )
-
-    // Verify prompt textarea has error state
-    expect(promptTextarea).toBeInTheDocument()
-    expect(promptTextarea).toHaveAttribute('data-invalid', 'true')
-
-    // Verify negative prompt doesn't have error state
-    expect(negativePromptTextarea).toBeInTheDocument()
-    expect(negativePromptTextarea).toHaveAttribute('data-invalid', 'false')
+    expect(getPrompt()).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Prompt is required')).toBeInTheDocument()
+    expect(getNegativePrompt()).not.toHaveAttribute('aria-invalid')
   })
 
-  it('should pass maxLength to Textarea components', () => {
-    render(<GeneratorPrompt />)
+  it('should pass maxLength to both text areas', () => {
+    renderPrompt()
 
-    const promptTextarea = screen.getByText('Prompt Mock')
-    const negativePromptTextarea = screen.getByText('Negative prompt Mock')
-
-    expect(promptTextarea).toHaveAttribute('data-maxlength', '1000')
-    expect(negativePromptTextarea).toHaveAttribute('data-maxlength', '1000')
+    expect(getPrompt()).toHaveAttribute('maxlength', '1000')
+    expect(getNegativePrompt()).toHaveAttribute('maxlength', '1000')
   })
 })

@@ -13,41 +13,6 @@ vi.mock('swiper/react', () => ({
   })
 }))
 
-// Mock HeroUI Button component
-vi.mock('@heroui/react', () => ({
-  Button: ({
-    children,
-    onPress,
-    isIconOnly,
-    variant,
-    color,
-    className,
-    'aria-label': ariaLabel
-  }: {
-    children: React.ReactNode
-    onPress?: () => void
-    isIconOnly?: boolean
-    variant?: string
-    color?: string
-    className?: string
-    'aria-label'?: string
-  }) => (
-    <button
-      onClick={onPress}
-      data-icon-only={isIconOnly}
-      data-variant={variant}
-      data-color={color}
-      className={className}
-      aria-label={ariaLabel}
-      data-testid={
-        ariaLabel?.includes('Previous') ? 'prev-button' : 'next-button'
-      }
-    >
-      {children}
-    </button>
-  )
-}))
-
 // Mock Lucide React icons
 vi.mock('lucide-react', () => ({
   ChevronLeftIcon: () => (
@@ -71,8 +36,10 @@ describe('SwiperNavigationActions', () => {
     it('should render both navigation buttons', () => {
       render(<SwiperNavigationActions />)
 
-      expect(screen.getByTestId('prev-button')).toBeInTheDocument()
-      expect(screen.getByTestId('next-button')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Previous' })
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument()
     })
 
     it('should render correct icons in buttons', () => {
@@ -85,7 +52,9 @@ describe('SwiperNavigationActions', () => {
     it('should have correct container styling', () => {
       render(<SwiperNavigationActions />)
 
-      const container = screen.getByTestId('prev-button').parentElement
+      const container = screen.getByRole('button', {
+        name: 'Previous'
+      }).parentElement
       expect(container).toHaveClass(
         'absolute',
         'inset-4',
@@ -100,18 +69,14 @@ describe('SwiperNavigationActions', () => {
     it('should render buttons with correct HeroUI properties', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
-      const nextButton = screen.getByTestId('next-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       // Check button properties
-      expect(prevButton).toHaveAttribute('data-icon-only', 'true')
-      expect(prevButton).toHaveAttribute('data-variant', 'flat')
-      expect(prevButton).toHaveAttribute('data-color', 'default')
+      expect(prevButton).toHaveClass('button--icon-only', 'button--tertiary')
       expect(prevButton).toHaveClass('z-10')
 
-      expect(nextButton).toHaveAttribute('data-icon-only', 'true')
-      expect(nextButton).toHaveAttribute('data-variant', 'flat')
-      expect(nextButton).toHaveAttribute('data-color', 'default')
+      expect(nextButton).toHaveClass('button--icon-only', 'button--tertiary')
       expect(nextButton).toHaveClass('z-10')
     })
   })
@@ -120,7 +85,7 @@ describe('SwiperNavigationActions', () => {
     it('should call swiper.slidePrev when previous button is clicked', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
       fireEvent.click(prevButton)
 
       expect(mockSlidePrev).toHaveBeenCalledTimes(1)
@@ -130,7 +95,7 @@ describe('SwiperNavigationActions', () => {
     it('should call swiper.slideNext when next button is clicked', () => {
       render(<SwiperNavigationActions />)
 
-      const nextButton = screen.getByTestId('next-button')
+      const nextButton = screen.getByRole('button', { name: 'Next' })
       fireEvent.click(nextButton)
 
       expect(mockSlideNext).toHaveBeenCalledTimes(1)
@@ -140,8 +105,8 @@ describe('SwiperNavigationActions', () => {
     it('should handle multiple clicks correctly', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
-      const nextButton = screen.getByTestId('next-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       // Click previous multiple times
       fireEvent.click(prevButton)
@@ -160,8 +125,8 @@ describe('SwiperNavigationActions', () => {
     it('should call correct functions for each button independently', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
-      const nextButton = screen.getByTestId('next-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       // Alternate clicking
       fireEvent.click(prevButton)
@@ -178,14 +143,14 @@ describe('SwiperNavigationActions', () => {
     it('should have proper aria-label for previous button', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
       expect(prevButton).toHaveAttribute('aria-label', 'Previous')
     })
 
     it('should have proper aria-label for next button', () => {
       render(<SwiperNavigationActions />)
 
-      const nextButton = screen.getByTestId('next-button')
+      const nextButton = screen.getByRole('button', { name: 'Next' })
       expect(nextButton).toHaveAttribute('aria-label', 'Next')
     })
 
@@ -209,14 +174,16 @@ describe('SwiperNavigationActions', () => {
       render(<SwiperNavigationActions />)
 
       // The component should render without errors, indicating successful hook usage
-      expect(screen.getByTestId('prev-button')).toBeInTheDocument()
-      expect(screen.getByTestId('next-button')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Previous' })
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument()
     })
 
     it('should handle onPrevious function correctly', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
 
       // Test that the onPrevious function is properly bound
       fireEvent.click(prevButton)
@@ -227,7 +194,7 @@ describe('SwiperNavigationActions', () => {
     it('should handle onNext function correctly', () => {
       render(<SwiperNavigationActions />)
 
-      const nextButton = screen.getByTestId('next-button')
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       // Test that the onNext function is properly bound
       fireEvent.click(nextButton)
@@ -240,7 +207,9 @@ describe('SwiperNavigationActions', () => {
     it('should have correct DOM structure', () => {
       render(<SwiperNavigationActions />)
 
-      const container = screen.getByTestId('prev-button').parentElement
+      const container = screen.getByRole('button', {
+        name: 'Previous'
+      }).parentElement
       const buttons = container?.querySelectorAll('button')
 
       expect(container?.tagName).toBe('DIV')
@@ -250,22 +219,26 @@ describe('SwiperNavigationActions', () => {
     it('should position buttons at opposite ends of container', () => {
       render(<SwiperNavigationActions />)
 
-      const container = screen.getByTestId('prev-button').parentElement
+      const container = screen.getByRole('button', {
+        name: 'Previous'
+      }).parentElement
       expect(container).toHaveClass('justify-between')
     })
 
     it('should center buttons vertically in container', () => {
       render(<SwiperNavigationActions />)
 
-      const container = screen.getByTestId('prev-button').parentElement
+      const container = screen.getByRole('button', {
+        name: 'Previous'
+      }).parentElement
       expect(container).toHaveClass('items-center')
     })
 
     it('should have proper z-index for overlay positioning', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
-      const nextButton = screen.getByTestId('next-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       expect(prevButton).toHaveClass('z-10')
       expect(nextButton).toHaveClass('z-10')
@@ -276,7 +249,7 @@ describe('SwiperNavigationActions', () => {
     it('should handle rapid successive clicks', () => {
       render(<SwiperNavigationActions />)
 
-      const nextButton = screen.getByTestId('next-button')
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       // Simulate rapid clicking
       for (let i = 0; i < 10; i++) {
@@ -289,8 +262,8 @@ describe('SwiperNavigationActions', () => {
     it('should maintain button state after interactions', () => {
       render(<SwiperNavigationActions />)
 
-      const prevButton = screen.getByTestId('prev-button')
-      const nextButton = screen.getByTestId('next-button')
+      const prevButton = screen.getByRole('button', { name: 'Previous' })
+      const nextButton = screen.getByRole('button', { name: 'Next' })
 
       fireEvent.click(prevButton)
 

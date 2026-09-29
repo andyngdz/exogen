@@ -1,11 +1,11 @@
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useUpdaterSettings } from '../useUpdaterSettings'
 
 // Mock @heroui/react
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn()
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 // Helper to create a delayed promise
@@ -136,11 +136,10 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: "You're already on the latest version",
-        description: 'Current version: 1.0.0',
-        color: 'success'
-      })
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith(
+        "You're already on the latest version",
+        { description: 'Current version: 1.0.0' }
+      )
     })
 
     it('should set isChecking to false after successful check', async () => {
@@ -179,7 +178,9 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).not.toHaveBeenCalled()
+      expect(vi.mocked(toast.success)).not.toHaveBeenCalled()
+      expect(vi.mocked(toast.danger)).not.toHaveBeenCalled()
+      expect(vi.mocked(toast.warning)).not.toHaveBeenCalled()
     })
 
     it('should set isChecking to false after update available check', async () => {
@@ -232,11 +233,10 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Failed to check for updates',
-        description: 'Network error',
-        color: 'danger'
-      })
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+        'Failed to check for updates',
+        { description: 'Network error' }
+      )
     })
 
     it('should handle non-Error exceptions', async () => {
@@ -254,11 +254,10 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Failed to check for updates',
-        description: 'Unknown error',
-        color: 'danger'
-      })
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+        'Failed to check for updates',
+        { description: 'Unknown error' }
+      )
     })
 
     it('should set isChecking to false after error', async () => {
@@ -318,11 +317,10 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: "You're already on the latest version",
-        description: 'Current version: 3.2.1',
-        color: 'success'
-      })
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith(
+        "You're already on the latest version",
+        { description: 'Current version: 3.2.1' }
+      )
     })
 
     it('should handle version updates correctly', async () => {
@@ -376,7 +374,7 @@ describe('useUpdaterSettings', () => {
       expect(
         global.window.electronAPI.updater.checkForUpdates
       ).toHaveBeenCalledTimes(3)
-      expect(addToast).toHaveBeenCalledTimes(3)
+      expect(vi.mocked(toast.success)).toHaveBeenCalledTimes(3)
       expect(result.current.isChecking).toBe(false)
     })
 
@@ -395,9 +393,7 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({ color: 'success' })
-      )
+      expect(vi.mocked(toast.success)).toHaveBeenCalled()
 
       // Second check fails
       vi.mocked(
@@ -407,9 +403,7 @@ describe('useUpdaterSettings', () => {
         await result.current.onCheck()
       })
 
-      expect(addToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({ color: 'danger' })
-      )
+      expect(vi.mocked(toast.danger)).toHaveBeenCalled()
 
       expect(result.current.isChecking).toBe(false)
     })
@@ -466,11 +460,10 @@ describe('useUpdaterSettings', () => {
         expect(result.current.isChecking).toBe(false)
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: "You're already on the latest version",
-        description: 'Current version: 1.0.0',
-        color: 'success'
-      })
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith(
+        "You're already on the latest version",
+        { description: 'Current version: 1.0.0' }
+      )
     })
   })
 })

@@ -1,14 +1,7 @@
-import {
-  Divider,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  Tab,
-  Tabs
-} from '@heroui/react'
+import { SettingsTab } from '@/features/settings/states/useSettingsStore'
+import { useSettingsTabs } from '@/features/settings/states/useSettingsTabs'
+import { Modal, ModalBackdropProps, Separator, Tabs } from '@heroui/react'
 import { FC } from 'react'
-import { SettingsTab, useSettingsStore } from '../states/useSettingsStore'
 import {
   GeneralSettings,
   MemorySettings,
@@ -16,48 +9,76 @@ import {
   UpdateSettings
 } from './tabs'
 
-interface SettingsModalProps {
-  isOpen: boolean
-  onClose: VoidFunction
-}
+type SettingsModalProps = Pick<ModalBackdropProps, 'isOpen' | 'onOpenChange'>
 
-export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { selectedTab, setSelectedTab } = useSettingsStore()
+export const SettingsModal: FC<SettingsModalProps> = ({
+  isOpen,
+  onOpenChange
+}) => {
+  const { selectedTab, onSelectionChange } = useSettingsTabs()
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" backdrop="blur">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">Settings</ModalHeader>
-        <Divider />
-        <ModalBody className="p-0">
-          <Tabs
-            aria-label="Settings tabs"
-            variant="light"
-            className="min-h-[80vh]"
-            classNames={{
-              base: 'border-r border-default p-4',
-              tab: 'justify-start',
-              panel: 'w-full p-4'
-            }}
-            isVertical
-            selectedKey={selectedTab}
-            onSelectionChange={(key) => setSelectedTab(key as SettingsTab)}
-          >
-            <Tab key={SettingsTab.GENERAL} title="General">
-              <GeneralSettings />
-            </Tab>
-            <Tab key={SettingsTab.MEMORY} title="Memory">
-              <MemorySettings />
-            </Tab>
-            <Tab key={SettingsTab.MODELS} title="Model Management">
-              <ModelManagement />
-            </Tab>
-            <Tab key={SettingsTab.UPDATES} title="Updates">
-              <UpdateSettings />
-            </Tab>
-          </Tabs>
-        </ModalBody>
-      </ModalContent>
+    <Modal>
+      <Modal.Backdrop
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        variant="blur"
+      >
+        <Modal.Container size="lg">
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Settings</Modal.Heading>
+            </Modal.Header>
+            <Separator />
+            <Modal.Body>
+              <Tabs
+                orientation="vertical"
+                align="start"
+                className="min-h-[80vh]"
+                selectedKey={selectedTab}
+                onSelectionChange={onSelectionChange}
+              >
+                <Tabs.ListContainer className="border-r border-border">
+                  <Tabs.List
+                    aria-label="Settings tabs"
+                    className="whitespace-nowrap"
+                  >
+                    <Tabs.Tab id={SettingsTab.GENERAL}>
+                      General
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab id={SettingsTab.MEMORY}>
+                      Memory
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab id={SettingsTab.MODELS}>
+                      Model Management
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                    <Tabs.Tab id={SettingsTab.UPDATES}>
+                      Updates
+                      <Tabs.Indicator />
+                    </Tabs.Tab>
+                  </Tabs.List>
+                </Tabs.ListContainer>
+                <Tabs.Panel id={SettingsTab.GENERAL} className="w-full">
+                  <GeneralSettings />
+                </Tabs.Panel>
+                <Tabs.Panel id={SettingsTab.MEMORY} className="w-full">
+                  <MemorySettings />
+                </Tabs.Panel>
+                <Tabs.Panel id={SettingsTab.MODELS} className="w-full">
+                  <ModelManagement />
+                </Tabs.Panel>
+                <Tabs.Panel id={SettingsTab.UPDATES} className="w-full">
+                  <UpdateSettings />
+                </Tabs.Panel>
+              </Tabs>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   )
 }

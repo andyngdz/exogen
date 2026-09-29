@@ -1,6 +1,7 @@
-import { Chip } from '@heroui/react'
-import { isEmpty } from 'es-toolkit/compat'
+import clsx from 'clsx'
+import { isArray } from 'es-toolkit/compat'
 import { FC, useMemo } from 'react'
+import { HistoryPhotoviewConfigList } from './HistoryPhotoviewConfigList'
 
 interface HistoryPhotoviewConfigRowProps {
   label: string
@@ -12,30 +13,21 @@ export const HistoryPhotoviewConfigRow: FC<HistoryPhotoviewConfigRowProps> = ({
   value
 }) => {
   const renderValue = useMemo(() => {
-    if (Array.isArray(value)) {
-      if (isEmpty(value)) {
-        return <span className="text-default-500">None</span>
-      }
-
-      return (
-        <div className="flex flex-wrap gap-1">
-          {value.map((item, index) => (
-            <Chip key={`${item}-${index}`} size="sm" variant="flat">
-              {item}
-            </Chip>
-          ))}
-        </div>
-      )
+    if (isArray(value)) {
+      return <HistoryPhotoviewConfigList items={value} />
     }
 
-    return <span className="text-default-700">{value}</span>
+    return <span className="text-foreground">{value}</span>
   }, [value])
 
   return (
-    <div className="flex items-center justify-between gap-4 py-2 border-b border-default">
-      <span className="text-default-500 font-medium text-sm flex-1">
-        {label}
-      </span>
+    <div
+      className={clsx(
+        'flex items-center justify-between gap-4',
+        'py-2 border-b border-border'
+      )}
+    >
+      <span className="text-muted font-medium text-sm flex-1">{label}</span>
       <div className="flex-1 flex justify-end text-sm">{renderValue}</div>
     </div>
   )

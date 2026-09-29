@@ -1,13 +1,18 @@
+import { useUpdaterSettings } from '@/features/settings/states'
 import { Button } from '@heroui/react'
-import { useUpdaterSettings } from '../../states'
-import { SettingsBase } from '../SettingsBase'
+import { SettingsBase } from '@/features/settings/presentations/SettingsBase'
 
 export const UpdateSettings = () => {
   const { isChecking, onCheck, version } = useUpdaterSettings()
 
   return (
     <SettingsBase title="Updates" description={`Current version: ${version}`}>
-      <Button onPress={onCheck} color="primary" isLoading={isChecking}>
+      <Button
+        onPress={onCheck}
+        variant="primary"
+        isPending={isChecking}
+        fullWidth
+      >
         {isChecking ? 'Checking…' : 'Check for updates'}
       </Button>
     </SettingsBase>

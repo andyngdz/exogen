@@ -1,14 +1,14 @@
 import { useDownloadImages } from '@/features/generator-previewers/states/useDownloadImages'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 
-// Partial mock to override only addToast while keeping other exports intact
+// Partial mock to override only toast while keeping other exports intact
 vi.mock('@heroui/react', async () => {
   const actual =
     await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
   return {
     ...actual,
-    addToast: vi.fn()
+    toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
   }
 })
 
@@ -32,7 +32,9 @@ describe('useDownloadImages', () => {
     // Assert
     expect(mockDownloadImage).toHaveBeenCalledTimes(1)
     expect(mockDownloadImage).toHaveBeenCalledWith(testUrl)
-    expect(vi.mocked(addToast)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.danger)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.warning)).not.toHaveBeenCalled()
   })
 
   it('shows warning toast with error message when download fails with Error', async () => {
@@ -45,12 +47,11 @@ describe('useDownloadImages', () => {
     await onDownloadImage(testUrl)
 
     // Assert
-    expect(vi.mocked(addToast)).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(addToast)).toHaveBeenCalledWith({
-      title: 'Failed to download image',
-      description: 'boom',
-      color: 'warning'
-    })
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(
+      'Failed to download image',
+      { description: 'boom' }
+    )
   })
 
   it('shows warning toast with default message when download fails with non-Error', async () => {
@@ -62,11 +63,10 @@ describe('useDownloadImages', () => {
     await onDownloadImage(testUrl)
 
     // Assert
-    expect(vi.mocked(addToast)).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(addToast)).toHaveBeenCalledWith({
-      title: 'Failed to download image',
-      description: 'Unknown error occurred',
-      color: 'warning'
-    })
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(
+      'Failed to download image',
+      { description: 'Unknown error occurred' }
+    )
   })
 })

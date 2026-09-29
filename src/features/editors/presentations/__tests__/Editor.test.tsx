@@ -8,7 +8,7 @@ expect.extend(matchers)
 
 // Mock the EditorNavbar component
 vi.mock('../EditorNavbar', () => ({
-  EditorNavbar: () => <div data-testid="mock-editor-navbar">Editor Navbar</div>
+  EditorNavbar: () => <div data-testid="mock-editor-navbar">Editor header</div>
 }))
 
 // Mock the Generator component to avoid network requests and resizable panel issues

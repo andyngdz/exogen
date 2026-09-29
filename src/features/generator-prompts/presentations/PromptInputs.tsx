@@ -1,28 +1,38 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
-import { Textarea } from '@heroui/react'
-import { useFormContext } from 'react-hook-form'
+import { usePromptInputs } from '@/features/generator-prompts/states/usePromptInputs'
+import { FieldError, Label, TextArea, TextField } from '@heroui/react'
 
 export const PromptInputs = () => {
-  const { register, watch, formState } =
-    useFormContext<GeneratorConfigFormValues>()
+  const {
+    prompt,
+    onPromptChange,
+    isPromptInvalid,
+    promptErrorMessage,
+    negativePrompt,
+    onNegativePromptChange
+  } = usePromptInputs()
 
   return (
     <div className="flex gap-4">
-      <Textarea
-        className="font-mono"
-        label="Prompt"
+      <TextField
+        className="font-mono flex-1"
         maxLength={1000}
-        value={watch('prompt')}
-        isInvalid={!!formState.errors.prompt}
-        {...register('prompt', { required: true })}
-      />
-      <Textarea
-        className="font-mono"
-        label="Negative prompt"
+        value={prompt}
+        onChange={onPromptChange}
+        isInvalid={isPromptInvalid}
+      >
+        <Label>Prompt</Label>
+        <TextArea rows={3} />
+        <FieldError>{promptErrorMessage}</FieldError>
+      </TextField>
+      <TextField
+        className="font-mono flex-1"
         maxLength={1000}
-        value={watch('negative_prompt')}
-        {...register('negative_prompt')}
-      />
+        value={negativePrompt}
+        onChange={onNegativePromptChange}
+      >
+        <Label>Negative prompt</Label>
+        <TextArea rows={3} />
+      </TextField>
     </div>
   )
 }

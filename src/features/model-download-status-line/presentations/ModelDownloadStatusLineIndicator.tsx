@@ -1,5 +1,5 @@
 import { useDownloadWatcher } from '@/features/download-watcher'
-import { Skeleton } from '@heroui/react'
+import { ProgressBar } from '@heroui/react'
 import { FC } from 'react'
 
 export interface ModelDownloadStatusLineIndicatorProps {
@@ -11,17 +11,15 @@ export const ModelDownloadStatusLineIndicator: FC<
 > = ({ id }) => {
   const { percent } = useDownloadWatcher(id)
 
-  if (percent <= 0) return null
+  if (percent <= 0) return
 
   return (
-    <div className="ml-0.5 mr-0.5 absolute flex flex-col h-1 inset-0">
-      <Skeleton className="h-full w-full absolute" />
-      <div
-        className={
-          'h-full absolute bg-primary transition-all duration-500 ease-in-out'
-        }
-        style={{ width: `${percent * 100}%` }}
-      />
+    <div className="absolute inset-0 h-1">
+      <ProgressBar aria-label="Download progress" value={percent * 100}>
+        <ProgressBar.Track className="h-1">
+          <ProgressBar.Fill className="bg-accent" />
+        </ProgressBar.Track>
+      </ProgressBar>
     </div>
   )
 }

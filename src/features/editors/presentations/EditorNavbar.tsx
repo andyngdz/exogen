@@ -1,13 +1,20 @@
 import ExoGenLogo from '@/assets/logo.png'
 import { ModelSearchOpenIconButton } from '@/features/model-search'
 import { ModelSelector } from '@/features/model-selectors/presentations/ModelSelector'
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/react'
+import clsx from 'clsx'
 import NextImage from 'next/image'
 
 export const EditorNavbar = () => {
   return (
-    <Navbar maxWidth="full" isBordered isBlurred>
-      <NavbarBrand>
+    <header
+      className={clsx(
+        'sticky top-0 z-40',
+        'flex h-16 w-full items-center gap-4',
+        'border-b border-separator',
+        'px-6 backdrop-blur-lg'
+      )}
+    >
+      <div className="flex flex-1 items-center">
         <NextImage
           src={ExoGenLogo}
           alt="ExoGen Logo"
@@ -15,14 +22,12 @@ export const EditorNavbar = () => {
           height={32}
           priority
         />
-      </NavbarBrand>
-      <NavbarContent justify="center">
-        <NavbarItem className="flex items-center gap-2">
-          <ModelSelector />
-          <ModelSearchOpenIconButton />
-        </NavbarItem>
-      </NavbarContent>
-      <NavbarContent justify="end" />
-    </Navbar>
+      </div>
+      <nav className="flex items-center gap-2">
+        <ModelSelector />
+        <ModelSearchOpenIconButton />
+      </nav>
+      <div className="flex flex-1 justify-end" />
+    </header>
   )
 }

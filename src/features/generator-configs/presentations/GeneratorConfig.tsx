@@ -9,7 +9,7 @@ import { ScrollShadow } from '@heroui/react'
 
 export const GeneratorConfig = () => {
   return (
-    <ScrollShadow className="h-full divide-y divide-default">
+    <ScrollShadow className="h-full divide-y divide-separator">
       <GeneratorConfigFormat />
       <GeneratorConfigImg2Img />
       <GeneratorConfigExtra />

@@ -4,113 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleModal } from '../GeneratorConfigStyleModal'
 
-// Mock HeroUI components
-vi.mock('@heroui/react', async () => {
-  const actual =
-    await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
-  return {
-    ...actual,
-    Modal: ({
-      children,
-      placement,
-      size,
-      scrollBehavior,
-      isOpen,
-      backdrop,
-      isDismissable,
-      onOpenChange: _onOpenChange,
-      ...props
-    }: {
-      children: React.ReactNode
-      placement?: string
-      size?: string
-      scrollBehavior?: string
-      isOpen?: boolean
-      onOpenChange?: () => void
-      backdrop?: string
-      isDismissable?: boolean
-      [key: string]: unknown
-    }) => (
-      <div
-        data-testid="modal"
-        data-placement={placement}
-        data-size={size}
-        data-scroll-behavior={scrollBehavior}
-        data-is-open={isOpen}
-        data-backdrop={backdrop}
-        data-is-dismissable={isDismissable}
-        {...props}
-      >
-        {children}
-      </div>
-    ),
-    ModalContent: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode
-      [key: string]: unknown
-    }) => (
-      <div data-testid="modal-content" {...props}>
-        {children}
-      </div>
-    ),
-    ModalHeader: ({
-      children,
-      className,
-      ...props
-    }: {
-      children: React.ReactNode
-      className?: string
-      [key: string]: unknown
-    }) => (
-      <div data-testid="modal-header" className={className} {...props}>
-        {children}
-      </div>
-    ),
-    ModalBody: ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode
-      [key: string]: unknown
-    }) => (
-      <div data-testid="modal-body" {...props}>
-        {children}
-      </div>
-    ),
-    Chip: ({
-      children,
-      color,
-      variant,
-      size,
-      className,
-      role,
-      ...props
-    }: {
-      children: React.ReactNode
-      color?: string
-      variant?: string
-      size?: string
-      className?: string
-      role?: string
-      [key: string]: unknown
-    }) => (
-      <span
-        data-testid="chip"
-        data-color={color}
-        data-variant={variant}
-        data-size={size}
-        className={className}
-        role={role}
-        {...props}
-      >
-        {children}
-      </span>
-    )
-  }
-})
-
 // Mock GeneratorConfigStyleSection component
 vi.mock('../GeneratorConfigStyleSection', () => ({
   GeneratorConfigStyleSection: ({
@@ -210,33 +103,23 @@ describe('GeneratorConfigStyleModal', () => {
   })
 
   describe('Component Rendering', () => {
-    it('renders modal with correct structure', () => {
+    it('renders an open dialog with the Styles heading', () => {
       render(<GeneratorConfigStyleModal {...defaultProps} />)
 
-      expect(screen.getByTestId('modal')).toBeInTheDocument()
-      expect(screen.getByTestId('modal-content')).toBeInTheDocument()
-      expect(screen.getByTestId('modal-header')).toBeInTheDocument()
-      expect(screen.getByTestId('modal-body')).toBeInTheDocument()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: 'Styles' })
+      ).toBeInTheDocument()
     })
 
-    it('renders modal header with correct title', () => {
+    it('renders the NSFW warning chip', () => {
       render(<GeneratorConfigStyleModal {...defaultProps} />)
 
-      const header = screen.getByTestId('modal-header')
-      expect(header).toHaveTextContent('Styles')
-    })
-
-    it('renders NSFW warning chip with correct content', () => {
-      render(<GeneratorConfigStyleModal {...defaultProps} />)
-
-      const chip = screen.getByTestId('chip')
-      expect(chip).toHaveTextContent(
-        'Some styles may contain NSFW content. Please preview before applying'
-      )
-      expect(chip).toHaveAttribute('data-color', 'warning')
-      expect(chip).toHaveAttribute('data-variant', 'flat')
-      expect(chip).toHaveAttribute('data-size', 'sm')
-      expect(chip).toHaveAttribute('role', 'alert')
+      expect(
+        screen.getByText(
+          'Some styles may contain NSFW content. Please preview before applying'
+        )
+      ).toBeInTheDocument()
     })
 
     it('renders GeneratorConfigStyleSection with style sections', () => {
@@ -254,54 +137,42 @@ describe('GeneratorConfigStyleModal', () => {
     })
   })
 
-  describe('Modal Configuration', () => {
-    it('applies correct modal placement, size, and scroll behavior', () => {
-      render(<GeneratorConfigStyleModal {...defaultProps} />)
+  describe('Modal state', () => {
+    it('renders nothing when closed', () => {
+      render(<GeneratorConfigStyleModal {...defaultProps} isOpen={false} />)
 
-      const modal = screen.getByTestId('modal')
-      expect(modal).toHaveAttribute('data-placement', 'bottom')
-      expect(modal).toHaveAttribute('data-size', '2xl')
-      expect(modal).toHaveAttribute('data-scroll-behavior', 'inside')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
 
-    it('forwards modal props correctly', () => {
-      const mockOnOpenChange = vi.fn()
-      const additionalProps = {
-        isOpen: false,
-        onOpenChange: mockOnOpenChange,
-        backdrop: 'blur' as const,
-        isDismissable: false
-      }
-
+    it('requests close when the close button is pressed', async () => {
+      const user = userEvent.setup()
+      const onOpenChange = vi.fn()
       render(
-        <GeneratorConfigStyleModal {...defaultProps} {...additionalProps} />
+        <GeneratorConfigStyleModal
+          {...defaultProps}
+          onOpenChange={onOpenChange}
+        />
       )
 
-      const modal = screen.getByTestId('modal')
-      expect(modal).toHaveAttribute('data-is-open', 'false')
-      expect(modal).toHaveAttribute('data-backdrop', 'blur')
-      expect(modal).toHaveAttribute('data-is-dismissable', 'false')
+      await user.click(screen.getByRole('button', { name: /close/i }))
+
+      expect(onOpenChange).toHaveBeenCalledWith(false)
     })
   })
 
   describe('Header Styling', () => {
-    it('applies correct CSS classes to modal header', () => {
+    it('lays the header out as a row', () => {
       render(<GeneratorConfigStyleModal {...defaultProps} />)
 
-      const header = screen.getByTestId('modal-header')
+      const header = screen.getByRole('heading', {
+        name: 'Styles'
+      }).parentElement
       expect(header).toHaveClass(
         'flex',
         'justify-between',
         'items-center',
         'gap-2'
       )
-    })
-
-    it('applies correct CSS classes to warning chip', () => {
-      render(<GeneratorConfigStyleModal {...defaultProps} />)
-
-      const chip = screen.getByTestId('chip')
-      expect(chip).toHaveClass('mr-4')
     })
   })
 
@@ -314,7 +185,7 @@ describe('GeneratorConfigStyleModal', () => {
 
       render(<GeneratorConfigStyleModal {...emptyProps} />)
 
-      expect(screen.getByTestId('modal')).toBeInTheDocument()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
       expect(
         screen.getByTestId('generator-config-style-section')
       ).toBeInTheDocument()
@@ -355,30 +226,11 @@ describe('GeneratorConfigStyleModal', () => {
   })
 
   describe('Props Interface', () => {
-    it('accepts all required props', () => {
-      const minimalProps = {
-        styleSections: mockStyleSections
-      }
-
+    it('renders closed when only style sections are passed', () => {
       expect(() =>
-        render(<GeneratorConfigStyleModal {...minimalProps} />)
+        render(<GeneratorConfigStyleModal styleSections={mockStyleSections} />)
       ).not.toThrow()
-    })
-
-    it('omits children prop from ModalProps', () => {
-      // This test ensures the interface correctly omits 'children' from ModalProps
-      // TypeScript compilation will catch if this interface is incorrect
-      const propsWithoutChildren = {
-        styleSections: mockStyleSections,
-        isOpen: true,
-        onOpenChange: vi.fn(),
-        backdrop: 'blur' as const
-        // children should not be allowed here
-      }
-
-      expect(() =>
-        render(<GeneratorConfigStyleModal {...propsWithoutChildren} />)
-      ).not.toThrow()
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
   })
 
@@ -395,7 +247,7 @@ describe('GeneratorConfigStyleModal', () => {
         <GeneratorConfigStyleModal {...defaultProps} />
       )
 
-      const filterRow = container.querySelector('.px-6.pb-4')
+      const filterRow = container.ownerDocument.querySelector('.pb-4')
       expect(filterRow).toBeInTheDocument()
       expect(filterRow).toContainElement(screen.getByTestId('search-input'))
     })

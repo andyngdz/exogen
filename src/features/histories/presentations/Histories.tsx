@@ -1,8 +1,8 @@
 import { SkeletonLoader } from '@/cores/presentations'
-import { Accordion, AccordionItem, ScrollShadow } from '@heroui/react'
-import { isEmpty } from 'es-toolkit/compat'
+import { useHistories } from '@/features/histories/states'
+import { Accordion, ScrollShadow } from '@heroui/react'
+import { isEmpty, map } from 'es-toolkit/compat'
 import { Fragment } from 'react/jsx-runtime'
-import { useHistories } from '../states'
 import { HistoryEmpty } from './HistoryEmpty'
 import { HistoryErrors } from './HistoryErrors'
 import { HistoryGroup } from './HistoryGroup'
@@ -27,20 +27,27 @@ export const Histories = () => {
         data={historyGroups}
         skeleton={<HistoryLoader />}
       >
-        {(historyGroups) => (
+        {(loadedHistoryGroups) => (
           <ScrollShadow className="h-full">
             <Accordion>
-              {historyGroups.map((group) => (
-                <AccordionItem
+              {map(loadedHistoryGroups, (group) => (
+                <Accordion.Item
                   key={group.date}
-                  title={group.date}
+                  id={group.date}
                   aria-label={`History group for ${group.date}`}
-                  classNames={{
-                    title: 'text-sm font-semibold'
-                  }}
                 >
-                  <HistoryGroup key={group.date} histories={group.histories} />
-                </AccordionItem>
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="text-sm font-semibold">
+                      {group.date}
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <HistoryGroup histories={group.histories} />
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
               ))}
             </Accordion>
           </ScrollShadow>

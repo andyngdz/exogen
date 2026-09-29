@@ -17,16 +17,28 @@ class ResizeObserverMock {
 
 vi.stubGlobal('ResizeObserver', ResizeObserverMock)
 
+// HeroUI v3 Toast reads prefers-reduced-motion through matchMedia
+vi.stubGlobal(
+  'matchMedia',
+  vi.fn((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  }))
+)
+
+// HeroUI v3 Tabs indicator waits on element animations, which jsdom lacks
+Element.prototype.getAnimations = () => []
+
 /**
  * Module Mocks
  * Mock external modules that cause issues in test environment
  */
-
-// Mock framer-motion to prevent window access issues during tests.
-// Keep it lightweight: enough for HeroUI internals.
-vi.mock('framer-motion', () => {
-  return import('./src/cores/test-utils/framerMotionMock')
-})
 
 // Mock react-lottie to prevent canvas context issues during tests
 vi.mock('react-lottie', () => ({
@@ -49,28 +61,29 @@ vi.mock('@/assets/ai.json', () => ({
 
 type ElectronAPI = Window['electronAPI']
 
-const noop = (): void => {}
+const noop = () => {}
 
-const createElectronAPIMock = (): ElectronAPI => ({
-  downloadImage: vi.fn().mockReturnThis(),
-  selectFile: vi.fn().mockResolvedValue(null),
-  onBackendSetupStatus: vi.fn().mockReturnValue(noop),
-  app: {
-    getVersion: vi.fn().mockResolvedValue('0.0.0')
-  },
-  backend: {
-    getPort: vi.fn().mockResolvedValue(8000),
-    isLogStreaming: vi.fn().mockResolvedValue(false),
-    onLog: vi.fn().mockReturnValue(noop),
-    openBackendFolder: vi.fn().mockResolvedValue('')
-  },
-  updater: {
-    checkForUpdates: vi
-      .fn()
-      .mockResolvedValue({ updateAvailable: false, version: undefined }),
-    installUpdate: vi.fn().mockResolvedValue(undefined)
-  }
-})
+const createElectronAPIMock = () =>
+  ({
+    downloadImage: vi.fn().mockReturnThis(),
+    selectFile: vi.fn().mockResolvedValue(null),
+    onBackendSetupStatus: vi.fn().mockReturnValue(noop),
+    app: {
+      getVersion: vi.fn().mockResolvedValue('0.0.0')
+    },
+    backend: {
+      getPort: vi.fn().mockResolvedValue(8000),
+      isLogStreaming: vi.fn().mockResolvedValue(false),
+      onLog: vi.fn().mockReturnValue(noop),
+      openBackendFolder: vi.fn().mockResolvedValue('')
+    },
+    updater: {
+      checkForUpdates: vi
+        .fn()
+        .mockResolvedValue({ updateAvailable: false, version: undefined }),
+      installUpdate: vi.fn().mockResolvedValue(undefined)
+    }
+  }) satisfies ElectronAPI
 
 /**
  * Test Setup and Cleanup

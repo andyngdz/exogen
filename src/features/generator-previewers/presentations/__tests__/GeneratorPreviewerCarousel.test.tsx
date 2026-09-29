@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGeneratorPreviewer } from '../../states'
-import { GeneratorPreviewerSlider } from '../GeneratorPreviewerSlider'
+import { GeneratorPreviewerCarousel } from '../GeneratorPreviewerCarousel'
 
 // Mock HeroUI ScrollShadow to avoid framer-motion (window access) in tests.
 vi.mock('@heroui/react', async (importOriginal) => {
@@ -90,9 +90,9 @@ vi.mock('swiper/modules', () => ({
 // Mock Swiper CSS imports
 vi.mock('swiper/css', () => ({}))
 
-// Mock GeneratorPreviewerSliderActions
-vi.mock('../GeneratorPreviewerSliderActions', () => ({
-  GeneratorPreviewerSliderActions: () => (
+// Mock GeneratorPreviewerCarouselActions
+vi.mock('../GeneratorPreviewerCarouselActions', () => ({
+  GeneratorPreviewerCarouselActions: () => (
     <div data-testid="slider-actions">
       <button
         data-testid="prev-button"
@@ -112,7 +112,7 @@ vi.mock('../GeneratorPreviewerSliderActions', () => ({
   )
 }))
 
-describe('GeneratorPreviewerSlider', () => {
+describe('GeneratorPreviewerCarousel', () => {
   const mockUseGeneratorPreviewer = vi.mocked(useGeneratorPreviewer)
 
   beforeEach(() => {
@@ -126,7 +126,7 @@ describe('GeneratorPreviewerSlider', () => {
         items: []
       })
 
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByText('No images to display')).toBeInTheDocument()
       expect(screen.queryByTestId('swiper')).not.toBeInTheDocument()
@@ -138,14 +138,14 @@ describe('GeneratorPreviewerSlider', () => {
         items: []
       })
 
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       const emptyState = screen.getByText('No images to display')
       expect(emptyState).toHaveClass(
         'flex',
         'justify-center',
         'items-center',
-        'text-default-700'
+        'text-foreground'
       )
     })
   })
@@ -180,14 +180,14 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should render swiper container with images', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByTestId('swiper')).toBeInTheDocument()
       expect(screen.getAllByTestId('swiper-slide')).toHaveLength(3)
     })
 
     it('should render each image in a slide', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       mockImageStepEnds.forEach((imageStepEnd) => {
         expect(
@@ -200,14 +200,14 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should render slider actions', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByLabelText('Previous image')).toBeInTheDocument()
       expect(screen.getByLabelText('Next image')).toBeInTheDocument()
     })
 
     it('should have correct container styling', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       const container = screen.getByTestId('swiper').parentElement
       expect(container).toHaveClass('relative')
@@ -226,7 +226,7 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should call slideNext when next button is clicked', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       const nextButton = screen.getByLabelText('Next image')
       fireEvent.click(nextButton)
@@ -235,7 +235,7 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should call slidePrev when previous button is clicked', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       const prevButton = screen.getByLabelText('Previous image')
       fireEvent.click(prevButton)
@@ -256,7 +256,7 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should have proper aria labels for navigation buttons', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByLabelText('Previous image')).toBeInTheDocument()
       expect(screen.getByLabelText('Next image')).toBeInTheDocument()
@@ -274,12 +274,12 @@ describe('GeneratorPreviewerSlider', () => {
         items: []
       })
 
-      const { rerender } = render(<GeneratorPreviewerSlider />)
+      const { rerender } = render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByTestId('previewer-item-0')).toBeInTheDocument()
 
       // Re-render with same data - should use memoized result
-      rerender(<GeneratorPreviewerSlider />)
+      rerender(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByTestId('previewer-item-0')).toBeInTheDocument()
     })
@@ -293,7 +293,7 @@ describe('GeneratorPreviewerSlider', () => {
         items: []
       })
 
-      const { rerender } = render(<GeneratorPreviewerSlider />)
+      const { rerender } = render(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByTestId('previewer-item-0')).toBeInTheDocument()
       expect(screen.queryByTestId('previewer-item-1')).not.toBeInTheDocument()
@@ -307,7 +307,7 @@ describe('GeneratorPreviewerSlider', () => {
         items: []
       })
 
-      rerender(<GeneratorPreviewerSlider />)
+      rerender(<GeneratorPreviewerCarousel />)
 
       expect(screen.getByTestId('previewer-item-0')).toBeInTheDocument()
       expect(screen.getByTestId('previewer-item-1')).toBeInTheDocument()
@@ -326,7 +326,7 @@ describe('GeneratorPreviewerSlider', () => {
     })
 
     it('should render swiper with correct structure', () => {
-      render(<GeneratorPreviewerSlider />)
+      render(<GeneratorPreviewerCarousel />)
 
       const swiper = screen.getByTestId('swiper')
       expect(swiper).toHaveClass('swiper-container')

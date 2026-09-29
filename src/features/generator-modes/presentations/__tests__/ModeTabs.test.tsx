@@ -3,8 +3,8 @@ import {
   useGeneratorModeStore,
   useImage2ImageConfigStore
 } from '@/features/generators'
-import { fireEvent, render, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ModeTabs } from '../ModeTabs'
 
@@ -16,50 +16,37 @@ vi.mock('../Image2ImagePanel', () => ({
   Image2ImagePanel: () => <div data-testid="img2img-panel" />
 }))
 
-vi.mock('@heroui/react', () => ({
-  Tabs: ({
-    children,
-    selectedKey,
-    onSelectionChange
-  }: {
-    children: ReactNode
-    selectedKey?: string
-    onSelectionChange?: (key: string) => void
-  }) => (
-    <div>
-      <div data-testid="selected-key">{selectedKey}</div>
-      <button
-        type="button"
-        data-testid="select-txt2img"
-        onClick={() => onSelectionChange?.(GeneratorMode.TEXT_2_IMAGE)}
-      />
-      <button
-        type="button"
-        data-testid="select-img2img"
-        onClick={() => onSelectionChange?.(GeneratorMode.IMAGE_2_IMAGE)}
-      />
-      {children}
-    </div>
-  ),
-  Tab: ({ children }: { children: ReactNode }) => <div>{children}</div>
-}))
-
 describe('ModeTabs', () => {
   afterEach(() => {
     useGeneratorModeStore.getState().reset()
     useImage2ImageConfigStore.getState().reset()
-    vi.clearAllMocks()
   })
 
   it('defaults to TEXT_2_IMAGE', () => {
     render(<ModeTabs />)
 
-    expect(screen.getByTestId('selected-key')).toHaveTextContent(
-      GeneratorMode.TEXT_2_IMAGE
+    expect(screen.getByRole('tab', { name: 'Text to Image' })).toHaveAttribute(
+      'aria-selected',
+      'true'
     )
+    expect(screen.getByTestId('txt2img-panel')).toBeInTheDocument()
+    expect(screen.queryByTestId('img2img-panel')).not.toBeInTheDocument()
   })
 
-  it('clears init image when switching to TEXT_2_IMAGE', () => {
+  it('switches to IMAGE_2_IMAGE when its tab is chosen', async () => {
+    const user = userEvent.setup()
+    render(<ModeTabs />)
+
+    await user.click(screen.getByRole('tab', { name: 'Image to Image' }))
+
+    expect(useGeneratorModeStore.getState().mode).toBe(
+      GeneratorMode.IMAGE_2_IMAGE
+    )
+    expect(screen.getByTestId('img2img-panel')).toBeInTheDocument()
+  })
+
+  it('clears init image when switching to TEXT_2_IMAGE', async () => {
+    const user = userEvent.setup()
     useGeneratorModeStore.getState().setMode(GeneratorMode.IMAGE_2_IMAGE)
     useImage2ImageConfigStore
       .getState()
@@ -67,7 +54,7 @@ describe('ModeTabs', () => {
 
     render(<ModeTabs />)
 
-    fireEvent.click(screen.getByTestId('select-txt2img'))
+    await user.click(screen.getByRole('tab', { name: 'Text to Image' }))
 
     expect(useGeneratorModeStore.getState().mode).toBe(
       GeneratorMode.TEXT_2_IMAGE

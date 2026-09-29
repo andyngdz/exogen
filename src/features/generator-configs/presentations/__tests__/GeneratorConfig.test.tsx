@@ -97,6 +97,6 @@ describe('GeneratorConfig', () => {
 
     // Verify ScrollShadow has divide-y styling
     const scrollShadow = screen.getByTestId('scrollshadow')
-    expect(scrollShadow).toHaveClass('divide-y', 'divide-default')
+    expect(scrollShadow).toHaveClass('divide-y', 'divide-separator')
   })
 })

@@ -4,7 +4,7 @@ export const ModelRecommendationsBadge = () => {
   return (
     <Star
       data-testid="lucide-icon"
-      className="text-primary fill-primary"
+      className="text-accent fill-accent"
       size={16}
     />
   )

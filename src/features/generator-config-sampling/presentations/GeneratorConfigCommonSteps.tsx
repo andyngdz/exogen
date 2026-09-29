@@ -1,21 +1,19 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { COMMON_STEPS } from '@/features/generator-config-sampling/constants'
+import { useGeneratorConfigCommonSteps } from '@/features/generator-config-sampling/states/useGeneratorConfigCommonSteps'
 import { Button } from '@heroui/react'
-import { useFormContext } from 'react-hook-form'
-import { COMMON_STEPS } from '../constants'
+import { map } from 'es-toolkit/compat'
 
 export const GeneratorConfigCommonSteps = () => {
-  const { setValue } = useFormContext<GeneratorConfigFormValues>()
+  const { onStepSelect } = useGeneratorConfigCommonSteps()
 
   return (
     <div className="flex">
-      {COMMON_STEPS.map((step) => (
+      {map(COMMON_STEPS, (step) => (
         <Button
           key={step}
-          variant="light"
-          className="text-default-700"
-          onPress={() => {
-            setValue('steps', step)
-          }}
+          variant="ghost"
+          className="text-foreground"
+          onPress={() => onStepSelect(step)}
           isIconOnly
         >
           {step}

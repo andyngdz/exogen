@@ -1,83 +1,10 @@
 import type { LoRA } from '@/types'
-import { fireEvent, render, screen } from '@testing-library/react'
-import type { MouseEvent, ReactNode } from 'react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { LoraListItem } from '../LoraListItem'
 
-interface CardProps {
-  children: ReactNode
-  onPress: () => void
-  className: string
-  isPressable?: boolean
-  isHoverable?: boolean
-  tabIndex: number
-  shadow?: string
-}
-
-interface CardBodyProps {
-  children: ReactNode
-  className: string
-}
-
-interface SwitchProps {
-  isSelected: boolean
-  onValueChange: (checked: boolean) => void
-  'aria-label': string
-  size?: string
-  color?: string
-}
-
-// Mock HeroUI components
-vi.mock('@heroui/react', () => ({
-  Card: ({
-    children,
-    onPress,
-    className,
-    tabIndex,
-    isPressable,
-    isHoverable,
-    shadow
-  }: CardProps) => (
-    <button
-      type="button"
-      data-testid="card"
-      className={className}
-      onClick={onPress}
-      tabIndex={tabIndex}
-      data-pressable={String(Boolean(isPressable))}
-      data-hoverable={String(Boolean(isHoverable))}
-      data-shadow={shadow ?? 'none'}
-    >
-      {children}
-    </button>
-  ),
-  CardBody: ({ children, className }: CardBodyProps) => (
-    <div data-testid="card-body" className={className}>
-      {children}
-    </div>
-  ),
-  Switch: ({
-    isSelected,
-    onValueChange,
-    'aria-label': ariaLabel,
-    size,
-    color
-  }: SwitchProps) => (
-    <input
-      type="checkbox"
-      checked={isSelected}
-      onClick={(event: MouseEvent<HTMLInputElement>) => {
-        event.stopPropagation()
-        onValueChange(!isSelected)
-      }}
-      readOnly
-      aria-label={ariaLabel}
-      data-size={size ?? 'md'}
-      data-color={color ?? 'default'}
-      data-testid="switch"
-    />
-  )
-}))
+const getCard = () => screen.getByRole('button', { name: /Test LoRA/ })
 
 const mockLora: LoRA = {
   id: 1,
@@ -125,26 +52,26 @@ describe('LoraListItem', () => {
     expect(screen.getByText('750 KB')).toBeInTheDocument()
   })
 
-  it('calls onSelect when card is clicked', () => {
+  it('calls onSelect when card is clicked', async () => {
+    const user = userEvent.setup()
     const onSelect = vi.fn()
     render(
       <LoraListItem lora={mockLora} isSelected={false} onSelect={onSelect} />
     )
 
-    const card = screen.getByTestId('card')
-    fireEvent.click(card)
+    await user.click(getCard())
 
     expect(onSelect).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onSelect when switch is toggled', () => {
+  it('calls onSelect once when switch is toggled', async () => {
+    const user = userEvent.setup()
     const onSelect = vi.fn()
     render(
       <LoraListItem lora={mockLora} isSelected={false} onSelect={onSelect} />
     )
 
-    const switchElement = screen.getByTestId('switch')
-    fireEvent.click(switchElement)
+    await user.click(screen.getByLabelText('Toggle Test LoRA'))
 
     expect(onSelect).toHaveBeenCalledTimes(1)
   })
@@ -155,7 +82,7 @@ describe('LoraListItem', () => {
       <LoraListItem lora={mockLora} isSelected={true} onSelect={onSelect} />
     )
 
-    const card = screen.getByTestId('card')
+    const card = getCard()
     expect(card.className).toContain('bg-default')
   })
 
@@ -165,7 +92,7 @@ describe('LoraListItem', () => {
       <LoraListItem lora={mockLora} isSelected={false} onSelect={onSelect} />
     )
 
-    const card = screen.getByTestId('card')
+    const card = getCard()
     expect(card.className).not.toContain('bg-default')
   })
 
@@ -175,17 +102,15 @@ describe('LoraListItem', () => {
       <LoraListItem lora={mockLora} isSelected={true} onSelect={onSelect} />
     )
 
-    const switchElement = screen.getByTestId('switch')
-    expect(switchElement).toBeChecked()
+    expect(screen.getByLabelText('Toggle Test LoRA')).toBeChecked()
   })
 
-  it('renders switch aria-label with lora name', () => {
+  it('renders an unchecked switch labelled with the lora name', () => {
     const onSelect = vi.fn()
     render(
       <LoraListItem lora={mockLora} isSelected={false} onSelect={onSelect} />
     )
 
-    const switchElement = screen.getByTestId('switch')
-    expect(switchElement).toHaveAttribute('aria-label', 'Toggle Test LoRA')
+    expect(screen.getByLabelText('Toggle Test LoRA')).not.toBeChecked()
   })
 })

@@ -1,184 +1,81 @@
-import { UpscaleFactor } from '@/cores/constants'
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { UpscaleFactor, UpscalerType } from '@/cores/constants'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { UseFormReturn } from 'react-hook-form'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { GeneratorConfigHiresFixUpscaleFactor } from '../GeneratorConfigHiresFixUpscaleFactor'
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => {
-  // Inline the upscale factors for the mock
-  const factors = [
-    { value: 1.5, label: '1.5x' },
-    { value: 2, label: '2x' },
-    { value: 3, label: '3x' },
-    { value: 4, label: '4x' }
-  ]
+const renderUpscaleFactor = (upscaleFactor?: UpscaleFactor) => {
+  const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper({
+    overrides: upscaleFactor
+      ? {
+          hires_fix: {
+            upscale_factor: upscaleFactor,
+            upscaler: UpscalerType.LANCZOS,
+            denoising_strength: 0.7,
+            steps: 0
+          }
+        }
+      : {}
+  })
 
-  return {
-    Select: ({
-      label,
-      selectedKeys,
-      onSelectionChange,
-      'aria-label': ariaLabel
-    }: {
-      label: string
-      selectedKeys: string[]
-      onSelectionChange: (keys: { currentKey: string | null }) => void
-      children: React.ReactNode
-      'aria-label': string
-    }) => {
-      return (
-        <div data-testid="select" aria-label={ariaLabel}>
-          <label>{label}</label>
-          <select
-            data-testid="select-input"
-            value={selectedKeys?.[0] || ''}
-            onChange={(e) =>
-              onSelectionChange({ currentKey: e.target.value || null })
-            }
-          >
-            {factors.map((factor) => (
-              <option key={factor.value} value={factor.value.toString()}>
-                {factor.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      )
-    },
-    SelectItem: () => null,
-    Skeleton: ({ className }: { className: string }) => (
-      <div data-testid="skeleton" className={className}>
-        Loading...
-      </div>
-    )
-  }
-})
+  const view = render(<GeneratorConfigHiresFixUpscaleFactor />, {
+    wrapper: Wrapper
+  })
 
-// Mock constants
-vi.mock('../../constants', () => ({
-  UPSCALE_FACTORS: [
-    { value: 1.5, label: '1.5x' },
-    { value: 2, label: '2x' },
-    { value: 3, label: '3x' },
-    { value: 4, label: '4x' }
-  ]
-}))
+  return { ...view, getMethods }
+}
 
-// Mock react-hook-form
-const mockOnChange = vi.fn()
-const mockControl = {} as UseFormReturn<GeneratorConfigFormValues>['control']
-let mockFieldValue: number | undefined = UpscaleFactor.TWO
+const getSelectTrigger = () =>
+  screen.getByRole('button', { name: /Upscale Factor/ })
 
-vi.mock('react-hook-form', () => ({
-  useFormContext: () => ({
-    control: mockControl
-  }),
-  Controller: ({
-    render
-  }: {
-    render: (props: {
-      field: { value: number | undefined; onChange: (v: number) => void }
-    }) => React.ReactNode
-  }) => {
-    const mockField = {
-      value: mockFieldValue,
-      onChange: mockOnChange
-    }
-    return <>{render({ field: mockField })}</>
-  }
-}))
+const chooseFactor = async (label: string) => {
+  const user = userEvent.setup()
+  await user.click(getSelectTrigger())
+  await user.click(screen.getByRole('option', { name: label }))
+}
 
 describe('GeneratorConfigHiresFixUpscaleFactor', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockFieldValue = UpscaleFactor.TWO
+  it('renders the labelled select with the selected value', () => {
+    renderUpscaleFactor(UpscaleFactor.TWO)
+
+    expect(getSelectTrigger()).toHaveTextContent('2x')
   })
 
-  it('renders without crashing', () => {
-    const { container } = render(<GeneratorConfigHiresFixUpscaleFactor />)
-    expect(container).toBeInTheDocument()
-  })
-
-  it('renders select with correct label', () => {
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-
-    expect(screen.getByText('Upscale Factor')).toBeInTheDocument()
-  })
-
-  it('renders select with correct aria-label', () => {
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-
-    expect(screen.getByLabelText('Upscale Factor')).toBeInTheDocument()
-  })
-
-  it('displays all upscale factor options', () => {
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-
-    expect(screen.getByText('1.5x')).toBeInTheDocument()
-    expect(screen.getByText('2x')).toBeInTheDocument()
-    expect(screen.getByText('3x')).toBeInTheDocument()
-    expect(screen.getByText('4x')).toBeInTheDocument()
-  })
-
-  it('displays selected value', () => {
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-    const select = screen.getByTestId('select-input') as HTMLSelectElement
-
-    expect(select.value).toBe('2')
-  })
-
-  it('calls onChange when selection changes', async () => {
+  it('displays all upscale factor options', async () => {
     const user = userEvent.setup()
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-    const select = screen.getByTestId('select-input')
+    renderUpscaleFactor(UpscaleFactor.TWO)
 
-    await user.selectOptions(select, '3')
+    await user.click(getSelectTrigger())
 
-    expect(mockOnChange).toHaveBeenCalledWith(3)
+    for (const label of ['1.5x', '2x', '3x', '4x']) {
+      expect(screen.getByRole('option', { name: label })).toBeInTheDocument()
+    }
   })
 
-  it('converts string value to number on change', async () => {
-    const user = userEvent.setup()
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-    const select = screen.getByTestId('select-input')
+  it('writes the chosen factor to the form as a number', async () => {
+    const { getMethods } = renderUpscaleFactor(UpscaleFactor.TWO)
 
-    await user.selectOptions(select, '1.5')
+    await chooseFactor('1.5x')
 
-    expect(mockOnChange).toHaveBeenCalledWith(1.5)
-    expect(typeof mockOnChange.mock.calls[0][0]).toBe('number')
+    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(1.5)
+    expect(getSelectTrigger()).toHaveTextContent('1.5x')
   })
 
-  describe('skeleton state', () => {
-    it('shows skeleton when value is undefined', () => {
-      mockFieldValue = undefined
-      render(<GeneratorConfigHiresFixUpscaleFactor />)
+  it('handles each factor value', async () => {
+    const { getMethods } = renderUpscaleFactor(UpscaleFactor.TWO)
 
-      expect(screen.getByTestId('skeleton')).toBeInTheDocument()
-      expect(screen.queryByTestId('select')).not.toBeInTheDocument()
-    })
+    await chooseFactor('4x')
+    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(4)
 
-    it('skeleton has correct class', () => {
-      mockFieldValue = undefined
-      render(<GeneratorConfigHiresFixUpscaleFactor />)
-      const skeleton = screen.getByTestId('skeleton')
-
-      expect(skeleton).toHaveClass('h-14', 'rounded-medium')
-    })
+    await chooseFactor('3x')
+    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(3)
   })
 
-  it('handles all factor values correctly', async () => {
-    const user = userEvent.setup()
-    render(<GeneratorConfigHiresFixUpscaleFactor />)
-    const select = screen.getByTestId('select-input')
+  it('shows the loader while the form has no upscale factor', () => {
+    const { container } = renderUpscaleFactor()
 
-    // Test each factor
-    await user.selectOptions(select, '1.5')
-    expect(mockOnChange).toHaveBeenLastCalledWith(1.5)
-
-    await user.selectOptions(select, '4')
-    expect(mockOnChange).toHaveBeenLastCalledWith(4)
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass('skeleton', 'h-14')
   })
 })

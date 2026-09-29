@@ -2,25 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ButtonProps } from '@heroui/react'
 import { ModelSearchViewDownloadButton } from '../ModelSearchViewDownloadButton'
 
 const mockOnDownload = vi.fn()
 const mockUseDownloadWatcher = vi.fn()
 const mockUseDownloadButton = vi.fn()
-
-vi.mock('@heroui/react', () => ({
-  Button: ({ children, color, onPress, isLoading }: ButtonProps) => (
-    <button
-      data-testid="button"
-      data-color={color}
-      data-loading={isLoading}
-      onClick={onPress as () => void}
-    >
-      {children}
-    </button>
-  )
-}))
 
 vi.mock('@/features/download-watcher', () => ({
   useDownloadWatcher: (id: string) => mockUseDownloadWatcher(id)
@@ -42,11 +28,11 @@ describe('ModelSearchViewDownloadButton', () => {
 
       render(<ModelSearchViewDownloadButton id="test-model-123" />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button')
       expect(button).toBeInTheDocument()
       expect(button).toHaveTextContent('Download this model')
-      expect(button).toHaveAttribute('data-color', 'primary')
-      expect(button).toHaveAttribute('data-loading', 'false')
+      expect(button).toHaveClass('button--primary')
+      expect(button).not.toHaveAttribute('data-pending')
     })
 
     it('renders button with correct text when downloading', () => {
@@ -54,10 +40,10 @@ describe('ModelSearchViewDownloadButton', () => {
 
       render(<ModelSearchViewDownloadButton id="test-model-123" />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button')
       expect(button).toBeInTheDocument()
       expect(button).toHaveTextContent('Downloading')
-      expect(button).toHaveAttribute('data-loading', 'true')
+      expect(button).toHaveAttribute('data-pending', 'true')
     })
 
     it('applies animate-pulse class to text when downloading', () => {
@@ -86,22 +72,22 @@ describe('ModelSearchViewDownloadButton', () => {
 
       render(<ModelSearchViewDownloadButton id="test-model-123" />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button')
       await user.click(button)
 
       expect(mockOnDownload).toHaveBeenCalledTimes(1)
     })
 
-    it('still calls onDownload when downloading', async () => {
+    it('ignores presses while downloading', async () => {
       mockUseDownloadWatcher.mockReturnValue({ isDownloading: true })
       const user = userEvent.setup()
 
       render(<ModelSearchViewDownloadButton id="test-model-123" />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button')
       await user.click(button)
 
-      expect(mockOnDownload).toHaveBeenCalledTimes(1)
+      expect(mockOnDownload).not.toHaveBeenCalled()
     })
   })
 

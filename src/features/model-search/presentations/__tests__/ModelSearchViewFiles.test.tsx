@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react'
-import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ModelDetailsSibling } from '@/types'
@@ -13,34 +12,6 @@ vi.mock('../ModelSearchViewHeader', () => ({
       <div>title: {title}</div>
       <div>href: {href}</div>
     </div>
-  )
-}))
-
-// Mock @heroui/react table primitives to simple containers
-vi.mock('@heroui/react', () => ({
-  Table: ({
-    children,
-    removeWrapper: _removeWrapper,
-    ...rest
-  }: PropsWithChildren<Record<string, unknown>>) => (
-    <div data-testid="table" {...rest}>
-      {children}
-    </div>
-  ),
-  TableHeader: ({ children }: PropsWithChildren) => (
-    <div data-testid="table-header">{children}</div>
-  ),
-  TableBody: ({ children }: PropsWithChildren) => (
-    <div data-testid="table-body">{children}</div>
-  ),
-  TableColumn: ({ children }: PropsWithChildren) => (
-    <div role="columnheader">{children}</div>
-  ),
-  TableRow: ({ children }: PropsWithChildren) => (
-    <div role="row">{children}</div>
-  ),
-  TableCell: ({ children }: PropsWithChildren) => (
-    <div role="cell">{children}</div>
   )
 }))
 
@@ -64,9 +35,16 @@ describe('ModelSearchViewFiles', () => {
     ).toBeInTheDocument()
 
     // Table and headers
-    expect(screen.getByTestId('table')).toBeInTheDocument()
-    expect(screen.getByText('Name')).toBeInTheDocument()
-    expect(screen.getByText('Size')).toBeInTheDocument()
+    expect(
+      screen.getByRole('grid', { name: 'Files table' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: 'Name' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: 'Size' })
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('row')).toHaveLength(4)
 
     // Rows contents with formatted sizes
     expect(screen.getByText('file1.bin')).toBeInTheDocument()
@@ -85,8 +63,7 @@ describe('ModelSearchViewFiles', () => {
     // Header still present
     expect(screen.getByTestId('header')).toBeInTheDocument()
 
-    // Table body exists but has no rows
-    const body = screen.getByTestId('table-body')
-    expect(within(body).queryByRole('row')).not.toBeInTheDocument()
+    // Only the header row remains
+    expect(screen.getAllByRole('row')).toHaveLength(1)
   })
 })

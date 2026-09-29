@@ -2,7 +2,7 @@
 
 import { formatter } from '@/services'
 import { GpuInfo } from '@/types'
-import { Radio, RadioProps } from '@heroui/react'
+import { Description, Radio, RadioProps } from '@heroui/react'
 import { FC } from 'react'
 
 export interface GpuDetectionItemProps extends RadioProps {
@@ -16,25 +16,22 @@ export const GpuDetectionItem: FC<GpuDetectionItemProps> = ({
   const { name, cuda_compute_capability, memory } = gpu
 
   return (
-    <Radio
-      {...restProps}
-      description={
-        <span className="ml-2 flex gap-1 text-xs">
-          <span>Cuda compute capability</span>
-          <span className="font-bold">{cuda_compute_capability}</span>
-        </span>
-      }
-      classNames={{
-        base: 'max-w-full p-5',
-        labelWrapper: 'flex justify-between w-full'
-      }}
-    >
-      <div className="ml-2 flex items-center justify-between gap-2 w-full">
-        <span className="font-bold">{name}</span>
-        <span className="text-sm text-default-700 font-medium">
-          {formatter.bytes(memory)}
-        </span>
-      </div>
+    <Radio {...restProps}>
+      <Radio.Content className="flex w-full items-center gap-2">
+        <Radio.Control>
+          <Radio.Indicator />
+        </Radio.Control>
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="font-bold">{name}</span>
+          <span className="text-sm text-foreground font-medium">
+            {formatter.bytes(memory)}
+          </span>
+        </div>
+      </Radio.Content>
+      <Description>
+        Cuda compute capability{' '}
+        <span className="font-bold">{cuda_compute_capability}</span>
+      </Description>
     </Radio>
   )
 }

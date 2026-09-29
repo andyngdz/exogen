@@ -38,8 +38,9 @@ describe('GpuDetectionVersion', () => {
     const { container } = render(<GpuDetectionVersion {...defaultProps} />)
 
     // Check for Card component structure
-    const cardElement = container.querySelector('[class*="py-4"]')
+    const cardElement = container.querySelector('[data-slot="card"]')
     expect(cardElement).toBeInTheDocument()
+    expect(screen.getByRole('separator')).toBeInTheDocument()
 
     // Check for version info styling
     const cudaVersion = screen.getByText('12.2')
@@ -50,9 +51,9 @@ describe('GpuDetectionVersion', () => {
 
     // Check for labels styling
     const cudaLabel = screen.getByText('Cuda version')
-    expect(cudaLabel).toHaveClass('text-default-700')
+    expect(cudaLabel).toHaveClass('text-foreground')
 
     const driverLabel = screen.getByText('Driver version')
-    expect(driverLabel).toHaveClass('text-default-700')
+    expect(driverLabel).toHaveClass('text-foreground')
   })
 })

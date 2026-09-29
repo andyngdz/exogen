@@ -29,8 +29,8 @@ describe('HealthCheckContent', () => {
 
     expect(screen.getByText('Backend is running')).toBeInTheDocument()
 
-    const chip = screen.getByText('Backend is running').closest('div')
-    expect(chip).toHaveClass('bg-success')
+    const chip = screen.getByText('Backend is running').closest('.chip')
+    expect(chip).toHaveClass('chip--success')
   })
 
   it('renders error message when isHealthy is false', () => {
@@ -50,8 +50,8 @@ describe('HealthCheckContent', () => {
     const statusElements = screen.getAllByText('uv installation failed')
     expect(statusElements.length).toBeGreaterThan(0)
 
-    const chip = statusElements[0].closest('div')
-    expect(chip).toHaveClass('bg-danger')
+    const chip = statusElements[0].closest('.chip')
+    expect(chip).toHaveClass('chip--danger')
   })
 
   it('has proper layout with flex justify-center', () => {

@@ -1,23 +1,35 @@
 'use client'
 
-import { useSamplersQuery } from '@/cores/api-queries'
 import { SkeletonLoader } from '@/cores/presentations'
-import { GeneratorConfigFormValues } from '@/features/generator-configs'
-import { Alert, Select, SelectItem } from '@heroui/react'
-import { isEmpty } from 'es-toolkit/compat'
-import { Controller, useFormContext } from 'react-hook-form'
+import { useGeneratorConfigSamplerDropdown } from '@/features/generator-config-sampling/states/useGeneratorConfigSamplerDropdown'
+import { Alert, Description, Label, ListBox, Select } from '@heroui/react'
+import { map } from 'es-toolkit/compat'
 import { GeneratorConfigSamplerDropdownLoader } from './GeneratorConfigSamplerDropdownLoader'
 
 export const GeneratorConfigSamplerDropdown = () => {
-  const { control } = useFormContext<GeneratorConfigFormValues>()
-  const { data: samplers, isLoading, isError } = useSamplersQuery()
+  const {
+    samplers,
+    isLoading,
+    isError,
+    isEmptySamplers,
+    sampler,
+    onSamplerChange
+  } = useGeneratorConfigSamplerDropdown()
 
   if (isError) {
-    return <Alert color="danger">Failed to load samplers</Alert>
+    return (
+      <Alert status="danger">
+        <Alert.Title>Failed to load samplers</Alert.Title>
+      </Alert>
+    )
   }
 
-  if (samplers && isEmpty(samplers)) {
-    return <Alert color="warning">No samplers available</Alert>
+  if (isEmptySamplers) {
+    return (
+      <Alert status="warning">
+        <Alert.Title>No samplers available</Alert.Title>
+      </Alert>
+    )
   }
 
   return (
@@ -26,32 +38,28 @@ export const GeneratorConfigSamplerDropdown = () => {
       data={samplers}
       skeleton={<GeneratorConfigSamplerDropdownLoader />}
     >
-      {(samplers) => (
-        <Controller
-          name="sampler"
-          control={control}
-          render={({ field }) => (
-            <Select
-              selectedKeys={[field.value]}
-              onSelectionChange={(keys) => {
-                const selectedKey = keys.currentKey
-                if (selectedKey) {
-                  field.onChange(selectedKey)
-                }
-              }}
-              aria-label="Sampler"
-            >
-              {samplers.map((sampler) => (
-                <SelectItem
-                  key={sampler.value}
-                  description={sampler.description}
+      {(loadedSamplers) => (
+        <Select value={sampler} onChange={onSamplerChange} aria-label="Sampler">
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {map(loadedSamplers, (samplerOption) => (
+                <ListBox.Item
+                  key={samplerOption.value}
+                  id={samplerOption.value}
+                  textValue={samplerOption.name}
                 >
-                  {sampler.name}
-                </SelectItem>
+                  <Label>{samplerOption.name}</Label>
+                  <Description>{samplerOption.description}</Description>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
               ))}
-            </Select>
-          )}
-        />
+            </ListBox>
+          </Select.Popover>
+        </Select>
       )}
     </SkeletonLoader>
   )

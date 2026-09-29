@@ -1,19 +1,11 @@
-import { ImageViewMode } from '@/features/generator-previewers/states/useImageViewModeStore'
+import {
+  ImageViewMode,
+  useImageViewModeStore
+} from '@/features/generator-previewers/states/useImageViewModeStore'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorAction } from '../GeneratorAction'
-
-// Mock the useImageViewModeStore
-vi.mock('@/features/generator-previewers/states/useImageViewModeStore', () => {
-  const setViewMode = vi.fn()
-  return {
-    useImageViewModeStore: vi.fn(() => ({
-      viewMode: 'grid' as ImageViewMode,
-      setViewMode
-    }))
-  }
-})
 
 // Mock the GeneratorActionSubmitButton component
 vi.mock('../GeneratorActionSubmitButton', () => ({
@@ -22,107 +14,42 @@ vi.mock('../GeneratorActionSubmitButton', () => ({
   )
 }))
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => {
-  const mockSelectionChange = vi.fn()
-  return {
-    Select: ({
-      children,
-      className,
-      selectedKeys,
-      onSelectionChange,
-      'aria-label': ariaLabel
-    }: {
-      children: React.ReactNode
-      className?: string
-      selectedKeys?: string[]
-      onSelectionChange?: (keys: Set<string>) => void
-      'aria-label'?: string
-    }) => {
-      // Store the onSelectionChange callback for testing
-      if (onSelectionChange) {
-        mockSelectionChange.mockImplementation(onSelectionChange)
-      }
-
-      return (
-        <div
-          data-testid="select-mock"
-          className={className}
-          aria-label={ariaLabel}
-          onClick={() => mockSelectionChange(new Set(['slider']))}
-        >
-          {selectedKeys && (
-            <span data-testid="selected-key">{selectedKeys[0]}</span>
-          )}
-          {children}
-        </div>
-      )
-    },
-    SelectItem: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="select-item">{children}</div>
-    ),
-    Selection: Set
-  }
-})
+const getViewSelect = () => screen.getByRole('button', { name: /View/ })
 
 describe('GeneratorAction', () => {
-  const setViewModeMock = vi.fn()
-
-  beforeEach(async () => {
-    // Reset the mock before each test
-    setViewModeMock.mockReset()
-
-    // Update the mock implementation for useImageViewModeStore
-    const storeModule =
-      await import('@/features/generator-previewers/states/useImageViewModeStore')
-    const mockedStore = vi.mocked(storeModule.useImageViewModeStore)
-    mockedStore.mockImplementation(() => ({
-      viewMode: 'grid' as ImageViewMode,
-      setViewMode: setViewModeMock
-    }))
+  beforeEach(() => {
+    useImageViewModeStore.setState({ viewMode: ImageViewMode.GRID })
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('should render the component with submit button and view selector', () => {
-    // Arrange & Act
+  it('renders the submit button and the view selector with the current mode', () => {
     render(<GeneratorAction onGenerate={vi.fn()} />)
 
-    // Assert
     expect(screen.getByTestId('submit-button-mock')).toBeInTheDocument()
-    expect(screen.getByTestId('select-mock')).toBeInTheDocument()
-    expect(screen.getByTestId('selected-key')).toHaveTextContent('grid')
-
-    // Check for SelectItem content
-    const selectItems = screen.getAllByTestId('select-item')
-    expect(selectItems).toHaveLength(2)
-    expect(selectItems[0]).toHaveTextContent('Grid View')
-    expect(selectItems[1]).toHaveTextContent('Slider View')
+    expect(getViewSelect()).toHaveTextContent('Grid View')
   })
 
-  it('should have the correct CSS classes and attributes', () => {
-    // Arrange & Act
+  it('lists both view modes', async () => {
+    const user = userEvent.setup()
     render(<GeneratorAction onGenerate={vi.fn()} />)
 
-    // Assert
-    expect(screen.getByTestId('select-mock')).toHaveClass('max-w-32')
-    expect(screen.getByTestId('select-mock')).toHaveAttribute(
-      'aria-label',
-      'View'
-    )
+    await user.click(getViewSelect())
+
+    expect(
+      screen.getByRole('option', { name: 'Grid View' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: 'Slider View' })
+    ).toBeInTheDocument()
   })
 
-  it('should change view mode when selection changes', async () => {
-    // Arrange
+  it('changes view mode when another option is chosen', async () => {
+    const user = userEvent.setup()
     render(<GeneratorAction onGenerate={vi.fn()} />)
-    const select = screen.getByTestId('select-mock')
 
-    // Act
-    await userEvent.click(select)
+    await user.click(getViewSelect())
+    await user.click(screen.getByRole('option', { name: 'Slider View' }))
 
-    // Assert
-    expect(setViewModeMock).toHaveBeenCalledWith('slider')
+    expect(useImageViewModeStore.getState().viewMode).toBe(ImageViewMode.SLIDER)
+    expect(getViewSelect()).toHaveTextContent('Slider View')
   })
 })

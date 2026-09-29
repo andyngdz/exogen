@@ -1,7 +1,10 @@
 import { UpscaleFactor, UpscalerType } from '@/cores/constants'
-import { createQueryClientWrapper } from '@/cores/test-utils'
+import {
+  createQueryClientWrapper,
+  createStoreSelectorMock
+} from '@/cores/test-utils'
 import { api } from '@/services'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGenerator } from '../useGenerator'
@@ -20,23 +23,27 @@ vi.mock('@/services/api', () => ({
   }
 }))
 
-// Mock HeroUI addToast function
+// Mock HeroUI toast functions
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn()
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 // Mock the store hooks
 vi.mock('../useGenerationStatusStore', () => ({
-  useGenerationStatusStore: vi.fn().mockReturnValue({
-    onSetIsGenerating: vi.fn()
-  })
+  useGenerationStatusStore: vi.fn((selector: (state: object) => unknown) =>
+    selector({
+      onSetIsGenerating: vi.fn()
+    })
+  )
 }))
 
 vi.mock('../useImageGenerationResponseStores', () => ({
-  useUseImageGenerationStore: vi.fn().mockReturnValue({
-    onCompleted: vi.fn(),
-    onInit: vi.fn()
-  })
+  useUseImageGenerationStore: vi.fn((selector: (state: object) => unknown) =>
+    selector({
+      onCompleted: vi.fn(),
+      onInit: vi.fn()
+    })
+  )
 }))
 
 vi.mock('../useHiresFixEnabledStore', () => ({
@@ -48,10 +55,12 @@ afterEach(() => {
 })
 
 beforeEach(() => {
-  vi.mocked(useHiresFixEnabledStore).mockReturnValue({
-    isHiresFixEnabled: false,
-    setIsHiresFixEnabled: vi.fn()
-  })
+  vi.mocked(useHiresFixEnabledStore).mockImplementation(
+    createStoreSelectorMock({
+      isHiresFixEnabled: false,
+      setIsHiresFixEnabled: vi.fn()
+    })
+  )
 })
 
 describe('useGenerator', () => {
@@ -74,9 +83,11 @@ describe('useGenerator', () => {
 
   it('should call mutate with the config and update generation status', async () => {
     const mockSetIsGenerating = vi.fn()
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
@@ -105,13 +116,17 @@ describe('useGenerator', () => {
     const mockInit = vi.fn()
     const mockCompleted = vi.fn()
 
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      onInit: mockInit,
-      onCompleted: mockCompleted
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        onInit: mockInit,
+        onCompleted: mockCompleted
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
@@ -142,14 +157,18 @@ describe('useGenerator', () => {
     // Mock store functions
     const mockSetIsGenerating = vi.fn()
 
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
 
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      onInit: vi.fn(),
-      onCompleted: vi.fn()
-    })
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        onInit: vi.fn(),
+        onCompleted: vi.fn()
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
@@ -187,13 +206,17 @@ describe('useGenerator', () => {
     const mockSetIsGenerating = vi.fn()
     const mockInit = vi.fn()
 
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      onInit: mockInit,
-      onCompleted: vi.fn()
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        onInit: mockInit,
+        onCompleted: vi.fn()
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
@@ -212,11 +235,9 @@ describe('useGenerator', () => {
 
     expect(api.addHistory).toHaveBeenCalledWith(mockConfig)
     expect(api.generator).toHaveBeenCalled()
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Something went wrong',
-        color: 'danger'
-      })
+    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+      'Something went wrong',
+      expect.anything()
     )
 
     // Verify store interactions
@@ -231,14 +252,18 @@ describe('useGenerator', () => {
     // Mock store functions
     const mockSetIsGenerating = vi.fn()
 
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
 
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      onInit: vi.fn(),
-      onCompleted: vi.fn()
-    })
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        onInit: vi.fn(),
+        onCompleted: vi.fn()
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
@@ -247,11 +272,9 @@ describe('useGenerator', () => {
       await result.current.onGenerate(mockConfig)
     })
 
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Added history',
-        color: 'success'
-      })
+    expect(vi.mocked(toast.success)).toHaveBeenCalledWith(
+      'Added history',
+      expect.anything()
     )
   })
 
@@ -262,19 +285,25 @@ describe('useGenerator', () => {
         items: [],
         nsfw_content_detected: []
       })
-      vi.mocked(useHiresFixEnabledStore).mockReturnValue({
-        isHiresFixEnabled: true,
-        setIsHiresFixEnabled: vi.fn()
-      })
+      vi.mocked(useHiresFixEnabledStore).mockImplementation(
+        createStoreSelectorMock({
+          isHiresFixEnabled: true,
+          setIsHiresFixEnabled: vi.fn()
+        })
+      )
 
       const mockSetIsGenerating = vi.fn()
-      vi.mocked(useGenerationStatusStore).mockReturnValue({
-        onSetIsGenerating: mockSetIsGenerating
-      })
-      vi.mocked(useUseImageGenerationStore).mockReturnValue({
-        onInit: vi.fn(),
-        onCompleted: vi.fn()
-      })
+      vi.mocked(useGenerationStatusStore).mockImplementation(
+        createStoreSelectorMock({
+          onSetIsGenerating: mockSetIsGenerating
+        })
+      )
+      vi.mocked(useUseImageGenerationStore).mockImplementation(
+        createStoreSelectorMock({
+          onInit: vi.fn(),
+          onCompleted: vi.fn()
+        })
+      )
 
       const configWithHiresFix = {
         ...mockConfig,
@@ -306,19 +335,25 @@ describe('useGenerator', () => {
         items: [],
         nsfw_content_detected: []
       })
-      vi.mocked(useHiresFixEnabledStore).mockReturnValue({
-        isHiresFixEnabled: false,
-        setIsHiresFixEnabled: vi.fn()
-      })
+      vi.mocked(useHiresFixEnabledStore).mockImplementation(
+        createStoreSelectorMock({
+          isHiresFixEnabled: false,
+          setIsHiresFixEnabled: vi.fn()
+        })
+      )
 
       const mockSetIsGenerating = vi.fn()
-      vi.mocked(useGenerationStatusStore).mockReturnValue({
-        onSetIsGenerating: mockSetIsGenerating
-      })
-      vi.mocked(useUseImageGenerationStore).mockReturnValue({
-        onInit: vi.fn(),
-        onCompleted: vi.fn()
-      })
+      vi.mocked(useGenerationStatusStore).mockImplementation(
+        createStoreSelectorMock({
+          onSetIsGenerating: mockSetIsGenerating
+        })
+      )
+      vi.mocked(useUseImageGenerationStore).mockImplementation(
+        createStoreSelectorMock({
+          onInit: vi.fn(),
+          onCompleted: vi.fn()
+        })
+      )
 
       const configWithHiresFix = {
         ...mockConfig,

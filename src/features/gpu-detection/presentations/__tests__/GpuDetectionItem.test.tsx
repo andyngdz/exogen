@@ -104,6 +104,6 @@ describe('GpuDetectionItem', () => {
     expect(gpuName).toHaveClass('font-bold')
 
     const memoryText = screen.getByText('24.0 GB')
-    expect(memoryText).toHaveClass('text-sm', 'text-default-700', 'font-medium')
+    expect(memoryText).toHaveClass('text-sm', 'text-foreground', 'font-medium')
   })
 })

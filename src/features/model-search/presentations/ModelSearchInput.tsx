@@ -1,9 +1,16 @@
-import { Input } from '@heroui/react'
-import { useFormContext } from 'react-hook-form'
-import { ModelSearchFormValues } from '../types'
+import { useModelSearchQueryField } from '@/features/model-search/states/useModelSearchQueryField'
+import { Input, TextField } from '@heroui/react'
 
 export const ModelSearchInput = () => {
-  const { register } = useFormContext<ModelSearchFormValues>()
+  const { query, onQueryChange } = useModelSearchQueryField()
 
-  return <Input placeholder="Model name, author, ..." {...register('query')} />
+  return (
+    <TextField
+      aria-label="Search models"
+      value={query}
+      onChange={onQueryChange}
+    >
+      <Input placeholder="Model name, author, ..." />
+    </TextField>
+  )
 }

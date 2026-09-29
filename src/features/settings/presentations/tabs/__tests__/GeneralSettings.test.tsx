@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneralSettings } from '../GeneralSettings'
 import { useGeneralSettings } from '../../../states/useGeneralSettings'
@@ -7,38 +8,39 @@ vi.mock('../../../states/useGeneralSettings', () => ({
   useGeneralSettings: vi.fn()
 }))
 
-vi.mock('@heroui/react', () => ({
-  Switch: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  Divider: () => <hr />
-}))
-
 describe('GeneralSettings', () => {
-  const mockRegister = vi.fn()
+  const mockOnSafetyCheckChange = vi.fn()
 
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useGeneralSettings).mockReturnValue({
-      register: mockRegister
+      isSafetyCheckEnabled: true,
+      onSafetyCheckChange: mockOnSafetyCheckChange
     })
   })
 
   it('renders with SettingsBase title and description', () => {
     render(<GeneralSettings />)
-    expect(screen.getByText('General')).toBeInTheDocument()
+
+    expect(screen.getByRole('heading', { name: 'General' })).toBeInTheDocument()
     expect(
       screen.getByText('Configure general application settings')
     ).toBeInTheDocument()
+    expect(screen.getByRole('separator')).toBeInTheDocument()
   })
 
-  it('renders safety check switch', () => {
+  it('renders the safety check switch with the stored value', () => {
     render(<GeneralSettings />)
-    expect(screen.getByText('Safety check')).toBeInTheDocument()
+
+    expect(screen.getByRole('switch', { name: 'Safety check' })).toBeChecked()
   })
 
-  it('registers safety_check_enabled field', () => {
+  it('reports the new value when the switch is toggled', async () => {
+    const user = userEvent.setup()
     render(<GeneralSettings />)
-    expect(mockRegister).toHaveBeenCalledWith('safety_check_enabled')
+
+    await user.click(screen.getByRole('switch', { name: 'Safety check' }))
+
+    expect(mockOnSafetyCheckChange).toHaveBeenCalledWith(false)
   })
 })

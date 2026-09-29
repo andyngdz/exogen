@@ -6,7 +6,7 @@ import {
   useUseImageGenerationStore
 } from '@/features/generators'
 import { GeneratorMode } from '@/types'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useCallback, useState } from 'react'
 
 import { dataUrlService } from '@/services/data-url'
@@ -15,11 +15,17 @@ import { useGeneratorPhotoviewStore } from './useGeneratorPhotoviewStore'
 
 export const useGeneratorPhotoviewModalModel = () => {
   const baseURL = useBackendUrl()
-  const { isOpen, currentIndex, closePhotoview } = useGeneratorPhotoviewStore()
-  const { items } = useUseImageGenerationStore()
+  const isOpen = useGeneratorPhotoviewStore((state) => state.isOpen)
+  const currentIndex = useGeneratorPhotoviewStore((state) => state.currentIndex)
+  const closePhotoview = useGeneratorPhotoviewStore(
+    (state) => state.closePhotoview
+  )
+  const items = useUseImageGenerationStore((state) => state.items)
   const { onDownloadImage } = useDownloadImages()
-  const { setInitImageBase64 } = useImage2ImageConfigStore()
-  const { setMode } = useGeneratorModeStore()
+  const setInitImageBase64 = useImage2ImageConfigStore(
+    (state) => state.setInitImageBase64
+  )
+  const setMode = useGeneratorModeStore((state) => state.setMode)
   const [isUsingAsInput, setIsUsingAsInput] = useState(false)
 
   const safeIndex = Math.min(Math.max(0, currentIndex), items.length - 1)
@@ -38,13 +44,11 @@ export const useGeneratorPhotoviewModalModel = () => {
       setMode(GeneratorMode.IMAGE_2_IMAGE)
       closePhotoview()
     } catch (error: unknown) {
-      addToast({
-        title: 'Use as input',
+      toast.danger('Use as input', {
         description:
           error instanceof Error
             ? error.message
-            : 'Failed to use image as input',
-        color: 'danger'
+            : 'Failed to use image as input'
       })
     } finally {
       setIsUsingAsInput(false)

@@ -1,13 +1,19 @@
 import { create } from 'zustand'
 
-export type ImageViewMode = 'grid' | 'slider'
-
-interface ImageViewModeStore {
-  viewMode: ImageViewMode
-  setViewMode: (mode: ImageViewMode) => void
+export enum ImageViewMode {
+  GRID = 'grid',
+  SLIDER = 'slider'
 }
 
-export const useImageViewModeStore = create<ImageViewModeStore>((set) => ({
-  viewMode: 'grid',
-  setViewMode: (mode) => set({ viewMode: mode })
+interface ImageViewModeState {
+  viewMode: ImageViewMode
+}
+
+export const useImageViewModeStore = create<ImageViewModeState>()(() => ({
+  viewMode: ImageViewMode.GRID
 }))
+
+export const IMAGE_VIEW_MODE_ACTIONS = {
+  setViewMode: (viewMode: ImageViewMode) =>
+    useImageViewModeStore.setState({ viewMode })
+}

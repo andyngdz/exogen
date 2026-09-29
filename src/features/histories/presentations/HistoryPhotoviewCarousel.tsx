@@ -4,7 +4,7 @@ import 'swiper/css'
 
 import { useHistoriesQuery } from '@/cores/api-queries'
 import { SwiperNavigationActions } from '@/cores/presentations'
-import { isEmpty } from 'es-toolkit/compat'
+import { isEmpty, map } from 'es-toolkit/compat'
 import { FC, useMemo } from 'react'
 import { Keyboard, Mousewheel } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -27,7 +27,7 @@ export const HistoryPhotoviewCarousel: FC<HistoryPhotoviewCarouselProps> = ({
   }, [currentHistoryId, histories])
 
   const slides = useMemo(() => {
-    return histories.map((history) => (
+    return map(histories, (history) => (
       <SwiperSlide key={history.id}>
         <HistoryPhotoviewCard history={history} />
       </SwiperSlide>
@@ -36,7 +36,7 @@ export const HistoryPhotoviewCarousel: FC<HistoryPhotoviewCarouselProps> = ({
 
   if (isEmpty(histories)) {
     return (
-      <div className="flex justify-center items-center h-full text-default-500">
+      <div className="flex justify-center items-center h-full text-muted">
         No history items to display
       </div>
     )

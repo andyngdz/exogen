@@ -57,7 +57,7 @@ describe('BackendLogList', () => {
     const { container } = render(<BackendLogList />)
     // The first div should be the scrollable container
     const scrollContainer = container.firstChild
-    expect(scrollContainer).toHaveClass('py-4', 'overflow-y-auto')
+    expect(scrollContainer).toHaveClass('py-4', 'scroll-shadow--vertical')
   })
 
   it('renders empty list when no logs', () => {
