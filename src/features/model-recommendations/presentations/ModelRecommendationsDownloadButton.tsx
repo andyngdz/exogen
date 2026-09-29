@@ -1,11 +1,8 @@
 'use client'
 
-import {
-  useDownloadWatcher,
-  useDownloadWatcherStore
-} from '@/features/download-watcher'
-import { api, formatter } from '@/services'
-import { Button } from '@heroui/react'
+import { useRecommendationDownload } from '@/features/model-recommendations/states/useRecommendationDownload'
+import { formatter } from '@/services'
+import { Button, ProgressBar } from '@heroui/react'
 import clsx from 'clsx'
 import { ChevronDown } from 'lucide-react'
 import { FC } from 'react'
@@ -17,32 +14,34 @@ interface ModelRecommendationsDownloadButtonProps {
 export const ModelRecommendationsDownloadButton: FC<
   ModelRecommendationsDownloadButtonProps
 > = ({ modelId }) => {
-  const { model_id } = useDownloadWatcherStore()
-  const { percent, isDownloading, downloadSized, downloadTotalSized } =
-    useDownloadWatcher(modelId)
-  const isDisabled = isDownloading || (!!model_id && modelId !== model_id)
-
-  const onDownload = async () => {
-    await api.downloadModel(modelId)
-  }
+  const {
+    progressPercent,
+    isDownloading,
+    isDisabled,
+    downloadSized,
+    downloadTotalSized,
+    onDownload
+  } = useRecommendationDownload(modelId)
 
   return (
     <div className="relative overflow-hidden rounded-lg w-full">
       {isDownloading && (
-        <div
-          className="absolute inset-0 bg-primary/30 transition-all duration-300"
-          style={{ width: `${percent * 100}%` }}
-        />
+        <div className="absolute inset-0">
+          <ProgressBar aria-label="Download progress" value={progressPercent}>
+            <ProgressBar.Track className="h-full rounded-lg bg-transparent">
+              <ProgressBar.Fill className="bg-accent/30" />
+            </ProgressBar.Track>
+          </ProgressBar>
+        </div>
       )}
       <Button
-        color={isDownloading ? 'primary' : 'default'}
+        variant={isDownloading ? 'outline' : 'tertiary'}
         isDisabled={isDisabled}
-        onPress={onDownload}
-        startContent={!isDownloading && <ChevronDown size={16} />}
+        onPress={() => void onDownload()}
         className="w-full relative z-10"
-        variant={isDownloading ? 'bordered' : 'solid'}
         size="sm"
       >
+        {!isDownloading && <ChevronDown size={16} />}
         <span
           className={clsx('font-semibold', {
             'animate-pulse': isDownloading,

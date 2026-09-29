@@ -1,49 +1,47 @@
 'use client'
 
-import {
-  Button,
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerHeader,
-  useDisclosure
-} from '@heroui/react'
+import { Button, Drawer, useOverlayState } from '@heroui/react'
 import { FolderOpen, SquareChevronRight } from 'lucide-react'
-import { useBackendFolder } from '../states'
+import { useBackendFolder } from '@/features/backend-logs/states'
 import { BackendLogList } from './BackendLogList'
 
 export const BackendLog = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const drawerState = useOverlayState()
   const { onOpenBackendFolder } = useBackendFolder()
 
   return (
     <section>
       <Button
-        variant="light"
-        className="text-default-700"
-        onPress={onOpen}
-        endContent={<SquareChevronRight size={16} />}
+        variant="ghost"
+        className="text-foreground"
+        onPress={drawerState.open}
       >
         Console
+        <SquareChevronRight size={16} />
       </Button>
-      <Drawer isOpen={isOpen} onClose={onClose} placement="right" size="5xl">
-        <DrawerContent>
-          <DrawerHeader className="flex items-center gap-2">
-            Backend Logs
-            <Button
-              isIconOnly
-              size="sm"
-              variant="light"
-              onPress={onOpenBackendFolder}
-              aria-label="Open backend folder"
-            >
-              <FolderOpen size={16} />
-            </Button>
-          </DrawerHeader>
-          <DrawerBody className="p-0">
-            <BackendLogList />
-          </DrawerBody>
-        </DrawerContent>
+      <Drawer state={drawerState}>
+        <Drawer.Backdrop>
+          <Drawer.Content placement="right">
+            <Drawer.Dialog className="w-full max-w-5xl">
+              <Drawer.CloseTrigger />
+              <Drawer.Header className="flex flex-row items-center gap-2">
+                <Drawer.Heading>Backend Logs</Drawer.Heading>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="ghost"
+                  onPress={onOpenBackendFolder}
+                  aria-label="Open backend folder"
+                >
+                  <FolderOpen size={16} />
+                </Button>
+              </Drawer.Header>
+              <Drawer.Body className="p-0">
+                <BackendLogList />
+              </Drawer.Body>
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
       </Drawer>
     </section>
   )

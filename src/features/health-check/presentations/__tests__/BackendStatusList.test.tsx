@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { BackendSetupStatusEntry } from '../../states/useBackendSetupStatusStore'
 import { BackendStatusList } from '../BackendStatusList'
 
-vi.mock('lucide-react', () => ({
+vi.mock('lucide-react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('lucide-react')>()),
   CircleDashed: ({
     className,
     size

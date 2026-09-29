@@ -12,12 +12,12 @@ export const ModelRecommendationsHeader: FC<
   ModelRecommendationsHeaderProps
 > = ({ title, description, isRecommended }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
         <h3
           className={clsx(
             'text-xl font-bold',
-            isRecommended ? 'text-primary' : 'text-base-content'
+            isRecommended ? 'text-accent' : 'text-base-content'
           )}
         >
           {title}

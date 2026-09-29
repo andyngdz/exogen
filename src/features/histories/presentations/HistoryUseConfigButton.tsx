@@ -1,8 +1,8 @@
+import { useUseConfig } from '@/features/histories/states/useUseConfig'
 import { HistoryItem } from '@/types'
 import { Button, Tooltip } from '@heroui/react'
 import { Bolt } from 'lucide-react'
 import { FC } from 'react'
-import { useUseConfig } from '../states/useUseConfig'
 
 export interface HistoryUseConfigButtonProps {
   history: HistoryItem
@@ -14,10 +14,17 @@ export const HistoryUseConfigButton: FC<HistoryUseConfigButtonProps> = ({
   const { onUseConfig } = useUseConfig(history)
 
   return (
-    <Tooltip content="Use this config">
-      <Button isIconOnly variant="light" size="sm" onPress={onUseConfig}>
-        <Bolt className="text-default-700" size={16} />
+    <Tooltip delay={0}>
+      <Button
+        isIconOnly
+        variant="ghost"
+        size="sm"
+        aria-label="Use this config"
+        onPress={onUseConfig}
+      >
+        <Bolt className="text-foreground" size={16} />
       </Button>
+      <Tooltip.Content>Use this config</Tooltip.Content>
     </Tooltip>
   )
 }

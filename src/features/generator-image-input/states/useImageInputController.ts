@@ -1,12 +1,13 @@
 'use client'
 
-import { addToast } from '@heroui/react'
+import { ValueChanged } from '@/types'
+import { toast } from '@heroui/react'
 import { useCallback, useState } from 'react'
 
-import { imageInputService } from '../services'
+import { imageInputService } from '@/features/generator-image-input/services'
 
 interface UseImageInputControllerParams {
-  onImageDataUrl: (dataUrl: string) => void
+  onImageDataUrl: ValueChanged<string>
 }
 
 export const useImageInputController = ({
@@ -17,10 +18,8 @@ export const useImageInputController = ({
   const onFile = useCallback(
     async (file: File) => {
       if (!imageInputService.isImageFile(file)) {
-        addToast({
-          title: 'Input image',
-          description: 'Only image files are supported',
-          color: 'danger'
+        toast.danger('Input image', {
+          description: 'Only image files are supported'
         })
         return
       }
@@ -31,11 +30,9 @@ export const useImageInputController = ({
         const dataUrl = await imageInputService.fileToDataUrl(file)
         onImageDataUrl(dataUrl)
       } catch (error: unknown) {
-        addToast({
-          title: 'Input image',
+        toast.danger('Input image', {
           description:
-            error instanceof Error ? error.message : 'Failed to read file',
-          color: 'danger'
+            error instanceof Error ? error.message : 'Failed to read file'
         })
       } finally {
         setIsLoading(false)

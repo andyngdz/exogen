@@ -1,4 +1,5 @@
 import { useDownloadedModels } from '@/cores/hooks'
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { ModelDownloaded } from '@/types/api'
 import { ModelFamily } from '@/types'
 import { render, screen } from '@testing-library/react'
@@ -50,12 +51,14 @@ describe('ModelSelector', () => {
       onCheckDownloaded: vi.fn()
     })
 
-    vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-1',
-      loaded_model_family: ModelFamily.UNKNOWN,
-      setSelectedModelId: mockSetId,
-      setLoadedModelFamily: vi.fn()
-    })
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-1',
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetId,
+        setLoadedModelFamily: vi.fn()
+      })
+    )
   })
 
   it('should render the dropdown with current model id', () => {
@@ -72,24 +75,28 @@ describe('ModelSelector', () => {
     [ModelFamily.SD3, 'SD3'],
     [ModelFamily.FLUX, 'FLUX']
   ])('shows model family label: %s', (family, label) => {
-    vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-1',
-      loaded_model_family: family,
-      setSelectedModelId: mockSetId,
-      setLoadedModelFamily: vi.fn()
-    })
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-1',
+        loaded_model_family: family,
+        setSelectedModelId: mockSetId,
+        setLoadedModelFamily: vi.fn()
+      })
+    )
 
     render(<ModelSelector />)
     expect(screen.getByText(label)).toBeInTheDocument()
   })
 
   it('does not show model family label when unknown', () => {
-    vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-1',
-      loaded_model_family: ModelFamily.UNKNOWN,
-      setSelectedModelId: mockSetId,
-      setLoadedModelFamily: vi.fn()
-    })
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-1',
+        loaded_model_family: ModelFamily.UNKNOWN,
+        setSelectedModelId: mockSetId,
+        setLoadedModelFamily: vi.fn()
+      })
+    )
 
     render(<ModelSelector />)
     expect(screen.queryByText('SD 1.5')).not.toBeInTheDocument()
@@ -100,12 +107,14 @@ describe('ModelSelector', () => {
   })
 
   it('does not show model family label for unexpected family', () => {
-    vi.mocked(useModelSelectorStore).mockReturnValue({
-      selected_model_id: 'model-1',
-      loaded_model_family: 'unexpected' as unknown as ModelFamily,
-      setSelectedModelId: mockSetId,
-      setLoadedModelFamily: vi.fn()
-    })
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-1',
+        loaded_model_family: 'unexpected' as unknown as ModelFamily,
+        setSelectedModelId: mockSetId,
+        setLoadedModelFamily: vi.fn()
+      })
+    )
 
     render(<ModelSelector />)
     expect(screen.queryByText('SD 1.5')).not.toBeInTheDocument()
@@ -137,8 +146,12 @@ describe('ModelSelector', () => {
 
     // Check that all model options are displayed
     // Use getAllByText and check count since there are multiple elements with these texts
-    expect(screen.getAllByText('model-1').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('model-2').length).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getByRole('menuitemradio', { name: 'model-1' })
+    ).toHaveAttribute('aria-checked', 'true')
+    expect(
+      screen.getByRole('menuitemradio', { name: 'model-2' })
+    ).toHaveAttribute('aria-checked', 'false')
   })
 
   it('should call setId when a different model is selected', async () => {
@@ -149,7 +162,7 @@ describe('ModelSelector', () => {
     await user.click(screen.getByRole('button'))
 
     // Select a different model
-    await user.click(screen.getByText('model-2'))
+    await user.click(screen.getByRole('menuitemradio', { name: 'model-2' }))
 
     // Check that setId was called with the correct model ID
     expect(mockSetId).toHaveBeenCalledWith('model-2')

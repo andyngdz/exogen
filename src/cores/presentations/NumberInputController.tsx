@@ -1,51 +1,59 @@
-import { NumberInput, NumberInputProps } from '@heroui/react'
-import { Control, FieldValues, Path, useController } from 'react-hook-form'
+import {
+  Description,
+  FieldError,
+  InputGroup,
+  NumberField,
+  NumberFieldProps
+} from '@heroui/react'
+import { useNumberInputController } from '@/cores/hooks/useNumberInputController'
+import { ReactNode } from 'react'
+import { FieldValues, Path } from 'react-hook-form'
 
-export interface NumberInputControllerProps<
-  T extends FieldValues,
-  C
-> extends NumberInputProps {
-  control: Control<T, C, T>
+export interface NumberInputControllerProps<T extends FieldValues> extends Omit<
+  NumberFieldProps,
+  'value' | 'onChange' | 'children'
+> {
   controlName: Path<T>
   maximumFractionDigits?: number
+  startContent?: ReactNode
+  endContent?: ReactNode
+  description?: ReactNode
 }
 
-export const NumberInputController = <T extends FieldValues, C>({
-  control,
+export const NumberInputController = <T extends FieldValues>({
   controlName,
   minValue,
   maximumFractionDigits = 0,
+  startContent,
+  endContent,
+  description,
   ...restProps
-}: NumberInputControllerProps<T, C>) => {
-  const { field, fieldState } = useController({
-    control,
-    name: controlName,
-    rules: {
-      validate: (value) => {
-        if (Number.isNaN(value)) {
-          return 'Input is required'
-        }
-      }
-    }
-  })
+}: NumberInputControllerProps<T>) => {
+  const { value, onChange, isInvalid, errorMessage } =
+    useNumberInputController<T>(controlName)
 
   return (
-    <NumberInput
+    <NumberField
+      className="min-w-0"
       {...restProps}
-      hideStepper
+      fullWidth
       minValue={minValue}
-      value={field.value}
-      onValueChange={field.onChange}
+      value={value}
+      onChange={onChange}
       formatOptions={{
         useGrouping: false,
         minimumFractionDigits: 0,
         maximumFractionDigits
       }}
-      errorMessage={fieldState.error?.message}
-      isInvalid={fieldState.invalid}
-      classNames={{
-        inputWrapper: 'max-h-8'
-      }}
-    />
+      isInvalid={isInvalid}
+    >
+      <InputGroup fullWidth>
+        {startContent && <InputGroup.Prefix>{startContent}</InputGroup.Prefix>}
+        <InputGroup.Input className="min-w-0" />
+        {endContent && <InputGroup.Suffix>{endContent}</InputGroup.Suffix>}
+      </InputGroup>
+      {description && <Description>{description}</Description>}
+      <FieldError>{errorMessage}</FieldError>
+    </NumberField>
   )
 }

@@ -1,8 +1,11 @@
-import { createQueryClientWrapper } from '@/cores/test-utils'
+import {
+  createQueryClientWrapper,
+  createStoreSelectorMock
+} from '@/cores/test-utils'
 import { UpscaleFactor, UpscalerType } from '@/cores/constants'
 import { api } from '@/services'
 import { Image2ImageResizeMode } from '@/types'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useImage2ImageConfigStore } from '../useImage2ImageConfigStore'
@@ -22,20 +25,24 @@ vi.mock('@/services/api', () => ({
 }))
 
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn()
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 vi.mock('../useGenerationStatusStore', () => ({
-  useGenerationStatusStore: vi.fn().mockReturnValue({
-    onSetIsGenerating: vi.fn()
-  })
+  useGenerationStatusStore: vi.fn((selector: (state: object) => unknown) =>
+    selector({
+      onSetIsGenerating: vi.fn()
+    })
+  )
 }))
 
 vi.mock('../useImageGenerationResponseStores', () => ({
-  useUseImageGenerationStore: vi.fn().mockReturnValue({
-    onCompleted: vi.fn(),
-    onInit: vi.fn()
-  })
+  useUseImageGenerationStore: vi.fn((selector: (state: object) => unknown) =>
+    selector({
+      onCompleted: vi.fn(),
+      onInit: vi.fn()
+    })
+  )
 }))
 
 vi.mock('../useHiresFixEnabledStore', () => ({
@@ -50,18 +57,24 @@ afterEach(() => {
 beforeEach(() => {
   useImage2ImageConfigStore.getState().reset()
 
-  vi.mocked(useHiresFixEnabledStore).mockReturnValue({
-    isHiresFixEnabled: false,
-    setIsHiresFixEnabled: vi.fn()
-  })
+  vi.mocked(useHiresFixEnabledStore).mockImplementation(
+    createStoreSelectorMock({
+      isHiresFixEnabled: false,
+      setIsHiresFixEnabled: vi.fn()
+    })
+  )
 
-  vi.mocked(useGenerationStatusStore).mockReturnValue({
-    onSetIsGenerating: vi.fn()
-  })
-  vi.mocked(useUseImageGenerationStore).mockReturnValue({
-    onCompleted: vi.fn(),
-    onInit: vi.fn()
-  })
+  vi.mocked(useGenerationStatusStore).mockImplementation(
+    createStoreSelectorMock({
+      onSetIsGenerating: vi.fn()
+    })
+  )
+  vi.mocked(useUseImageGenerationStore).mockImplementation(
+    createStoreSelectorMock({
+      onCompleted: vi.fn(),
+      onInit: vi.fn()
+    })
+  )
 })
 
 describe('useImage2ImageGenerator', () => {
@@ -94,11 +107,9 @@ describe('useImage2ImageGenerator', () => {
       await result.current.onGenerate(baseConfig)
     })
 
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Missing input image',
-        color: 'warning'
-      })
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(
+      'Missing input image',
+      expect.anything()
     )
     expect(api.img2img).not.toHaveBeenCalled()
   })
@@ -115,16 +126,20 @@ describe('useImage2ImageGenerator', () => {
       .setResizeMode(Image2ImageResizeMode.CROP)
 
     const mockSetIsGenerating = vi.fn()
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      onSetIsGenerating: mockSetIsGenerating
-    })
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        onSetIsGenerating: mockSetIsGenerating
+      })
+    )
 
     const mockInit = vi.fn()
     const mockCompleted = vi.fn()
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      onInit: mockInit,
-      onCompleted: mockCompleted
-    })
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        onInit: mockInit,
+        onCompleted: mockCompleted
+      })
+    )
 
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useImage2ImageGenerator(), { wrapper })
@@ -156,10 +171,12 @@ describe('useImage2ImageGenerator', () => {
 
   it('calls POST /img2img with hires_fix when enabled', async () => {
     vi.mocked(api.addHistory).mockResolvedValue(1)
-    vi.mocked(useHiresFixEnabledStore).mockReturnValue({
-      isHiresFixEnabled: true,
-      setIsHiresFixEnabled: vi.fn()
-    })
+    vi.mocked(useHiresFixEnabledStore).mockImplementation(
+      createStoreSelectorMock({
+        isHiresFixEnabled: true,
+        setIsHiresFixEnabled: vi.fn()
+      })
+    )
 
     useImage2ImageConfigStore
       .getState()

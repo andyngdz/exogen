@@ -1,9 +1,10 @@
 'use client'
 
+import { useGeneratorConfigStyleSection } from '@/features/generator-config-styles/states/useGeneratorConfigStyleSection'
 import { StyleSection } from '@/types'
-import { Card, CardBody, CardHeader, ScrollShadow } from '@heroui/react'
+import { Card, ScrollShadow } from '@heroui/react'
+import { map } from 'es-toolkit/compat'
 import { FC } from 'react'
-import { useGeneratorConfigStyleSection } from '../states/useGeneratorConfigStyleSection'
 import { GeneratorConfigStyleItem } from './GeneratorConfigStyleItem'
 
 interface GeneratorConfigStyleSectionProps {
@@ -22,7 +23,7 @@ export const GeneratorConfigStyleSection: FC<
         className="relative w-full"
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+        {map(rowVirtualizer.getVirtualItems(), (virtualItem) => {
           const styleSection = styleSections[virtualItem.index]
 
           return (
@@ -35,20 +36,22 @@ export const GeneratorConfigStyleSection: FC<
                 transform: `translateY(${virtualItem.start}px)`
               }}
             >
-              <Card shadow="sm">
-                <CardHeader className="text-lg font-medium capitalize">
+              <Card variant="secondary">
+                <Card.Header className="text-lg font-medium capitalize">
                   {styleSection.id}
-                </CardHeader>
-                <CardBody>
+                </Card.Header>
+                <Card.Content>
                   <div className="flex flex-wrap gap-2">
-                    {styleSection.styles.map((styleItem) => (
+                    {map(styleSection.styles, (styleItem) => (
                       <GeneratorConfigStyleItem
                         key={styleItem.id}
                         styleItem={styleItem}
+                        color="accent"
+                        variant="soft"
                       />
                     ))}
                   </div>
-                </CardBody>
+                </Card.Content>
               </Card>
             </div>
           )

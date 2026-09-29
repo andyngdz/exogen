@@ -13,29 +13,6 @@ vi.mock('next/image', () => ({
   }
 }))
 
-// Mock dependencies
-vi.mock('@heroui/react', async () => {
-  const actual =
-    await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
-  return {
-    ...actual,
-    Accordion: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="accordion">{children}</div>
-    ),
-    AccordionItem: ({
-      children,
-      title
-    }: {
-      children: React.ReactNode
-      title: string
-    }) => (
-      <div data-testid="accordion-item" data-title={title}>
-        {children}
-      </div>
-    )
-  }
-})
-
 vi.mock('../../states', () => ({
   useHistories: vi.fn()
 }))
@@ -157,10 +134,12 @@ describe('Histories', () => {
 
     render(<Histories />)
 
-    const accordionItems = screen.getAllByTestId('accordion-item')
-    expect(accordionItems).toHaveLength(2)
-    expect(accordionItems[0]).toHaveAttribute('data-title', '2023-01-01')
-    expect(accordionItems[1]).toHaveAttribute('data-title', '2023-01-02')
+    expect(
+      screen.getByRole('button', { name: '2023-01-01' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: '2023-01-02' })
+    ).toBeInTheDocument()
     expect(vi.mocked(HistoryGroup)).toHaveBeenCalledTimes(2)
   })
 })

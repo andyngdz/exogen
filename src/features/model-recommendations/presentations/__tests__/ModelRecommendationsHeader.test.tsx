@@ -45,7 +45,7 @@ describe('ModelRecommendationsHeader', () => {
     )
 
     const title = screen.getByText('Test Model')
-    expect(title).toHaveClass('text-primary')
+    expect(title).toHaveClass('text-accent')
     expect(title).not.toHaveClass('text-base-content')
   })
 
@@ -56,7 +56,7 @@ describe('ModelRecommendationsHeader', () => {
 
     const title = screen.getByText('Test Model')
     expect(title).toHaveClass('text-base-content')
-    expect(title).not.toHaveClass('text-primary')
+    expect(title).not.toHaveClass('text-accent')
   })
 
   it('applies correct styling to the layout', () => {

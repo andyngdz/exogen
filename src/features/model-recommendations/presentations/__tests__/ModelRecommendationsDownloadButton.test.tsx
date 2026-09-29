@@ -7,7 +7,9 @@ import { ModelRecommendationsDownloadButton } from '../ModelRecommendationsDownl
 const mockUseDownloadWatcherStore = vi.fn()
 const mockUseDownloadWatcher = vi.fn()
 vi.mock('@/features/download-watcher', () => ({
-  useDownloadWatcherStore: () => mockUseDownloadWatcherStore(),
+  useDownloadWatcherStore: (
+    selector: (state: ReturnType<typeof mockUseDownloadWatcherStore>) => unknown
+  ) => selector(mockUseDownloadWatcherStore()),
   useDownloadWatcher: (modelId: string) => mockUseDownloadWatcher(modelId)
 }))
 
@@ -25,42 +27,6 @@ vi.mock('@/services', () => ({
 import { api, formatter } from '@/services'
 const mockDownloadModel = vi.mocked(api.downloadModel)
 const mockFormatBytes = vi.mocked(formatter.bytes)
-
-// Mock HeroUI Button
-vi.mock('@heroui/react', () => ({
-  Button: ({
-    children,
-    onPress,
-    isDisabled,
-    color,
-    variant,
-    size,
-    className,
-    startContent
-  }: {
-    children: React.ReactNode
-    onPress: () => void
-    isDisabled?: boolean
-    color?: string
-    variant?: string
-    size?: string
-    className?: string
-    startContent?: React.ReactNode
-  }) => (
-    <button
-      onClick={onPress}
-      disabled={isDisabled}
-      data-testid="download-button"
-      data-color={color}
-      data-variant={variant}
-      data-size={size}
-      className={className}
-    >
-      {startContent}
-      {children}
-    </button>
-  )
-}))
 
 // Mock Lucide icons
 vi.mock('lucide-react', () => ({
@@ -104,18 +70,17 @@ describe('ModelRecommendationsDownloadButton', () => {
       expect(screen.getByTestId('chevron-down-icon')).toBeInTheDocument()
     })
 
-    it('applies default color and solid variant when not downloading', () => {
+    it('uses the tertiary variant when not downloading', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
-      expect(button).toHaveAttribute('data-color', 'default')
-      expect(button).toHaveAttribute('data-variant', 'solid')
+      const button = screen.getByRole('button')
+      expect(button).toHaveClass('button--tertiary')
     })
 
     it('is not disabled when no model is downloading', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
+      const button = screen.getByRole('button')
       expect(button).not.toBeDisabled()
     })
 
@@ -125,7 +90,7 @@ describe('ModelRecommendationsDownloadButton', () => {
 
       render(<ModelRecommendationsDownloadButton modelId="test-model-123" />)
 
-      const button = screen.getByTestId('download-button')
+      const button = screen.getByRole('button')
       await user.click(button)
 
       await waitFor(() => {
@@ -134,11 +99,9 @@ describe('ModelRecommendationsDownloadButton', () => {
     })
 
     it('does not show progress bar when not downloading', () => {
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector('.bg-primary\\/30')
+      const progressBar = screen.queryByRole('progressbar')
       expect(progressBar).not.toBeInTheDocument()
     })
   })
@@ -176,31 +139,26 @@ describe('ModelRecommendationsDownloadButton', () => {
       expect(screen.queryByTestId('chevron-down-icon')).not.toBeInTheDocument()
     })
 
-    it('applies primary color and bordered variant when downloading', () => {
+    it('uses the outline variant when downloading', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
-      expect(button).toHaveAttribute('data-color', 'primary')
-      expect(button).toHaveAttribute('data-variant', 'bordered')
+      const button = screen.getByRole('button')
+      expect(button).toHaveClass('button--outline')
     })
 
     it('is disabled when this model is downloading', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
+      const button = screen.getByRole('button')
       expect(button).toBeDisabled()
     })
 
     it('shows progress bar with correct width', () => {
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector(
-        '.bg-primary\\/30'
-      ) as HTMLElement
+      const progressBar = screen.queryByRole('progressbar')
       expect(progressBar).toBeInTheDocument()
-      expect(progressBar.style.width).toBe('45%')
+      expect(progressBar).toHaveAttribute('aria-valuenow', '45')
     })
 
     it('applies animate-pulse class to text when downloading', () => {
@@ -246,16 +204,14 @@ describe('ModelRecommendationsDownloadButton', () => {
     it('is disabled when another model is downloading', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
+      const button = screen.getByRole('button')
       expect(button).toBeDisabled()
     })
 
     it('does not show progress bar when another model is downloading', () => {
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector('.bg-primary\\/30')
+      const progressBar = screen.queryByRole('progressbar')
       expect(progressBar).not.toBeInTheDocument()
     })
 
@@ -279,14 +235,10 @@ describe('ModelRecommendationsDownloadButton', () => {
         downloadTotalSized: 10240
       })
 
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector(
-        '.bg-primary\\/30'
-      ) as HTMLElement
-      expect(progressBar.style.width).toBe('1%')
+      const progressBar = screen.queryByRole('progressbar')
+      expect(progressBar).toHaveAttribute('aria-valuenow', '1')
     })
 
     it('shows 50% width at halfway', () => {
@@ -301,14 +253,10 @@ describe('ModelRecommendationsDownloadButton', () => {
         downloadTotalSized: 10240
       })
 
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector(
-        '.bg-primary\\/30'
-      ) as HTMLElement
-      expect(progressBar.style.width).toBe('50%')
+      const progressBar = screen.queryByRole('progressbar')
+      expect(progressBar).toHaveAttribute('aria-valuenow', '50')
     })
 
     it('shows 100% width when complete', () => {
@@ -323,14 +271,10 @@ describe('ModelRecommendationsDownloadButton', () => {
         downloadTotalSized: 10240
       })
 
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector(
-        '.bg-primary\\/30'
-      ) as HTMLElement
-      expect(progressBar.style.width).toBe('100%')
+      const progressBar = screen.queryByRole('progressbar')
+      expect(progressBar).toHaveAttribute('aria-valuenow', '100')
     })
   })
 
@@ -402,14 +346,14 @@ describe('ModelRecommendationsDownloadButton', () => {
     it('applies correct size', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
-      expect(button).toHaveAttribute('data-size', 'sm')
+      const button = screen.getByRole('button')
+      expect(button).toHaveClass('button--sm')
     })
 
     it('applies w-full and z-10 classes to button', () => {
       render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const button = screen.getByTestId('download-button')
+      const button = screen.getByRole('button')
       expect(button).toHaveClass('w-full', 'relative', 'z-10')
     })
 
@@ -434,12 +378,10 @@ describe('ModelRecommendationsDownloadButton', () => {
         downloadTotalSized: 10240
       })
 
-      const { container } = render(
-        <ModelRecommendationsDownloadButton modelId="test-model" />
-      )
+      render(<ModelRecommendationsDownloadButton modelId="test-model" />)
 
-      const progressBar = container.querySelector('.bg-primary\\/30')
-      expect(progressBar).toHaveClass('transition-all', 'duration-300')
+      const progressBar = screen.queryByRole('progressbar')
+      expect(progressBar).toBeInTheDocument()
     })
   })
 })

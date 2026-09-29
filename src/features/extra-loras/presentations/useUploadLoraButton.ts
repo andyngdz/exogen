@@ -1,7 +1,7 @@
 'use client'
 
 import { useUploadLoraMutation } from '@/cores/api-queries'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useCallback } from 'react'
 
 export const useUploadLoraButton = () => {
@@ -22,19 +22,15 @@ export const useUploadLoraButton = () => {
 
       await uploadMutation.mutateAsync(filePath)
 
-      addToast({
-        title: 'LoRA uploaded',
-        description: 'The LoRA model was uploaded successfully.',
-        color: 'success'
+      toast.success('LoRA uploaded', {
+        description: 'The LoRA model was uploaded successfully.'
       })
     } catch (error) {
-      addToast({
-        title: 'Upload failed',
+      toast.danger('Upload failed', {
         description:
           error instanceof Error
             ? error.message
-            : 'Failed to upload LoRA model.',
-        color: 'danger'
+            : 'Failed to upload LoRA model.'
       })
     }
   }, [uploadMutation])

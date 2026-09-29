@@ -3,7 +3,7 @@
 import { Chip } from '@heroui/react'
 import { BackendStatusLevel } from '@types'
 import { FC, useMemo } from 'react'
-import type { BackendSetupStatusEntry } from '../states/useBackendSetupStatusStore'
+import type { BackendSetupStatusEntry } from '@/features/health-check/states/useBackendSetupStatusStore'
 
 export interface HealthStatusChipProps {
   isHealthy: boolean
@@ -17,7 +17,7 @@ export const HealthStatusChip: FC<HealthStatusChipProps> = ({
   const chip = useMemo(() => {
     if (isHealthy) {
       return (
-        <Chip color="success">
+        <Chip color="success" variant="primary">
           <span>Backend is running</span>
         </Chip>
       )
@@ -25,10 +25,10 @@ export const HealthStatusChip: FC<HealthStatusChipProps> = ({
 
     if (latestStatus) {
       const color =
-        latestStatus.level === BackendStatusLevel.Error ? 'danger' : 'secondary'
+        latestStatus.level === BackendStatusLevel.Error ? 'danger' : 'accent'
 
       return (
-        <Chip color={color} className="max-w-full">
+        <Chip color={color} variant="primary" className="max-w-full">
           <span className="truncate" title={latestStatus.message}>
             {latestStatus.message}
           </span>
@@ -37,7 +37,7 @@ export const HealthStatusChip: FC<HealthStatusChipProps> = ({
     }
 
     return (
-      <Chip color="warning">
+      <Chip color="warning" variant="primary">
         <span>Waiting for backend</span>
       </Chip>
     )

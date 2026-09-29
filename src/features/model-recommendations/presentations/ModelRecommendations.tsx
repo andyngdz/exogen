@@ -1,24 +1,20 @@
 'use client'
 
-import { useDownloadWatcherStore } from '@/features/download-watcher'
+import { useModelRecommendation } from '@/features/model-recommendations/states/useModelRecommendation'
 import { SetupLayout } from '@/features/setup-layout'
 import { Button } from '@heroui/react'
-import { useRouter } from 'next/navigation'
-import { useModelRecommendation } from '../states/useModelRecommendation'
 import { ModelRecommendationsList } from './ModelRecommendationsList'
 
 export const ModelRecommendations = () => {
-  const router = useRouter()
-  const { onNext, onSkip, data } = useModelRecommendation()
-  const model_id = useDownloadWatcherStore((state) => state.model_id)
-  const isDownloading = !!model_id
+  const { onNext, onSkip, onBack, isDownloading, data } =
+    useModelRecommendation()
 
   return (
     <SetupLayout
       title="Model Recommendations"
       description="Choose an AI model that fits your hardware capabilities and performance needs"
       onNext={onNext}
-      onBack={router.back}
+      onBack={onBack}
       isNextDisabled={isDownloading}
       isBackDisabled={isDownloading}
     >
@@ -30,7 +26,12 @@ export const ModelRecommendations = () => {
           />
         )}
         {!isDownloading && (
-          <Button onPress={onSkip} variant="light" color="primary" size="sm">
+          <Button
+            onPress={onSkip}
+            variant="ghost"
+            className="text-accent"
+            size="sm"
+          >
             Skip for now, I will download later
           </Button>
         )}

@@ -1,4 +1,5 @@
 import { useHistoriesQuery } from '@/cores/api-queries'
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useHistoryPhotoviewStore } from '../../states/useHistoryPhotoviewStore'
@@ -41,12 +42,14 @@ const mockHistories = [
 
 describe('HistoryPhotoviewModal', () => {
   it('should not render when modal is closed', () => {
-    vi.mocked(useHistoryPhotoviewStore).mockReturnValue({
-      isOpen: false,
-      currentHistoryId: null,
-      openPhotoview: vi.fn(),
-      closePhotoview: vi.fn()
-    })
+    vi.mocked(useHistoryPhotoviewStore).mockImplementation(
+      createStoreSelectorMock({
+        isOpen: false,
+        currentHistoryId: null,
+        openPhotoview: vi.fn(),
+        closePhotoview: vi.fn()
+      })
+    )
     vi.mocked(useHistoriesQuery).mockReturnValue({
       data: mockHistories,
       isLoading: false,
@@ -59,12 +62,14 @@ describe('HistoryPhotoviewModal', () => {
   })
 
   it('should render when modal is open', () => {
-    vi.mocked(useHistoryPhotoviewStore).mockReturnValue({
-      isOpen: true,
-      currentHistoryId: 1,
-      openPhotoview: vi.fn(),
-      closePhotoview: vi.fn()
-    })
+    vi.mocked(useHistoryPhotoviewStore).mockImplementation(
+      createStoreSelectorMock({
+        isOpen: true,
+        currentHistoryId: 1,
+        openPhotoview: vi.fn(),
+        closePhotoview: vi.fn()
+      })
+    )
     vi.mocked(useHistoriesQuery).mockReturnValue({
       data: mockHistories,
       isLoading: false,

@@ -16,12 +16,9 @@ export const ImageInputTopRight = ({
     <Button
       isIconOnly
       size="sm"
-      variant="flat"
+      variant="tertiary"
       aria-label="Remove input image"
       isDisabled={isLoading}
-      onClick={(event) => {
-        event.stopPropagation()
-      }}
       onPress={onRemove}
     >
       <Trash2 size={16} />

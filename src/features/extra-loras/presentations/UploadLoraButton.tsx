@@ -9,11 +9,12 @@ export const UploadLoraButton = () => {
 
   return (
     <Button
-      onPress={onUpload}
-      startContent={<Upload size={16} />}
-      isLoading={isUploading}
-      color="primary"
+      onPress={() => void onUpload()}
+      isPending={isUploading}
+      variant="primary"
+      fullWidth
     >
+      <Upload size={16} />
       Upload LoRA
     </Button>
   )

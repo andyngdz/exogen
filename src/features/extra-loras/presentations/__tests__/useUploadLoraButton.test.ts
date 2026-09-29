@@ -1,3 +1,4 @@
+import { toast } from '@heroui/react'
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useUploadLoraButton } from '../useUploadLoraButton'
@@ -5,7 +6,6 @@ import { useUploadLoraButton } from '../useUploadLoraButton'
 type ElectronAPI = Window['electronAPI']
 const mockSelectFile = vi.fn<ElectronAPI['selectFile']>()
 const mockMutateAsync = vi.hoisted(() => vi.fn())
-const mockAddToast = vi.hoisted(() => vi.fn())
 
 vi.mock('@/cores/api-queries', () => ({
   useUploadLoraMutation: () => ({
@@ -15,7 +15,7 @@ vi.mock('@/cores/api-queries', () => ({
 }))
 
 vi.mock('@heroui/react', () => ({
-  addToast: mockAddToast
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('useUploadLoraButton', () => {
@@ -24,7 +24,7 @@ describe('useUploadLoraButton', () => {
   beforeEach(() => {
     mockSelectFile.mockReset()
     mockMutateAsync.mockReset()
-    mockAddToast.mockReset()
+    vi.clearAllMocks()
 
     electronAPI = globalThis.window.electronAPI
     electronAPI.selectFile = mockSelectFile
@@ -42,10 +42,8 @@ describe('useUploadLoraButton', () => {
 
     expect(mockSelectFile).toHaveBeenCalled()
     expect(mockMutateAsync).toHaveBeenCalledWith('/path/to/file.safetensors')
-    expect(mockAddToast).toHaveBeenCalledWith({
-      title: 'LoRA uploaded',
-      description: 'The LoRA model was uploaded successfully.',
-      color: 'success'
+    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('LoRA uploaded', {
+      description: 'The LoRA model was uploaded successfully.'
     })
   })
 
@@ -59,7 +57,8 @@ describe('useUploadLoraButton', () => {
     })
 
     expect(mockMutateAsync).not.toHaveBeenCalled()
-    expect(mockAddToast).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.danger)).not.toHaveBeenCalled()
   })
 
   it('shows error toast when upload fails', async () => {
@@ -72,10 +71,8 @@ describe('useUploadLoraButton', () => {
       await result.current.onUpload()
     })
 
-    expect(mockAddToast).toHaveBeenCalledWith({
-      title: 'Upload failed',
-      description: 'Upload failed',
-      color: 'danger'
+    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Upload failed', {
+      description: 'Upload failed'
     })
   })
 })

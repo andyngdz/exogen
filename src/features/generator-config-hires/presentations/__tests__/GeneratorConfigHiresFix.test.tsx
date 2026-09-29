@@ -1,7 +1,7 @@
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
+import { UpscaleFactor, UpscalerType } from '@/cores/constants'
+import { createCapturedGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { UseFormReturn } from 'react-hook-form'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigHiresFix } from '../GeneratorConfigHiresFix'
 
 // Mock child components
@@ -17,151 +17,64 @@ vi.mock('../GeneratorConfigHiresFixUpscaler', () => ({
   )
 }))
 
-// Mock NumberInputController
-vi.mock('@/cores/presentations/NumberInputController', () => ({
-  NumberInputController: ({
-    'aria-label': ariaLabel,
-    startContent,
-    description
-  }: {
-    'aria-label': string
-    startContent: React.ReactNode
-    description: string
-  }) => (
-    <div data-testid="number-input" aria-label={ariaLabel}>
-      {startContent}
-      <span>{description}</span>
-    </div>
-  )
-}))
-
-// Mock HeroUI Slider
-vi.mock('@heroui/react', () => ({
-  Slider: ({
-    label,
-    value,
-    onChange,
-    minValue,
-    maxValue,
-    step
-  }: {
-    label: string
-    value: number
-    onChange: (value: number) => void
-    minValue: number
-    maxValue: number
-    step: number
-  }) => (
-    <div data-testid="denoising-slider">
-      <label>{label}</label>
-      <input
-        type="range"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        min={minValue}
-        max={maxValue}
-        step={step}
-        aria-label={label}
-      />
-    </div>
-  )
-}))
-
-// Mock react-hook-form
-const mockControl = {} as UseFormReturn<GeneratorConfigFormValues>['control']
-const mockOnChange = vi.fn()
-
-vi.mock('react-hook-form', () => ({
-  useFormContext: () => ({
-    control: mockControl
-  }),
-  Controller: ({
-    render,
-    name
-  }: {
-    render: (props: {
-      field: { value: number; onChange: (v: number) => void }
-    }) => React.ReactNode
-    name: string
-  }) => {
-    const mockField = {
-      value: name === 'hires_fix.denoising_strength' ? 0.7 : 0,
-      onChange: mockOnChange
+const renderHiresFix = () => {
+  const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper({
+    overrides: {
+      hires_fix: {
+        upscale_factor: UpscaleFactor.TWO,
+        upscaler: UpscalerType.REAL_ESRGAN_X2_PLUS,
+        denoising_strength: 0.7,
+        steps: 0
+      }
     }
-    return <>{render({ field: mockField })}</>
-  }
-}))
+  })
+
+  render(<GeneratorConfigHiresFix />, { wrapper: Wrapper })
+
+  return { getMethods }
+}
+
+const getDenoisingSlider = () =>
+  screen.getByRole('slider', { name: 'Denoising Strength' })
 
 describe('GeneratorConfigHiresFix', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders without crashing', () => {
-    const { container } = render(<GeneratorConfigHiresFix />)
-    expect(container).toBeInTheDocument()
-  })
-
-  it('renders upscale factor component', () => {
-    render(<GeneratorConfigHiresFix />)
+  it('renders the upscale factor and upscaler components', () => {
+    renderHiresFix()
 
     expect(screen.getByTestId('upscale-factor')).toBeInTheDocument()
-  })
-
-  it('renders upscaler component', () => {
-    render(<GeneratorConfigHiresFix />)
-
     expect(screen.getByTestId('upscaler')).toBeInTheDocument()
   })
 
-  it('renders denoising strength slider', () => {
-    render(<GeneratorConfigHiresFix />)
+  it('renders hires steps input with its description', () => {
+    renderHiresFix()
 
-    expect(screen.getByTestId('denoising-slider')).toBeInTheDocument()
-    expect(screen.getByLabelText('Denoising Strength')).toBeInTheDocument()
-  })
-
-  it('renders hires steps input', () => {
-    render(<GeneratorConfigHiresFix />)
-
-    expect(screen.getByTestId('number-input')).toBeInTheDocument()
-    expect(screen.getByText('Hires Steps')).toBeInTheDocument()
-  })
-
-  it('shows description for hires steps', () => {
-    render(<GeneratorConfigHiresFix />)
-
+    expect(screen.getByRole('textbox', { name: 'Hires Steps' })).toHaveValue(
+      '0'
+    )
     expect(screen.getByText('0 = use same as base steps')).toBeInTheDocument()
   })
 
   it('denoising slider has correct range', () => {
-    render(<GeneratorConfigHiresFix />)
-    const slider = screen.getByLabelText(
-      'Denoising Strength'
-    ) as HTMLInputElement
+    renderHiresFix()
+    const slider = getDenoisingSlider()
 
-    expect(slider.min).toBe('0')
-    expect(slider.max).toBe('1')
-    expect(slider.step).toBe('0.05')
+    expect(slider).toHaveAttribute('min', '0')
+    expect(slider).toHaveAttribute('max', '1')
+    expect(slider).toHaveAttribute('step', '0.05')
   })
 
   it('denoising slider displays current value', () => {
-    render(<GeneratorConfigHiresFix />)
-    const slider = screen.getByLabelText(
-      'Denoising Strength'
-    ) as HTMLInputElement
+    renderHiresFix()
 
-    expect(slider.value).toBe('0.7')
+    expect(getDenoisingSlider()).toHaveValue('0.7')
+    expect(screen.getByText('0.7')).toBeInTheDocument()
   })
 
-  it('calls onChange when denoising slider value changes', () => {
-    render(<GeneratorConfigHiresFix />)
-    const slider = screen.getByLabelText(
-      'Denoising Strength'
-    ) as HTMLInputElement
+  it('writes the new denoising strength to the form', () => {
+    const { getMethods } = renderHiresFix()
 
-    fireEvent.change(slider, { target: { value: '0.5' } })
+    fireEvent.change(getDenoisingSlider(), { target: { value: '0.5' } })
 
-    expect(mockOnChange).toHaveBeenCalledWith(0.5)
+    expect(getMethods().getValues('hires_fix.denoising_strength')).toBe(0.5)
   })
 })

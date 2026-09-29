@@ -28,7 +28,7 @@ export const FullScreenLoader: FC<FullScreenLoaderProps> = ({ message }) => {
           width={48}
           height={48}
         />
-        <span className="text-xs font-medium text-default-700 animate-pulse">
+        <span className="text-xs font-medium text-foreground animate-pulse">
           {message}
         </span>
       </div>

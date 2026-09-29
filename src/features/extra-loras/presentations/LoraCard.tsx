@@ -1,8 +1,9 @@
+import { useLoraCard } from '@/features/extra-loras/states'
+import { sliderChangeService } from '@/services'
 import type { LoRA } from '@/types'
-import { Button, Card, CardBody, CardHeader, Slider } from '@heroui/react'
+import { Button, Card, Label, Slider } from '@heroui/react'
 import { X } from 'lucide-react'
 import { FC } from 'react'
-import { useLoraCard } from '../states'
 
 interface LoraCardProps {
   lora: LoRA
@@ -13,36 +14,37 @@ export const LoraCard: FC<LoraCardProps> = ({ lora, onRemove }) => {
   const { weight, setWeight } = useLoraCard(lora.id)
 
   return (
-    <Card shadow="sm">
-      <CardHeader className="flex justify-between items-center pb-0">
+    <Card>
+      <Card.Header className="flex flex-row items-center justify-between gap-2">
         <span className="font-semibold text-sm">{lora.name}</span>
         <Button
           size="sm"
-          variant="light"
-          radius="full"
+          variant="ghost"
           onPress={onRemove}
+          aria-label={`Remove ${lora.name}`}
           isIconOnly
         >
           <X size={16} />
         </Button>
-      </CardHeader>
+      </Card.Header>
 
-      <CardBody>
+      <Card.Content>
         <Slider
-          size="sm"
           step={0.05}
           minValue={0}
           maxValue={2}
           value={weight}
-          onChange={(value) => setWeight(value as number)}
-          label="Weight"
+          onChange={(value) => setWeight(sliderChangeService.toSingle(value))}
           className="max-w-full"
-          classNames={{
-            label: 'text-default-500',
-            value: 'text-default-500'
-          }}
-        />
-      </CardBody>
+        >
+          <Label className="text-muted">Weight</Label>
+          <Slider.Output className="text-muted" />
+          <Slider.Track>
+            <Slider.Fill />
+            <Slider.Thumb />
+          </Slider.Track>
+        </Slider>
+      </Card.Content>
     </Card>
   )
 }

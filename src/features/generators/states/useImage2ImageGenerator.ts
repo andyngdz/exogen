@@ -4,10 +4,10 @@ import {
 } from '@/features/generator-configs'
 import { useImage2ImageConfigStore } from '@/features/generators/states/useImage2ImageConfigStore'
 import { api } from '@/services'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SubmitHandler } from 'react-hook-form'
-import { getGenerationHistoryConfig } from '../services/getGenerationHistoryConfig'
+import { getGenerationHistoryConfig } from '@/features/generators/services/getGenerationHistoryConfig'
 import { useAddHistoryMutation } from './useAddHistoryMutation'
 import { useGenerationStatusStore } from './useGenerationStatusStore'
 import { useHiresFixEnabledStore } from './useHiresFixEnabledStore'
@@ -15,11 +15,22 @@ import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 
 export const useImage2ImageGenerator = () => {
   const queryClient = useQueryClient()
-  const { onCompleted, onInit } = useUseImageGenerationStore()
-  const { onSetIsGenerating } = useGenerationStatusStore()
-  const { isHiresFixEnabled } = useHiresFixEnabledStore()
+  const refetchHistories = () =>
+    queryClient.refetchQueries({ queryKey: ['getHistories'] })
+  const onCompleted = useUseImageGenerationStore((state) => state.onCompleted)
+  const onInit = useUseImageGenerationStore((state) => state.onInit)
+  const onSetIsGenerating = useGenerationStatusStore(
+    (state) => state.onSetIsGenerating
+  )
+  const isHiresFixEnabled = useHiresFixEnabledStore(
+    (state) => state.isHiresFixEnabled
+  )
 
-  const { initImageBase64, strength, resizeMode } = useImage2ImageConfigStore()
+  const initImageBase64 = useImage2ImageConfigStore(
+    (state) => state.initImageBase64
+  )
+  const strength = useImage2ImageConfigStore((state) => state.strength)
+  const resizeMode = useImage2ImageConfigStore((state) => state.resizeMode)
 
   const addHistory = useAddHistoryMutation()
 
@@ -32,10 +43,8 @@ export const useImage2ImageGenerator = () => {
       return api.img2img(request)
     },
     onError: () => {
-      addToast({
-        title: 'Something went wrong',
-        description: 'There was an error generating your image.',
-        color: 'danger'
+      toast.danger('Something went wrong', {
+        description: 'There was an error generating your image.'
       })
     },
     onSuccess: onCompleted
@@ -45,10 +54,8 @@ export const useImage2ImageGenerator = () => {
     config
   ) => {
     if (!initImageBase64) {
-      addToast({
-        title: 'Missing input image',
-        description: 'Please select an image to use for Image-to-Image.',
-        color: 'warning'
+      toast.warning('Missing input image', {
+        description: 'Please select an image to use for Image-to-Image.'
       })
       return
     }
@@ -61,7 +68,7 @@ export const useImage2ImageGenerator = () => {
         isHiresFixEnabled
       )
       const history_id = await addHistory.mutateAsync(historyConfig)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
 
       onInit(config.number_of_images)
 
@@ -75,7 +82,7 @@ export const useImage2ImageGenerator = () => {
       await img2img.mutateAsync({ history_id, config: img2imgConfig })
     } finally {
       onSetIsGenerating(false)
-      queryClient.refetchQueries({ queryKey: ['getHistories'] })
+      void refetchHistories()
     }
   }
 

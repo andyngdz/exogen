@@ -1,15 +1,12 @@
-import { ImageViewMode } from '@/features/generator-previewers/states/useImageViewModeStore'
+import {
+  ImageViewMode,
+  useImageViewModeStore
+} from '@/features/generator-previewers/states/useImageViewModeStore'
 import { ImageGenerationItem, ImageGenerationStepEndResponse } from '@/types'
 import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorPreviewer } from '../GeneratorPreviewer'
-import * as imageViewModeStoreModule from '@/features/generator-previewers/states/useImageViewModeStore'
 import * as generatorPreviewerModule from '@/features/generator-previewers/states'
-
-// Mock the useImageViewModeStore
-vi.mock('@/features/generator-previewers/states/useImageViewModeStore', () => ({
-  useImageViewModeStore: vi.fn()
-}))
 
 // Mock the useGeneratorPreviewer hook
 vi.mock('@/features/generator-previewers/states', () => ({
@@ -29,9 +26,9 @@ vi.mock('../GeneratorPreviewerItem', () => ({
   )
 }))
 
-// Mock the GeneratorPreviewerSlider component
-vi.mock('../GeneratorPreviewerSlider', () => ({
-  GeneratorPreviewerSlider: () => (
+// Mock the GeneratorPreviewerCarousel component
+vi.mock('../GeneratorPreviewerCarousel', () => ({
+  GeneratorPreviewerCarousel: () => (
     <div data-testid="slider-component">Mock Slider</div>
   )
 }))
@@ -94,17 +91,11 @@ describe('GeneratorPreviewer', () => {
 
   it('should render grid view when viewMode is grid', () => {
     // Arrange
-    const mockedViewModeStore = vi.mocked(
-      imageViewModeStoreModule.useImageViewModeStore
-    )
     const mockedPreviewerStore = vi.mocked(
       generatorPreviewerModule.useGeneratorPreviewer
     )
 
-    mockedViewModeStore.mockReturnValue({
-      viewMode: 'grid' as ImageViewMode,
-      setViewMode: vi.fn()
-    })
+    useImageViewModeStore.setState({ viewMode: ImageViewMode.GRID })
 
     mockedPreviewerStore.mockReturnValue({
       imageStepEnds: mockImageStepEnds,
@@ -134,17 +125,11 @@ describe('GeneratorPreviewer', () => {
 
   it('should render slider view when viewMode is slider', () => {
     // Arrange
-    const mockedViewModeStore = vi.mocked(
-      imageViewModeStoreModule.useImageViewModeStore
-    )
     const mockedPreviewerStore = vi.mocked(
       generatorPreviewerModule.useGeneratorPreviewer
     )
 
-    mockedViewModeStore.mockReturnValue({
-      viewMode: 'slider' as ImageViewMode,
-      setViewMode: vi.fn()
-    })
+    useImageViewModeStore.setState({ viewMode: ImageViewMode.SLIDER })
 
     mockedPreviewerStore.mockReturnValue({
       imageStepEnds: mockImageStepEnds,
@@ -161,17 +146,11 @@ describe('GeneratorPreviewer', () => {
 
   it('should handle empty state in grid view', () => {
     // Arrange
-    const mockedViewModeStore = vi.mocked(
-      imageViewModeStoreModule.useImageViewModeStore
-    )
     const mockedPreviewerStore = vi.mocked(
       generatorPreviewerModule.useGeneratorPreviewer
     )
 
-    mockedViewModeStore.mockReturnValue({
-      viewMode: 'grid' as ImageViewMode,
-      setViewMode: vi.fn()
-    })
+    useImageViewModeStore.setState({ viewMode: ImageViewMode.GRID })
 
     mockedPreviewerStore.mockReturnValue({
       imageStepEnds: [],

@@ -4,8 +4,8 @@ import {
   MemoryScaleFactorItems,
   MemoryScaleFactorPreview
 } from '@/cores/presentations/memory-scale-factor'
-import { Divider } from '@heroui/react'
-import { useSettingsMemory } from '../states/useSettingsMemory'
+import { useSettingsMemory } from '@/features/settings/states/useSettingsMemory'
+import { Separator } from '@heroui/react'
 import { SettingsBase } from './SettingsBase'
 
 export const SettingsMemoryConfig = () => {
@@ -23,7 +23,7 @@ export const SettingsMemoryConfig = () => {
         onGpuChange={onGpuChange}
         onRamChange={onRamChange}
       />
-      <Divider />
+      <Separator />
       <MemoryScaleFactorPreview
         gpuScaleFactor={gpu_scale_factor}
         ramScaleFactor={ram_scale_factor}

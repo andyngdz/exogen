@@ -5,49 +5,6 @@ import { useUseConfig } from '../../states/useUseConfig'
 import { userEvent } from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock dependencies
-vi.mock('@heroui/react', async () => {
-  const actual =
-    await vi.importActual<typeof import('@heroui/react')>('@heroui/react')
-  return {
-    ...actual,
-    Button: ({
-      children,
-      onPress,
-      isIconOnly,
-      variant,
-      size
-    }: {
-      children: React.ReactNode
-      onPress?: () => void
-      isIconOnly?: boolean
-      variant?: string
-      size?: string
-    }) => (
-      <button
-        data-testid="button"
-        onClick={onPress}
-        data-icon-only={isIconOnly ? 'true' : 'false'}
-        data-variant={variant}
-        data-size={size}
-      >
-        {children}
-      </button>
-    ),
-    Tooltip: ({
-      children,
-      content
-    }: {
-      children: React.ReactNode
-      content: string
-    }) => (
-      <div data-testid="tooltip" data-content={content}>
-        {children}
-      </div>
-    )
-  }
-})
-
 vi.mock('lucide-react', () => ({
   Bolt: () => <div data-testid="bolt-icon" />
 }))
@@ -69,7 +26,7 @@ describe('HistoryUseConfigButton', () => {
     vi.clearAllMocks()
   })
 
-  it('should render button with tooltip', () => {
+  it('should render button with tooltip', async () => {
     const mockHistory: HistoryItem = {
       id: 1,
       created_at: '2023-01-01T10:00:00Z',
@@ -97,12 +54,17 @@ describe('HistoryUseConfigButton', () => {
     render(<HistoryUseConfigButton history={mockHistory} />)
 
     expect(useUseConfig).toHaveBeenCalledWith(mockHistory)
-    expect(screen.getByTestId('tooltip')).toHaveAttribute(
-      'data-content',
+    expect(screen.getByTestId('bolt-icon')).toBeInTheDocument()
+
+    const user = userEvent.setup()
+    await user.tab()
+
+    expect(
+      screen.getByRole('button', { name: 'Use this config' })
+    ).toHaveFocus()
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'Use this config'
     )
-    expect(screen.getByTestId('button')).toBeInTheDocument()
-    expect(screen.getByTestId('bolt-icon')).toBeInTheDocument()
   })
 
   it('should call onUseConfig when button is clicked', async () => {
@@ -132,8 +94,9 @@ describe('HistoryUseConfigButton', () => {
 
     render(<HistoryUseConfigButton history={mockHistory} />)
 
-    const button = screen.getByTestId('button')
-    await userEvent.click(button)
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Use this config' })
+    )
 
     expect(mockOnUseConfig).toHaveBeenCalledTimes(1)
   })

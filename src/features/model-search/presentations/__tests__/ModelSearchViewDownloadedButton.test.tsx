@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
 
-import { ButtonProps } from '@heroui/react'
 import { ModelSearchViewDownloadedButton } from '../ModelSearchViewDownloadedButton'
 import { SettingsTab } from '@/features/settings/states/useSettingsStore'
 
@@ -16,25 +15,11 @@ vi.mock('@/features/settings/states/useSettingsStore', async () => {
   >('@/features/settings/states/useSettingsStore')
   return {
     ...actual,
-    useSettingsStore: () => ({
-      openModal: mockOpenModal
-    })
+    useSettingsStore: (
+      selector: (state: { openModal: typeof mockOpenModal }) => unknown
+    ) => selector({ openModal: mockOpenModal })
   }
 })
-
-// Mock the Button from @heroui/react to a simple button for testing
-vi.mock('@heroui/react', () => ({
-  Button: ({ children, variant, className, onPress }: ButtonProps) => (
-    <button
-      data-testid="button"
-      data-variant={variant}
-      className={className}
-      onClick={() => onPress?.({} as never)}
-    >
-      {children}
-    </button>
-  )
-}))
 
 describe('ModelSearchViewDownloadedButton', () => {
   beforeEach(() => {
@@ -42,21 +27,20 @@ describe('ModelSearchViewDownloadedButton', () => {
   })
 
   describe('Rendering', () => {
-    it('renders a bordered button with correct text', () => {
+    it('renders an outline button with correct text', () => {
       // Arrange & Act
       render(<ModelSearchViewDownloadedButton />)
 
       // Assert
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button', { name: 'Manage this model' })
       expect(button).toBeInTheDocument()
-      expect(button).toHaveAttribute('data-variant', 'bordered')
-      expect(button).toHaveTextContent('Manage this model')
+      expect(button).toHaveClass('button--outline')
     })
 
     it('renders as a button element', () => {
       render(<ModelSearchViewDownloadedButton />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button', { name: 'Manage this model' })
       expect(button.tagName).toBe('BUTTON')
     })
   })
@@ -68,7 +52,7 @@ describe('ModelSearchViewDownloadedButton', () => {
       render(<ModelSearchViewDownloadedButton />)
 
       // Act
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button', { name: 'Manage this model' })
       await user.click(button)
 
       // Assert
@@ -80,7 +64,7 @@ describe('ModelSearchViewDownloadedButton', () => {
       const user = userEvent.setup()
       render(<ModelSearchViewDownloadedButton />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button', { name: 'Manage this model' })
       await user.click(button)
 
       // Verify it's called with models and not other tabs
@@ -93,7 +77,7 @@ describe('ModelSearchViewDownloadedButton', () => {
       const user = userEvent.setup()
       render(<ModelSearchViewDownloadedButton />)
 
-      const button = screen.getByTestId('button')
+      const button = screen.getByRole('button', { name: 'Manage this model' })
       await user.click(button)
       await user.click(button)
       await user.click(button)

@@ -1,12 +1,5 @@
 import { useDeleteModel } from '@/features/settings/states/useDeleteModel'
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader
-} from '@heroui/react'
+import { Button, Modal } from '@heroui/react'
 import { Trash2 } from 'lucide-react'
 import { FC, useState } from 'react'
 
@@ -27,8 +20,8 @@ export const DeleteModelButton: FC<DeleteModelButtonProps> = ({ model_id }) => {
     <div>
       <Button
         isIconOnly
-        variant="light"
-        color="danger"
+        variant="ghost"
+        className="text-danger"
         aria-label={`Delete ${model_id}`}
         onPress={() => setIsOpen(true)}
         isDisabled={deleteModel.isPending}
@@ -37,28 +30,35 @@ export const DeleteModelButton: FC<DeleteModelButtonProps> = ({ model_id }) => {
         <Trash2 size={16} />
       </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <ModalContent>
-          <ModalHeader>Delete model</ModalHeader>
-          <ModalBody>
-            <div>Are you sure you want to delete this model?</div>
-            <div className="text-danger-500 font-medium break-all">
-              {model_id}
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="light" onPress={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              color="danger"
-              isLoading={deleteModel.isPending}
-              onPress={onConfirm}
-            >
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+      <Modal>
+        <Modal.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading>Delete model</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
+                <div>Are you sure you want to delete this model?</div>
+                <div className="text-danger font-medium break-all">
+                  {model_id}
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="ghost" onPress={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  isPending={deleteModel.isPending}
+                  onPress={onConfirm}
+                >
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   )

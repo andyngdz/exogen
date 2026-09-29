@@ -1,4 +1,4 @@
-import { Divider } from '@heroui/react'
+import { Separator } from '@heroui/react'
 import { FC } from 'react'
 import { ModelDownloadStatusInfo } from './ModelDownloadStatusInfo'
 import { ModelDownloadStatusLineIndicator } from './ModelDownloadStatusLineIndicator'
@@ -14,7 +14,7 @@ export const ModelDownloadStatusLine: FC<ModelDownloadStatusLineProps> = ({
     <div className="flex flex-col gap-2">
       <ModelDownloadStatusInfo id={id} />
       <div className="relative w-full">
-        <Divider className="h-1" />
+        <Separator className="h-1" />
         <ModelDownloadStatusLineIndicator id={id} />
       </div>
     </div>

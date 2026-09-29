@@ -1,19 +1,20 @@
 'use client'
 
+import { useImageDropzone } from '@/features/generator-image-input/states/useImageDropzone'
+import { useImageFilePicker } from '@/features/generator-image-input/states/useImageFilePicker'
+import { useImagePaste } from '@/features/generator-image-input/states/useImagePaste'
+import { ValueChanged } from '@/types'
 import { Button } from '@heroui/react'
-import { useEffect, useRef } from 'react'
-
-import { useImageDropzone } from '../states/useImageDropzone'
-import { useImageFilePicker } from '../states/useImageFilePicker'
-import { useImagePaste } from '../states/useImagePaste'
+import { useEffect } from 'react'
+import { DropZone, FileTrigger } from 'react-aria-components'
 import { ImageInputBody } from './ImageInputBody'
 
 interface ImageInputZoneProps {
   hasImage: boolean
   initImageBase64?: string
   isLoading: boolean
-  onFile: (file: File) => Promise<void>
-  onDragActiveChange: (isDragActive: boolean) => void
+  onFile: ValueChanged<File, Promise<void>>
+  onDragActiveChange: ValueChanged<boolean>
 }
 
 export const ImageInputZone = ({
@@ -23,11 +24,10 @@ export const ImageInputZone = ({
   onFile,
   onDragActiveChange
 }: ImageInputZoneProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const { onFileChange } = useImageFilePicker({ onFile })
-  const { isDragActive, onDrop, onDragEnter, onDragOver, onDragLeave } =
-    useImageDropzone({ onFile })
+  const { onFilesSelect } = useImageFilePicker({ onFile })
+  const { isDragActive, onDropEnter, onDropExit, onDrop } = useImageDropzone({
+    onFile
+  })
 
   useEffect(() => {
     onDragActiveChange(isDragActive)
@@ -36,31 +36,29 @@ export const ImageInputZone = ({
   useImagePaste({ onFile })
 
   return (
-    <>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onFileChange}
-      />
-
-      <Button
-        type="button"
-        aria-label={hasImage ? 'Change input image' : 'Upload input image'}
-        className="h-full w-full min-h-0 p-0"
-        variant="light"
-        isDisabled={isLoading}
-        onPress={() => {
-          fileInputRef.current?.click()
-        }}
-        onDragEnter={onDragEnter}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
+    <DropZone
+      aria-label="Drop an input image"
+      className="h-full w-full"
+      onDropEnter={onDropEnter}
+      onDropExit={onDropExit}
+      onDrop={onDrop}
+    >
+      <FileTrigger
+        acceptedFileTypes={['image/*']}
+        onSelect={(files) => void onFilesSelect(files)}
       >
-        <ImageInputBody hasImage={hasImage} initImageBase64={initImageBase64} />
-      </Button>
-    </>
+        <Button
+          aria-label={hasImage ? 'Change input image' : 'Upload input image'}
+          className="h-full w-full min-h-0 p-0"
+          variant="ghost"
+          isDisabled={isLoading}
+        >
+          <ImageInputBody
+            hasImage={hasImage}
+            initImageBase64={initImageBase64}
+          />
+        </Button>
+      </FileTrigger>
+    </DropZone>
   )
 }

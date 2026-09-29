@@ -6,30 +6,9 @@ import { UpdateSettings } from '../UpdateSettings'
 const createDelayedPromise = <T,>(value: T, ms: number): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(value), ms))
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => ({
-  Button: ({
-    children,
-    onPress,
-    isLoading,
-    color
-  }: {
-    children: React.ReactNode
-    onPress?: () => void
-    isLoading?: boolean
-    color?: string
-  }) => (
-    <button
-      onClick={onPress}
-      disabled={isLoading}
-      data-loading={isLoading}
-      data-color={color}
-    >
-      {children}
-    </button>
-  ),
-  addToast: vi.fn(),
-  Divider: () => <hr />
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('UpdateSettings', () => {
@@ -89,7 +68,7 @@ describe('UpdateSettings', () => {
     })
 
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('data-color', 'primary')
+    expect(button).toHaveClass('button--primary')
 
     // Wait for async effect to complete
     await waitFor(() => {
@@ -131,9 +110,9 @@ describe('UpdateSettings', () => {
 
     // Button should show loading state
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'true')
+      expect(button).toHaveAttribute('data-pending', 'true')
       expect(button).toHaveTextContent('Checking…')
-      expect(button).toBeDisabled()
+      expect(button).toHaveAttribute('aria-disabled', 'true')
     })
   })
 
@@ -152,13 +131,13 @@ describe('UpdateSettings', () => {
     })
 
     // Wait for loading state
-    await waitFor(() => expect(button).toHaveAttribute('data-loading', 'true'))
+    await waitFor(() => expect(button).toHaveAttribute('data-pending', 'true'))
 
     // Wait for loading to finish
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'false')
+      expect(button).not.toHaveAttribute('data-pending')
       expect(button).toHaveTextContent('Check for updates')
-      expect(button).not.toBeDisabled()
+      expect(button).not.toHaveAttribute('aria-disabled')
     })
   })
 
@@ -183,7 +162,7 @@ describe('UpdateSettings', () => {
 
     // Button should return to normal state after error
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'false')
+      expect(button).not.toHaveAttribute('data-pending')
       expect(button).toHaveTextContent('Check for updates')
     })
 
@@ -212,7 +191,7 @@ describe('UpdateSettings', () => {
     )
 
     // Wait for loading to finish
-    await waitFor(() => expect(button).not.toBeDisabled())
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-disabled'))
 
     // Second click
     await act(async () => {

@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { useBackendUrl } from '@/cores/backend-initialization'
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { useGeneratorAspectRatio } from '@/features/generator-configs'
 import { useGeneratorPhotoviewStore } from '@/features/generator-photoview'
 import { useUseImageGenerationStore } from '@/features/generators'
@@ -51,19 +52,25 @@ describe('useGeneratorPreviewerItemModel', () => {
 
     vi.mocked(useBackendUrl).mockReturnValue('http://localhost:8000')
     vi.mocked(useGeneratorAspectRatio).mockReturnValue(1.5)
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      isGenerating: false
-    } as never)
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/0.png', file_name: '0.png' },
-        { path: 'images/1.png', file_name: '1.png' }
-      ]
-    } as never)
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        isGenerating: false
+      }) as never
+    )
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/0.png', file_name: '0.png' },
+          { path: 'images/1.png', file_name: '1.png' }
+        ]
+      }) as never
+    )
     vi.mocked(useDownloadImages).mockReturnValue({ onDownloadImage })
-    vi.mocked(useGeneratorPhotoviewStore).mockReturnValue({
-      openPhotoview
-    } as never)
+    vi.mocked(useGeneratorPhotoviewStore).mockImplementation(
+      createStoreSelectorMock({
+        openPhotoview
+      }) as never
+    )
   })
 
   it('returns enabled actions and calls handlers with expected values', () => {
@@ -87,9 +94,11 @@ describe('useGeneratorPreviewerItemModel', () => {
   })
 
   it('disables opening photoview while generating', () => {
-    vi.mocked(useGenerationStatusStore).mockReturnValue({
-      isGenerating: true
-    } as never)
+    vi.mocked(useGenerationStatusStore).mockImplementation(
+      createStoreSelectorMock({
+        isGenerating: true
+      }) as never
+    )
 
     const { result } = renderHook(() =>
       useGeneratorPreviewerItemModel(imageStepEnd)
@@ -100,12 +109,14 @@ describe('useGeneratorPreviewerItemModel', () => {
   })
 
   it('disables actions when selected item path is empty', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/0.png', file_name: '0.png' },
-        { path: '', file_name: '1.png' }
-      ]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/0.png', file_name: '0.png' },
+          { path: '', file_name: '1.png' }
+        ]
+      }) as never
+    )
 
     const { result } = renderHook(() =>
       useGeneratorPreviewerItemModel(imageStepEnd)

@@ -1,5 +1,3 @@
-import type { ButtonProps, ChipProps } from '@heroui/react'
-import type { PressEvent } from '@react-aria/interactions'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -21,24 +19,8 @@ vi.mock('@/cores/presentations/AuthorAvatar', () => ({
   )
 }))
 
-// Mock heroui components with type-safe props
-vi.mock('@heroui/react', async () => {
-  // Dynamically import to get the actual types when available
-  const actual = await vi.importActual('@heroui/react')
-  return {
-    ...actual,
-    Button: ({ children, onPress, className }: ButtonProps) => (
-      <button
-        data-testid="toggle-button"
-        className={className}
-        onClick={() => onPress && onPress({} as PressEvent)}
-      >
-        {children}
-      </button>
-    ),
-    Chip: ({ children }: ChipProps) => <div data-testid="chip">{children}</div>
-  }
-})
+const getChips = () => screen.getAllByTestId('author-avatar')
+const getToggle = () => screen.getByRole('button', { name: /Show (more|less)/ })
 
 describe('ModelSearchViewSpaces', () => {
   it('shows first 5 spaces by default and expands to all on click', async () => {
@@ -59,25 +41,26 @@ describe('ModelSearchViewSpaces', () => {
 
     // Assert default state (first 5 chips only)
     expect(screen.getByTestId('header')).toHaveTextContent('title: Spaces')
-    const chipsDefault = screen.getAllByTestId('chip')
+    const chipsDefault = getChips()
     expect(chipsDefault).toHaveLength(5)
-    expect(chipsDefault[0]).toHaveTextContent('author1/space1')
-    expect(chipsDefault[4]).toHaveTextContent('author5/space5')
-    expect(screen.getByTestId('toggle-button')).toHaveTextContent('Show more')
+    expect(screen.getByText('author1/space1')).toBeInTheDocument()
+    expect(screen.getByText('author5/space5')).toBeInTheDocument()
+    expect(screen.queryByText('author6/space6')).not.toBeInTheDocument()
+    expect(getToggle()).toHaveTextContent('Show more')
 
     // Expand
-    await user.click(screen.getByTestId('toggle-button'))
+    await user.click(getToggle())
 
-    const chipsExpanded = screen.getAllByTestId('chip')
+    const chipsExpanded = getChips()
     expect(chipsExpanded).toHaveLength(spaces.length)
-    expect(screen.getByTestId('toggle-button')).toHaveTextContent('Show less')
+    expect(getToggle()).toHaveTextContent('Show less')
 
     // Collapse
-    await user.click(screen.getByTestId('toggle-button'))
+    await user.click(getToggle())
 
-    const chipsCollapsed = screen.getAllByTestId('chip')
+    const chipsCollapsed = getChips()
     expect(chipsCollapsed).toHaveLength(5)
-    expect(screen.getByTestId('toggle-button')).toHaveTextContent('Show more')
+    expect(getToggle()).toHaveTextContent('Show more')
   })
 
   it('shows all spaces when 5 or fewer are provided and still toggles text', async () => {
@@ -89,12 +72,12 @@ describe('ModelSearchViewSpaces', () => {
     render(<ModelSearchViewSpaces spaces={spaces} />)
 
     // Assert
-    const chips = screen.getAllByTestId('chip')
+    const chips = getChips()
     expect(chips).toHaveLength(3)
-    expect(screen.getByTestId('toggle-button')).toHaveTextContent('Show more')
+    expect(getToggle()).toHaveTextContent('Show more')
 
     // Toggle still flips text to "Show less"
-    await user.click(screen.getByTestId('toggle-button'))
-    expect(screen.getByTestId('toggle-button')).toHaveTextContent('Show less')
+    await user.click(getToggle())
+    expect(getToggle()).toHaveTextContent('Show less')
   })
 })

@@ -1,43 +1,38 @@
 'use client'
 
 import { NumberInputController } from '@/cores/presentations/NumberInputController'
+import { useGeneratorConfigFormats } from '@/features/generator-config-formats/states'
 import { GeneratorConfigHiresFix } from '@/features/generator-config-hires/presentations/GeneratorConfigHiresFix'
 import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 import { Checkbox } from '@heroui/react'
-import { useFormContext } from 'react-hook-form'
-import { useGeneratorConfigFormats } from '../states'
 
 export const GeneratorConfigFormat = () => {
-  const { control } = useFormContext<GeneratorConfigFormValues>()
   const { isHiresFixEnabled, onHiresFixToggle } = useGeneratorConfigFormats()
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <span className="font-semibold text-sm">Format</span>
       <div className="flex gap-4">
-        <NumberInputController
+        <NumberInputController<GeneratorConfigFormValues>
           aria-label="Width"
-          control={control}
           controlName="width"
           minValue={64}
-          startContent={<span className="text-sm text-default-700">W</span>}
+          startContent={<span className="text-sm text-foreground">W</span>}
         />
-        <NumberInputController
+        <NumberInputController<GeneratorConfigFormValues>
           aria-label="Height"
-          control={control}
           controlName="height"
           minValue={64}
-          startContent={<span className="text-sm text-default-700">H</span>}
+          startContent={<span className="text-sm text-foreground">H</span>}
         />
       </div>
-      <Checkbox
-        isSelected={isHiresFixEnabled}
-        onValueChange={onHiresFixToggle}
-        classNames={{
-          label: 'text-sm'
-        }}
-      >
-        Hires.fix
+      <Checkbox isSelected={isHiresFixEnabled} onChange={onHiresFixToggle}>
+        <Checkbox.Content className="text-sm">
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+          Hires.fix
+        </Checkbox.Content>
       </Checkbox>
       {isHiresFixEnabled && <GeneratorConfigHiresFix />}
     </div>

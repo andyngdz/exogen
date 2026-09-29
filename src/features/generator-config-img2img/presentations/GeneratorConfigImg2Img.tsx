@@ -1,48 +1,56 @@
 'use client'
 
-import {
-  useImage2ImageConfigStore,
-  useGeneratorModeStore
-} from '@/features/generators'
-import { GeneratorMode, Image2ImageResizeMode } from '@/types'
-import { Select, SelectItem, Slider } from '@heroui/react'
+import { useGeneratorConfigImg2Img } from '@/features/generator-config-img2img/states/useGeneratorConfigImg2Img'
+import { Image2ImageResizeMode } from '@/types'
+import { Label, ListBox, Select, Slider } from '@heroui/react'
 
 export const GeneratorConfigImg2Img = () => {
-  const { mode } = useGeneratorModeStore()
-  const { strength, resizeMode, setStrength, setResizeMode } =
-    useImage2ImageConfigStore()
+  const {
+    isImage2Image,
+    strength,
+    onStrengthChange,
+    resizeMode,
+    onResizeModeChange
+  } = useGeneratorConfigImg2Img()
 
-  if (mode !== GeneratorMode.IMAGE_2_IMAGE) return null
+  if (!isImage2Image) return
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <span className="font-semibold text-sm">Image to Image</span>
       <Slider
-        label="Denoising Strength"
-        size="sm"
         step={0.05}
         minValue={0}
         maxValue={1}
         value={strength}
-        onChange={(value) => setStrength(value as number)}
+        onChange={onStrengthChange}
         className="max-w-full"
-        classNames={{
-          label: 'text-default-500',
-          value: 'text-default-500'
-        }}
-      />
-      <Select
-        label="Resize Mode"
-        selectedKeys={[resizeMode]}
-        onSelectionChange={(keys) => {
-          const selectedKey = Array.from(keys)[0] as Image2ImageResizeMode
-          setResizeMode(selectedKey)
-        }}
-        size="sm"
-        aria-label="Resize mode"
       >
-        <SelectItem key={Image2ImageResizeMode.RESIZE}>Resize</SelectItem>
-        <SelectItem key={Image2ImageResizeMode.CROP}>Crop</SelectItem>
+        <Label className="text-muted">Denoising Strength</Label>
+        <Slider.Output className="text-muted" />
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
+      <Select value={resizeMode} onChange={onResizeModeChange}>
+        <Label>Resize Mode</Label>
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            <ListBox.Item id={Image2ImageResizeMode.RESIZE} textValue="Resize">
+              Resize
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+            <ListBox.Item id={Image2ImageResizeMode.CROP} textValue="Crop">
+              Crop
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          </ListBox>
+        </Select.Popover>
       </Select>
     </div>
   )

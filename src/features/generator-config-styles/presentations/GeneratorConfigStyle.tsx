@@ -1,32 +1,38 @@
 import { useStyleSections } from '@/cores/hooks/useStyleSections'
-import { Button, Skeleton, useDisclosure } from '@heroui/react'
+import { useDefaultStyles } from '@/features/generator-config-styles/states'
+import { Button, useOverlayState } from '@heroui/react'
 import { Plus } from 'lucide-react'
-import { useDefaultStyles } from '../states'
+import { useMemo } from 'react'
+import { GeneratorConfigStyleAddButtonLoader } from './GeneratorConfigStyleAddButtonLoader'
 import { GeneratorConfigStyleModal } from './GeneratorConfigStyleModal'
 import { GeneratorConfigStyleSelectedPreviewer } from './GeneratorConfigStyleSelectedPreviewer'
 
 export const GeneratorConfigStyle = () => {
   useDefaultStyles()
-  const { isOpen, onOpen, onOpenChange } = useDisclosure()
+  const modalState = useOverlayState()
   const { styleSections, isLoading } = useStyleSections()
+
+  const addButton = useMemo(() => {
+    if (isLoading) return <GeneratorConfigStyleAddButtonLoader />
+
+    return (
+      <Button variant="ghost" onPress={modalState.open} isIconOnly>
+        <Plus />
+      </Button>
+    )
+  }, [isLoading, modalState.open])
 
   return (
     <section className="flex flex-col gap-4 p-4">
       <div>
         <div className="flex gap-4 items-center justify-between">
           <span className="font-semibold text-sm">Styles</span>
-          {isLoading ? (
-            <Skeleton className="rounded-xl w-10 h-10" />
-          ) : (
-            <Button variant="light" onPress={onOpen} isIconOnly>
-              <Plus />
-            </Button>
-          )}
+          {addButton}
         </div>
         <GeneratorConfigStyleModal
           styleSections={styleSections}
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
+          isOpen={modalState.isOpen}
+          onOpenChange={modalState.setOpen}
         />
       </div>
       <GeneratorConfigStyleSelectedPreviewer />

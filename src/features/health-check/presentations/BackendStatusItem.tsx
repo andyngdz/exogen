@@ -1,11 +1,12 @@
 'use client'
 
+import { BackendSetupStatusEntry } from '@/features/health-check/states'
 import { dateFormatter } from '@/services/date-formatter'
-import { Badge } from '@heroui/react'
+import { Chip } from '@heroui/react'
 import { BackendStatusLevel } from '@types'
+import { isEmpty } from 'es-toolkit/compat'
 import { CircleCheck, CircleDashed } from 'lucide-react'
 import { FC } from 'react'
-import { BackendSetupStatusEntry } from '../states'
 import { SuggestedCommands } from './SuggestedCommands'
 
 export interface BackendStatusItemProps {
@@ -20,10 +21,12 @@ export const BackendStatusItem: FC<BackendStatusItemProps> = ({
   const isError = status.level === BackendStatusLevel.Error
   const isRunning = isLast && !isError
   const isCompleted = !isLast && !isError
+  const commands = status.commands ?? []
+  const hasCommands = !isEmpty(commands)
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           {isRunning && (
             <CircleDashed
@@ -39,15 +42,15 @@ export const BackendStatusItem: FC<BackendStatusItemProps> = ({
               size={16}
             />
           )}
-          <Badge color={isError ? 'danger' : 'secondary'} variant="flat">
+          <Chip color={isError ? 'danger' : 'accent'} variant="soft">
             {status.message}
-          </Badge>
+          </Chip>
         </div>
-        <span className="text-tiny text-default-500">
+        <span className="text-xs text-muted">
           {dateFormatter.timeFromTimestamp(status.timestamp)}
         </span>
       </div>
-      {status.commands && <SuggestedCommands commands={status.commands} />}
+      {hasCommands && <SuggestedCommands commands={commands} />}
     </div>
   )
 }

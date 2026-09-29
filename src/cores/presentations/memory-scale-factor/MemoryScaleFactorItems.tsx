@@ -1,14 +1,14 @@
 'use client'
 
-import { SliderValue } from '@heroui/react'
+import { ValueChanged } from '@/types'
 import { FC } from 'react'
 import { MemoryScaleFactorItem } from './MemoryScaleFactorItem'
 
 export interface MemoryScaleFactorItemsProps {
   gpuScaleFactor: number
   ramScaleFactor: number
-  onGpuChange: (value: SliderValue) => void
-  onRamChange: (value: SliderValue) => void
+  onGpuChange: ValueChanged<number>
+  onRamChange: ValueChanged<number>
 }
 
 export const MemoryScaleFactorItems: FC<MemoryScaleFactorItemsProps> = ({

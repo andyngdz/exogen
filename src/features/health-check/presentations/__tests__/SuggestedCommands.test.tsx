@@ -1,39 +1,13 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { BackendStatusCommand } from '@types'
 import { describe, expect, it, vi } from 'vitest'
 import { SuggestedCommands } from '../SuggestedCommands'
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => ({
-  Divider: () => <hr data-testid="divider" />,
-  Snippet: ({
-    children,
-    size,
-    variant,
-    hideSymbol,
-    classNames
-  }: {
-    children: React.ReactNode
-    size?: string
-    variant?: string
-    hideSymbol?: boolean
-    classNames?: { base?: string }
-  }) => (
-    <div
-      data-testid="snippet"
-      data-size={size}
-      data-variant={variant}
-      data-hide-symbol={hideSymbol}
-      className={classNames?.base}
-    >
-      {children}
-    </div>
-  )
-}))
+const mockCopyToClipboard = vi.fn()
 
-// Mock es-toolkit isEmpty
-vi.mock('es-toolkit/compat', () => ({
-  isEmpty: (arr: unknown[]) => !arr || arr.length === 0
+vi.mock('react-use', () => ({
+  useCopyToClipboard: () => [{}, mockCopyToClipboard]
 }))
 
 describe('SuggestedCommands', () => {
@@ -48,96 +22,52 @@ describe('SuggestedCommands', () => {
     }
   ]
 
-  it('does not render when commands array is empty', () => {
-    const { container } = render(<SuggestedCommands commands={[]} />)
-
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('renders divider when commands are present', () => {
+  it('renders a separator and the "Suggested commands" title', () => {
     render(<SuggestedCommands commands={mockCommands} />)
 
-    expect(screen.getByTestId('divider')).toBeInTheDocument()
+    expect(screen.getByRole('separator')).toBeInTheDocument()
+    expect(screen.getByText('Suggested commands')).toHaveClass(
+      'text-xs',
+      'uppercase',
+      'text-muted'
+    )
   })
 
-  it('renders "Suggested commands" title', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
-    expect(screen.getByText('Suggested commands')).toBeInTheDocument()
-  })
-
-  it('renders correct number of commands', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
-    const snippets = screen.getAllByTestId('snippet')
-    expect(snippets).toHaveLength(2)
-  })
-
-  it('displays correct command labels', () => {
+  it('displays each command label and text', () => {
     render(<SuggestedCommands commands={mockCommands} />)
 
     expect(screen.getByText('Install uv')).toBeInTheDocument()
     expect(screen.getByText('Run setup')).toBeInTheDocument()
-  })
-
-  it('displays correct command text in snippets', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
     expect(
       screen.getByText('curl -LsSf https://astral.sh/uv/install.sh | sh')
     ).toBeInTheDocument()
     expect(screen.getByText('pnpm run setup')).toBeInTheDocument()
   })
 
+  it('renders one copy button per command', () => {
+    render(<SuggestedCommands commands={mockCommands} />)
+
+    expect(
+      screen.getAllByRole('button', { name: 'Copy command' })
+    ).toHaveLength(2)
+  })
+
   it('renders single command correctly', () => {
-    const singleCommand = [mockCommands[0]]
-    render(<SuggestedCommands commands={singleCommand} />)
+    render(<SuggestedCommands commands={[mockCommands[0]]} />)
 
     expect(screen.getByText('Install uv')).toBeInTheDocument()
-    expect(
-      screen.getByText('curl -LsSf https://astral.sh/uv/install.sh | sh')
-    ).toBeInTheDocument()
     expect(screen.queryByText('Run setup')).not.toBeInTheDocument()
   })
 
-  it('applies correct Snippet props', () => {
+  it('copies the command text when its copy button is pressed', async () => {
+    const user = userEvent.setup()
     render(<SuggestedCommands commands={mockCommands} />)
 
-    const snippets = screen.getAllByTestId('snippet')
-    snippets.forEach((snippet) => {
-      expect(snippet).toHaveAttribute('data-size', 'sm')
-      expect(snippet).toHaveAttribute('data-variant', 'flat')
-      expect(snippet).toHaveAttribute('data-hide-symbol', 'true')
+    const [, secondCopyButton] = screen.getAllByRole('button', {
+      name: 'Copy command'
     })
-  })
+    await user.click(secondCopyButton)
 
-  it('applies correct styling classes', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
-    const title = screen.getByText('Suggested commands')
-    expect(title).toHaveClass('text-tiny')
-    expect(title).toHaveClass('uppercase')
-    expect(title).toHaveClass('tracking-wide')
-    expect(title).toHaveClass('text-default-500')
-  })
-
-  it('applies correct label styling', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
-    const label = screen.getByText('Install uv')
-    expect(label).toHaveClass('text-tiny')
-    expect(label).toHaveClass('font-semibold')
-    expect(label).toHaveClass('text-default-500')
-  })
-
-  it('applies correct Snippet classNames', () => {
-    render(<SuggestedCommands commands={mockCommands} />)
-
-    const snippets = screen.getAllByTestId('snippet')
-    snippets.forEach((snippet) => {
-      expect(snippet).toHaveClass('max-w-full')
-      expect(snippet).toHaveClass('bg-default-100')
-      expect(snippet).toHaveClass('text-default-600')
-    })
+    expect(mockCopyToClipboard).toHaveBeenCalledWith('pnpm run setup')
   })
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useCallback, useEffect, useState } from 'react'
 
 export const useUpdaterSettings = () => {
@@ -23,19 +23,15 @@ export const useUpdaterSettings = () => {
         await globalThis.window.electronAPI.updater.checkForUpdates()
 
       if (result && !result.updateAvailable) {
-        addToast({
-          title: "You're already on the latest version",
-          description: `Current version: ${version}`,
-          color: 'success'
+        toast.success("You're already on the latest version", {
+          description: `Current version: ${version}`
         })
       }
       // If update is available, auto-download will handle it and native dialog will show
     } catch (error) {
       console.error('Failed to check for updates', error)
-      addToast({
-        title: 'Failed to check for updates',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        color: 'danger'
+      toast.danger('Failed to check for updates', {
+        description: error instanceof Error ? error.message : 'Unknown error'
       })
     } finally {
       setIsChecking(false)
@@ -43,7 +39,7 @@ export const useUpdaterSettings = () => {
   }, [version])
 
   useEffect(() => {
-    onGetVersion()
+    void onGetVersion()
   }, [onGetVersion])
 
   return {

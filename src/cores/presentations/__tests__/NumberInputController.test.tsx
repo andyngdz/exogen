@@ -1,148 +1,101 @@
-import { NumberInput } from '@heroui/react'
-import { render, screen } from '@testing-library/react'
-import { Control, FieldValues, useController } from 'react-hook-form'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createCapturedFormProviderWrapper } from '@/cores/test-utils'
+import { act, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
 import { NumberInputController } from '../NumberInputController'
 
-// Mock the HeroUI NumberInput component
-vi.mock('@heroui/react', () => ({
-  NumberInput: vi.fn(() => <div data-testid="number-input" />)
-}))
+interface NumberFormValues {
+  testNumber: number
+}
 
-// Mock React Hook Form
-vi.mock('react-hook-form', () => ({
-  useController: vi.fn(() => ({
-    field: {
-      value: 10,
-      onChange: vi.fn(),
-      onBlur: vi.fn(),
-      name: 'testNumber',
-      ref: vi.fn()
-    },
-    fieldState: {
-      error: undefined,
-      invalid: false,
-      isTouched: false,
-      isDirty: false,
-      isValidating: false
-    },
-    formState: {
-      errors: {},
-      isDirty: false,
-      dirtyFields: {},
-      touchedFields: {},
-      isSubmitted: false,
-      isSubmitting: false,
-      isSubmitSuccessful: false,
-      isValidating: false,
-      isValid: true
-    }
-  })),
-  useForm: vi.fn()
-}))
+const renderController = (element: React.ReactElement, defaultValue = 10) => {
+  const { Wrapper, getMethods } =
+    createCapturedFormProviderWrapper<NumberFormValues>({
+      formOptions: { defaultValues: { testNumber: defaultValue } }
+    })
+
+  render(element, { wrapper: Wrapper })
+
+  return { getMethods }
+}
 
 describe('NumberInputController', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders the NumberInput component', () => {
-    const control = {} as Control<FieldValues>
-
-    render(
-      <NumberInputController
-        control={control}
+  it('renders the form value in a labelled number field', () => {
+    renderController(
+      <NumberInputController<NumberFormValues>
         controlName="testNumber"
-        minValue={5}
-        maximumFractionDigits={2}
+        aria-label="Test number"
       />
     )
 
-    expect(screen.getByTestId('number-input')).toBeInTheDocument()
-    expect(NumberInput).toHaveBeenCalled()
+    expect(screen.getByRole('textbox', { name: 'Test number' })).toHaveValue(
+      '10'
+    )
   })
 
-  it('passes correct props to NumberInput', () => {
-    const control = {} as Control<FieldValues>
-
-    render(
-      <NumberInputController
-        control={control}
+  it('formats the value with the given fraction digits and no grouping', () => {
+    renderController(
+      <NumberInputController<NumberFormValues>
         controlName="testNumber"
-        minValue={5}
+        aria-label="Test number"
         maximumFractionDigits={2}
+      />,
+      12345.678
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Test number' })).toHaveValue(
+      '12345.68'
+    )
+  })
+
+  it('rounds to whole numbers by default', () => {
+    renderController(
+      <NumberInputController<NumberFormValues>
+        controlName="testNumber"
+        aria-label="Test number"
+      />,
+      7.6
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Test number' })).toHaveValue(
+      '8'
+    )
+  })
+
+  it('writes the committed value back to the form', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderController(
+      <NumberInputController<NumberFormValues>
+        controlName="testNumber"
+        aria-label="Test number"
       />
     )
 
-    // Verify that NumberInput was called with hideStepper prop
-    expect(vi.mocked(NumberInput).mock.calls[0][0]).toMatchObject({
-      hideStepper: true,
-      minValue: 5,
-      formatOptions: {
-        useGrouping: false,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    })
+    const input = screen.getByRole('textbox', { name: 'Test number' })
+    await user.clear(input)
+    await user.type(input, '42')
+    await user.tab()
+
+    expect(getMethods().getValues('testNumber')).toBe(42)
   })
 
-  it('uses default maximumFractionDigits value when not provided', () => {
-    const control = {} as Control<FieldValues>
-
-    render(<NumberInputController control={control} controlName="testNumber" />)
-
-    // Verify the default maximumFractionDigits value
-    expect(vi.mocked(NumberInput).mock.calls[0][0].formatOptions).toMatchObject(
-      {
-        maximumFractionDigits: 0
-      }
+  it('shows the required error when the field is cleared', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderController(
+      <NumberInputController<NumberFormValues>
+        controlName="testNumber"
+        aria-label="Test number"
+      />
     )
-  })
 
-  it('passes error state when field has errors', () => {
-    // Mock the useController hook to return an error state
-    vi.mocked(useController).mockReturnValueOnce({
-      field: {
-        value: 10,
-        onChange: vi.fn(),
-        onBlur: vi.fn(),
-        name: 'testNumber',
-        ref: vi.fn()
-      },
-      fieldState: {
-        error: { type: 'validate', message: 'Input is required' },
-        invalid: true,
-        isTouched: true,
-        isDirty: false,
-        isValidating: false
-      },
-      formState: {
-        errors: {
-          testNumber: { type: 'validate', message: 'Input is required' }
-        },
-        isDirty: false,
-        dirtyFields: {},
-        touchedFields: { testNumber: true },
-        isSubmitted: false,
-        isSubmitting: false,
-        isSubmitSuccessful: false,
-        isValidating: false,
-        isValid: false,
-        isLoading: false,
-        disabled: false,
-        submitCount: 0,
-        validatingFields: {},
-        isReady: true
-      }
+    const input = screen.getByRole('textbox', { name: 'Test number' })
+    await user.clear(input)
+    await user.tab()
+    await act(async () => {
+      await getMethods().trigger('testNumber')
     })
 
-    const control = {} as Control<FieldValues>
-
-    render(<NumberInputController control={control} controlName="testNumber" />)
-
-    // Verify error props
-    const props = vi.mocked(NumberInput).mock.calls[0][0]
-    expect(props.errorMessage).toBe('Input is required')
-    expect(props.isInvalid).toBe(true)
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Input is required')).toBeInTheDocument()
   })
 })

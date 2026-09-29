@@ -1,42 +1,17 @@
+import { toast } from '@heroui/react'
 import { useUploadLoraMutation } from '@/cores/api-queries'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { UploadLoraButton } from '../UploadLoraButton'
-
-interface ButtonProps {
-  children: ReactNode
-  onPress: () => void
-  isLoading: boolean
-  startContent: ReactNode
-  color?: string
-}
 
 // Mock dependencies
 vi.mock('@/cores/api-queries', () => ({
   useUploadLoraMutation: vi.fn()
 }))
 
-const mockAddToast = vi.fn()
-vi.mock('@heroui/react', () => ({
-  addToast: (args: unknown) => mockAddToast(args),
-  Button: ({
-    children,
-    onPress,
-    isLoading,
-    startContent,
-    color
-  }: ButtonProps) => (
-    <button
-      onClick={onPress}
-      disabled={isLoading}
-      data-testid="upload-button"
-      data-color={color ?? 'primary'}
-    >
-      {startContent}
-      {children}
-    </button>
-  )
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 const mockSelectFile = vi.fn()
@@ -62,7 +37,9 @@ describe('UploadLoraButton', () => {
 
   it('renders upload button', () => {
     render(<UploadLoraButton />)
-    expect(screen.getByTestId('upload-button')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Upload LoRA' })
+    ).toBeInTheDocument()
     expect(screen.getByText('Upload LoRA')).toBeInTheDocument()
   })
 
@@ -71,7 +48,7 @@ describe('UploadLoraButton', () => {
     mockMutateAsync.mockResolvedValue({})
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
@@ -90,7 +67,7 @@ describe('UploadLoraButton', () => {
     mockMutateAsync.mockResolvedValue({})
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
@@ -102,7 +79,7 @@ describe('UploadLoraButton', () => {
     mockSelectFile.mockResolvedValue(null)
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
@@ -117,14 +94,12 @@ describe('UploadLoraButton', () => {
     mockMutateAsync.mockResolvedValue({})
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(mockAddToast).toHaveBeenCalledWith({
-        title: 'LoRA uploaded',
-        description: 'The LoRA model was uploaded successfully.',
-        color: 'success'
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('LoRA uploaded', {
+        description: 'The LoRA model was uploaded successfully.'
       })
     })
   })
@@ -135,14 +110,12 @@ describe('UploadLoraButton', () => {
     mockMutateAsync.mockRejectedValue(new Error(errorMessage))
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(mockAddToast).toHaveBeenCalledWith({
-        title: 'Upload failed',
-        description: errorMessage,
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Upload failed', {
+        description: errorMessage
       })
     })
   })
@@ -152,26 +125,24 @@ describe('UploadLoraButton', () => {
     mockMutateAsync.mockRejectedValue('Unknown error')
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(mockAddToast).toHaveBeenCalledWith({
-        title: 'Upload failed',
-        description: 'Failed to upload LoRA model.',
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Upload failed', {
+        description: 'Failed to upload LoRA model.'
       })
     })
   })
 
-  it('disables button when upload is pending', () => {
+  it('marks the button pending while the upload runs', () => {
     vi.mocked(useUploadLoraMutation).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: true
     } as unknown as ReturnType<typeof useUploadLoraMutation>)
 
     render(<UploadLoraButton />)
-    const button = screen.getByTestId('upload-button')
-    expect(button).toBeDisabled()
+    const button = screen.getByRole('button', { name: 'Upload LoRA' })
+    expect(button).toHaveAttribute('data-pending', 'true')
   })
 })

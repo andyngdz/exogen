@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { BackendSetupStatusEntry } from '../../states/useBackendSetupStatusStore'
 import { BackendStatusItem } from '../BackendStatusItem'
 
-vi.mock('lucide-react', () => ({
+vi.mock('lucide-react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('lucide-react')>()),
   CircleDashed: ({
     className,
     size
@@ -73,6 +74,14 @@ describe('BackendStatusItem', () => {
 
     expect(screen.getByText('Suggested commands')).toBeInTheDocument()
     expect(screen.getByText('Install uv')).toBeInTheDocument()
+  })
+
+  it('hides suggested commands when the list is empty', () => {
+    render(
+      <BackendStatusItem status={makeEntry({ commands: [] })} isLast={false} />
+    )
+
+    expect(screen.queryByText('Suggested commands')).not.toBeInTheDocument()
   })
 
   describe('status indicators', () => {

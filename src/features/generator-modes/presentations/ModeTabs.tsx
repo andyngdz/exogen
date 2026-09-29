@@ -1,45 +1,39 @@
 'use client'
 
-import {
-  useGeneratorModeStore,
-  useImage2ImageConfigStore
-} from '@/features/generators'
+import { useGeneratorModeTabs } from '@/features/generator-modes/states/useGeneratorModeTabs'
 import { GeneratorMode } from '@/types'
-import { Tab, Tabs } from '@heroui/react'
+import { Tabs } from '@heroui/react'
 import { Image2ImagePanel } from './Image2ImagePanel'
 import { Text2ImagePanel } from './Text2ImagePanel'
 
 export const ModeTabs = () => {
-  const { mode, setMode } = useGeneratorModeStore()
-  const { clearInitImageBase64 } = useImage2ImageConfigStore()
+  const { mode, onModeChange } = useGeneratorModeTabs()
 
   return (
     <div className="p-4 h-full min-h-0 flex flex-col">
       <Tabs
-        aria-label="Generator mode"
-        placement="top"
+        className="flex-1 min-h-0"
         selectedKey={mode}
-        onSelectionChange={(key) => {
-          const nextMode = key as GeneratorMode
-          setMode(nextMode)
-
-          if (nextMode === GeneratorMode.TEXT_2_IMAGE) {
-            clearInitImageBase64()
-          }
-        }}
-        classNames={{
-          tabWrapper: 'flex flex-col flex-1 min-h-0',
-          base: 'shrink-0 pb-4',
-          panel: 'flex-1 min-h-0'
-        }}
-        variant="solid"
+        onSelectionChange={onModeChange}
       >
-        <Tab key={GeneratorMode.TEXT_2_IMAGE} title="Text to Image">
+        <Tabs.ListContainer className="w-fit shrink-0">
+          <Tabs.List aria-label="Generator mode" className="whitespace-nowrap">
+            <Tabs.Tab id={GeneratorMode.TEXT_2_IMAGE}>
+              Text to Image
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id={GeneratorMode.IMAGE_2_IMAGE}>
+              Image to Image
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <Tabs.Panel id={GeneratorMode.TEXT_2_IMAGE} className="flex-1 min-h-0">
           <Text2ImagePanel />
-        </Tab>
-        <Tab key={GeneratorMode.IMAGE_2_IMAGE} title="Image to Image">
+        </Tabs.Panel>
+        <Tabs.Panel id={GeneratorMode.IMAGE_2_IMAGE} className="flex-1 min-h-0">
           <Image2ImagePanel />
-        </Tab>
+        </Tabs.Panel>
       </Tabs>
     </div>
   )

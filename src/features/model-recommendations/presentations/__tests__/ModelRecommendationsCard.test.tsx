@@ -3,54 +3,6 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ModelRecommendationsCard } from '../ModelRecommendationsCard'
 
-// Mock the Card component from @heroui/react
-vi.mock('@heroui/react', () => ({
-  Card: ({
-    children,
-    className
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div data-testid="card" className={className}>
-      {children}
-    </div>
-  ),
-  CardHeader: ({
-    children,
-    className
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div data-testid="card-header" className={className}>
-      {children}
-    </div>
-  ),
-  CardBody: ({
-    children,
-    className
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div data-testid="card-body" className={className}>
-      {children}
-    </div>
-  ),
-  CardFooter: ({
-    children,
-    className
-  }: {
-    children: React.ReactNode
-    className?: string
-  }) => (
-    <div data-testid="card-footer" className={className}>
-      {children}
-    </div>
-  )
-}))
-
 // Mock the child components
 vi.mock('../ModelRecommendationMemoryBox', () => ({
   ModelRecommendationMemoryBox: ({
@@ -171,9 +123,9 @@ describe('ModelRecommendationsCard', () => {
   })
 
   it('renders card component', () => {
-    render(<ModelRecommendationsCard model={mockModel} />)
+    const { container } = render(<ModelRecommendationsCard model={mockModel} />)
 
-    const card = screen.getByTestId('card')
+    const card = container.querySelector('[data-slot="card"]')
     expect(card).toBeInTheDocument()
   })
 })

@@ -1,11 +1,13 @@
 import { useModelSelectorStore } from '@/features/model-selectors/states/useModelSelectorStores'
 import { api } from '@/services/api'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export const useDeleteModel = () => {
   const queryClient = useQueryClient()
-  const { selected_model_id } = useModelSelectorStore()
+  const selected_model_id = useModelSelectorStore(
+    (state) => state.selected_model_id
+  )
 
   return useMutation({
     mutationKey: ['deleteModel'],
@@ -19,19 +21,13 @@ export const useDeleteModel = () => {
       return api.deleteModel(id)
     },
     onSuccess: async () => {
-      addToast({
-        title: 'Model deleted',
-        description: 'The model was removed successfully.',
-        color: 'success'
+      toast.success('Model deleted', {
+        description: 'The model was removed successfully.'
       })
       await queryClient.refetchQueries({ queryKey: ['getDownloadedModels'] })
     },
     onError: (error) => {
-      addToast({
-        title: 'Delete failed',
-        description: error.message,
-        color: 'danger'
-      })
+      toast.danger('Delete failed', { description: error.message })
     }
   })
 }
