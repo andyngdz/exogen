@@ -1,4 +1,9 @@
-import { HistoryConfigRow, HistoryDay } from '@/features/histories/types'
+import {
+  HistoryConfigNames,
+  HistoryConfigRow,
+  HistoryConfigRowKind,
+  HistoryDay
+} from '@/features/histories/types'
 import { HistoryItem } from '@/types'
 import dayjs, { Dayjs } from 'dayjs'
 import {
@@ -63,39 +68,47 @@ export class HistoryViewService {
     ].join(' · ')
   }
 
-  /** The run's config as label and value rows for the detail panel. */
-  toConfigRows(history: HistoryItem, samplerName: string): HistoryConfigRow[] {
+  /** Every stored setting of the run as a row for the detail panel. */
+  toConfigRows(
+    history: HistoryItem,
+    names: HistoryConfigNames
+  ): HistoryConfigRow[] {
     const { config } = history
-    const rows: HistoryConfigRow[] = [
-      { label: 'Prompt', value: history.prompt, isMono: false },
-      { label: 'Model', value: history.model, isMono: false },
-      {
-        label: 'Size',
-        value: `${config.width} × ${config.height}`,
-        isMono: true
-      },
-      {
-        label: 'Sampler',
-        value: `${samplerName} · ${config.steps} steps`,
-        isMono: false
-      },
-      { label: 'CFG scale', value: `${config.cfg_scale}`, isMono: true },
-      {
-        label: 'Seed',
-        value: config.seed === RANDOM_SEED ? 'Random' : `${config.seed}`,
-        isMono: true
-      }
+    const text = (label: string, value: string) => ({
+      label,
+      kind: HistoryConfigRowKind.TEXT,
+      values: [value]
+    })
+    const mono = (label: string, value: string) => ({
+      label,
+      kind: HistoryConfigRowKind.MONO,
+      values: [value]
+    })
+    const chips = (label: string, values: string[]) => ({
+      label,
+      kind: HistoryConfigRowKind.CHIPS,
+      values
+    })
+
+    return [
+      text('Prompt', history.prompt),
+      text('Negative prompt', config.negative_prompt || 'None'),
+      text('Model', history.model),
+      mono('Size', `${config.width} × ${config.height}`),
+      mono('Images', `${config.number_of_images}`),
+      text('Sampler', `${names.samplerName} · ${config.steps} steps`),
+      mono('CFG scale', `${config.cfg_scale}`),
+      mono('CLIP skip', `${config.clip_skip}`),
+      mono('Seed', config.seed === RANDOM_SEED ? 'Random' : `${config.seed}`),
+      text('Hires fix', this.toHiresLabel(config.hires_fix)),
+      chips('Styles', names.styleNames),
+      chips('LoRAs', names.loraLabels)
     ]
+  }
 
-    if (config.hires_fix) {
-      rows.push({
-        label: 'Hires fix',
-        value: `${config.hires_fix.upscaler} ×${config.hires_fix.upscale_factor} · ${config.hires_fix.denoising_strength}`,
-        isMono: false
-      })
-    }
-
-    return rows
+  private toHiresLabel(hiresFix: HistoryItem['config']['hires_fix']) {
+    if (!hiresFix) return 'Off'
+    return `${hiresFix.upscaler} ×${hiresFix.upscale_factor} · ${hiresFix.denoising_strength}`
   }
 }
 

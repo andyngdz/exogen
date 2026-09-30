@@ -32,10 +32,14 @@ const run = (id: number, prompt: string) =>
     generated_images: []
   }) as unknown as HistoryItem
 
-const mockHistories = (data: HistoryItem[]) =>
+const refetch = vi.fn()
+
+const mockHistories = (data: HistoryItem[], error: Error | null = null) =>
   vi.mocked(useHistoriesQuery).mockReturnValue({
     data,
-    isLoading: false
+    isLoading: false,
+    error,
+    refetch
   } as unknown as ReturnType<typeof useHistoriesQuery>)
 
 describe('HistoryView', () => {
@@ -82,5 +86,19 @@ describe('HistoryView', () => {
     await user.click(screen.getByRole('button', { name: 'Go to Generate' }))
 
     expect(useAppShellStore.getState().activeView).toBe(AppView.GENERATE)
+  })
+
+  it('reports a failed load instead of an empty history', async () => {
+    const user = userEvent.setup()
+    mockHistories([], new Error('Network Error'))
+    render(<HistoryView />)
+
+    expect(screen.getByText('History did not load')).toBeInTheDocument()
+    expect(screen.getByText('Network Error')).toBeInTheDocument()
+    expect(screen.queryByText('No runs yet')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(refetch).toHaveBeenCalled()
   })
 })

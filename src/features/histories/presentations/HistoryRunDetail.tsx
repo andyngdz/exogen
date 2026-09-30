@@ -6,6 +6,7 @@ import { map } from 'es-toolkit/compat'
 import { ChevronLeft, ChevronRight, Download, RotateCcw } from 'lucide-react'
 import NextImage from 'next/image'
 import { FC } from 'react'
+import { HistoryConfigValue } from './HistoryConfigValue'
 import { HistoryDeleteButton } from './HistoryDeleteButton'
 
 interface HistoryRunDetailProps {
@@ -71,8 +72,8 @@ export const HistoryRunDetail: FC<HistoryRunDetailProps> = ({ history }) => {
         {map(detail.configRows, (row) => (
           <div key={row.label} className="flex gap-4">
             <dt className="w-28 shrink-0 text-muted">{row.label}</dt>
-            <dd className={clsx('min-w-0 flex-1', { 'font-mono': row.isMono })}>
-              {row.value}
+            <dd className="min-w-0 flex-1">
+              <HistoryConfigValue row={row} />
             </dd>
           </div>
         ))}

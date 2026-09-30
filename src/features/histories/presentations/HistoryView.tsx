@@ -5,6 +5,7 @@ import { Chip, SearchField, Spinner } from '@heroui/react'
 import clsx from 'clsx'
 import { map } from 'es-toolkit/compat'
 import { HistoryEmptyView } from './HistoryEmptyView'
+import { HistoryErrorView } from './HistoryErrorView'
 import { HistoryRunCard } from './HistoryRunCard'
 import { HistoryRunDetail } from './HistoryRunDetail'
 
@@ -45,6 +46,12 @@ export const HistoryView = () => {
           <div className="flex flex-1 items-center justify-center">
             <Spinner />
           </div>
+        )}
+        {view.errorMessage && (
+          <HistoryErrorView
+            message={view.errorMessage}
+            onRetry={view.onRetry}
+          />
         )}
         {view.hasNoRuns && (
           <HistoryEmptyView onGoToGenerate={view.onGoToGenerate} />

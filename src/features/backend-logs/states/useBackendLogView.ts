@@ -19,13 +19,16 @@ export const useBackendLogView = () => {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const visibleLogs = logViewService.filterLogs(logs, logFilter)
+  // Once the store is at its cap, a new line replaces the oldest and the
+  // count stays put, so follow the last line itself.
+  const lastLog = visibleLogs.at(-1)
 
   useLayoutEffect(() => {
     const list = scrollRef.current
     if (!list) return
 
     list.scrollTop = list.scrollHeight
-  }, [visibleLogs.length])
+  }, [lastLog, logFilter])
 
   const onFilterChange: ValueChanged<Selection> = (selection) => {
     if (selection === 'all') return

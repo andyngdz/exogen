@@ -1,3 +1,4 @@
+import { HistoryConfigRowKind } from '@/features/histories/types'
 import { HistoryItem } from '@/types'
 import dayjs from 'dayjs'
 import { map } from 'es-toolkit/compat'
@@ -16,10 +17,15 @@ const run = (id: number, createdAt: string, prompt: string) =>
       steps: 24,
       cfg_scale: 7.5,
       seed: -1,
-      sampler: 'EulerAncestralDiscreteScheduler'
+      sampler: 'EulerAncestralDiscreteScheduler',
+      negative_prompt: '',
+      number_of_images: 1,
+      clip_skip: 1,
+      styles: ['cinematic'],
+      loras: []
     },
     generated_images: [{ id: id * 10, path: `static/${id}.png` }]
-  }) as HistoryItem
+  }) as unknown as HistoryItem
 
 describe('historyViewService', () => {
   it('reads created_at as UTC', () => {
@@ -54,21 +60,39 @@ describe('historyViewService', () => {
     expect(historyViewService.filterByPrompt(runs, 'forest')).toHaveLength(0)
   })
 
-  it('lists the config with the sampler name and a random seed', () => {
+  it('lists every stored setting, with names for styles and LoRAs', () => {
     const rows = historyViewService.toConfigRows(
       run(1, '2026-10-01T09:00:00', 'a lighthouse'),
-      'Euler A'
+      {
+        samplerName: 'Euler A',
+        styleNames: ['Cinematic'],
+        loraLabels: []
+      }
     )
+    const byLabel = Object.fromEntries(map(rows, (row) => [row.label, row]))
 
-    expect(rows).toContainEqual({
-      label: 'Sampler',
-      value: 'Euler A · 24 steps',
-      isMono: false
-    })
-    expect(rows).toContainEqual({
-      label: 'Seed',
-      value: 'Random',
-      isMono: true
+    expect(map(rows, 'label')).toEqual([
+      'Prompt',
+      'Negative prompt',
+      'Model',
+      'Size',
+      'Images',
+      'Sampler',
+      'CFG scale',
+      'CLIP skip',
+      'Seed',
+      'Hires fix',
+      'Styles',
+      'LoRAs'
+    ])
+    expect(byLabel['Sampler'].values).toEqual(['Euler A · 24 steps'])
+    expect(byLabel['Negative prompt'].values).toEqual(['None'])
+    expect(byLabel['Seed'].values).toEqual(['Random'])
+    expect(byLabel['Hires fix'].values).toEqual(['Off'])
+    expect(byLabel['Styles']).toEqual({
+      label: 'Styles',
+      kind: HistoryConfigRowKind.CHIPS,
+      values: ['Cinematic']
     })
   })
 })

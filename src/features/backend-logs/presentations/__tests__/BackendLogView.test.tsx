@@ -1,5 +1,5 @@
 import { useBackendLogStore } from '@/features/backend-logs/states/useBackendLogStore'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { BackendLogView } from '../BackendLogView'
@@ -38,5 +38,31 @@ describe('BackendLogView', () => {
     expect(
       screen.getByText('No log lines for this filter yet.')
     ).toBeInTheDocument()
+  })
+
+  it('keeps following new lines once the store is at its cap', () => {
+    render(<BackendLogView />)
+    const lines = screen.getByRole('log', { name: 'Backend log lines' })
+    Object.defineProperty(lines, 'scrollHeight', {
+      configurable: true,
+      value: 900
+    })
+    lines.scrollTop = 0
+
+    // A capped store drops the oldest line as it adds one: same count.
+    act(() => {
+      useBackendLogStore.setState({
+        logs: [
+          { level: 'error', message: 'CUDA out of memory', timestamp: 2 },
+          {
+            level: 'info',
+            message: 'Retrying with a smaller tile',
+            timestamp: 3
+          }
+        ]
+      })
+    })
+
+    expect(lines.scrollTop).toBe(900)
   })
 })
