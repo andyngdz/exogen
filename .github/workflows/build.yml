@@ -16,6 +16,7 @@ on:
       - "vitest.config.ts"
       - "test/**/*.ts"
       - ".github/workflows/code-quality.yml"
+      - "!backend/**"
   # Run on pushes to specific branches affecting specific paths
   push:
     branches: [main, master, staging, develop]
@@ -29,6 +30,7 @@ on:
       - "vitest.config.ts"
       - "test/**/*.ts"
       - ".github/workflows/code-quality.yml"
+      - "!backend/**"
 
 # Permissions required by the workflow
 permissions:
