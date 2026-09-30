@@ -88,16 +88,16 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 10. Prompt Dock And Stage [depends-on: 3, 6] [writes: src/features/generator-dock/, src/features/generator-stage/] [parallel-safe: yes]
 
-- [ ] Build `GeneratorDock`:
+- [x] Build `GeneratorDock`:
   - Prompt and a negative prompt toggle, open automatically when set.
   - Read-only pills.
   - Generate through `useGeneratorSubmit`, with Ctrl+Enter.
   - The first disabled reason above the button.
-- [ ] Build `GeneratorStage`:
+- [x] Build `GeneratorStage`:
   - The previewer with its overlay toolbar, and the input beside the output in image mode.
   - The phase stepper, and the recent-runs strip with the "Use this config" hover card.
   - State panels in priority order: offline, model loading with the phase message, failed, no model, first run, results.
-- [ ] Tests for:
+- [x] Tests for:
   - Pill derivation.
   - Disabled reasons, and Ctrl+Enter while disabled.
   - The negative prompt toggle.

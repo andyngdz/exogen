@@ -12,7 +12,7 @@ export const GenerationPhaseStepper = () => {
   if (!isVisible) return
 
   return (
-    <div className="fixed bottom-1/12 left-1/2 -translate-x-1/2 z-50">
+    <div className="absolute top-4 left-1/2 z-20 -translate-x-1/2">
       <Breadcrumbs
         className={clsx(
           'bg-background/90 backdrop-blur-md',
