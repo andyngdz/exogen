@@ -1,9 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`EditorScreen > matches snapshot 1`] = `
-<div
-  data-testid="editor"
->
-  Editor Component
-</div>
-`;

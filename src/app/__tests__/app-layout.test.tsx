@@ -82,6 +82,20 @@ describe('AppLayout', () => {
     expect(screen.queryByTestId('editor-content')).not.toBeInTheDocument()
     expect(screen.getByTestId('full-screen-loader')).toBeInTheDocument()
     expect(screen.getByText('Initializing backend...')).toBeInTheDocument()
+    expect(screen.queryByTestId('app-footer')).not.toBeInTheDocument()
+  })
+
+  it('keeps the footer on onboarding pages', async () => {
+    const { usePathname } = await import('next/navigation')
+    vi.mocked(usePathname).mockReturnValue('/gpu-detection')
+    mockUseBackendInitStore.mockReturnValue(true)
+
+    render(
+      <AppLayout>
+        <div data-testid="onboarding-content">Onboarding</div>
+      </AppLayout>
+    )
+
     expect(screen.getByTestId('app-footer')).toBeInTheDocument()
   })
 

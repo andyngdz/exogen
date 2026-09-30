@@ -65,13 +65,13 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
   - Arrow keys, a thumbnail strip, and Escape to close.
 - [x] Update the photoview tests for the header, navigation, actions and close.
 
-## 8. App Shell [depends-on: 2, 3, 4] [writes: src/features/app-shell/presentations/, src/app/editor/, src/app/app-layout.tsx, src/features/editors/, src/features/model-search/presentations/ModelSearchOpenIconButton.tsx, src/features/model-load-progress/states/] [parallel-safe: yes]
+## 8. App Shell [depends-on: 2, 3, 4] [writes: src/features/app-shell/, src/app/__tests__/, src/app/editor/, src/app/app-layout.tsx, src/features/editors/, src/features/model-search/presentations/ModelSearchOpenIconButton.tsx, src/features/model-load-progress/states/] [parallel-safe: yes]
 
-- [ ] Build `AppShell`, `AppRail` and `AppStatusBar`.
+- [x] Build `AppShell`, `AppRail` and `AppStatusBar`.
   - `AppShell` mounts `BackendLogDrawer`, `ModelSearchModal`, `SettingsModal`, `useSocketConnectionWatcher` and `useModelLoadProgress`.
   - Wrap `/editor` in `AppShell`, and stop rendering `AppFooter` on `/editor`.
-- [ ] Delete `EditorNavbar` and `ModelSearchOpenIconButton`. Keep `ModelSelector` in `Editor` until unit 11 moves it into the top bar.
-- [ ] Component tests:
+- [x] Delete `EditorNavbar` and `ModelSearchOpenIconButton`. Keep `ModelSelector` in `Editor` until unit 11 moves it into the top bar.
+- [x] Component tests:
   - Each rail action.
   - Each status bar state: ready, connecting, offline, GPU without CUDA, no VRAM data, downloading.
   - `openModal(SettingsTab.MODELS)` opening settings on `/editor`.

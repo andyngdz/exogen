@@ -6,9 +6,8 @@ import { Editor } from '../Editor'
 
 expect.extend(matchers)
 
-// Mock the EditorNavbar component
-vi.mock('../EditorNavbar', () => ({
-  EditorNavbar: () => <div data-testid="mock-editor-navbar">Editor header</div>
+vi.mock('@/features/model-selectors/presentations/ModelSelector', () => ({
+  ModelSelector: () => <div data-testid="mock-model-selector">Model</div>
 }))
 
 // Mock the Generator component to avoid network requests and resizable panel issues
@@ -32,7 +31,7 @@ describe('Editor', () => {
   it('renders all components', () => {
     render(<Editor />, { wrapper: createQueryClientWrapper() })
 
-    expect(screen.getByTestId('mock-editor-navbar')).toBeInTheDocument()
+    expect(screen.getByTestId('mock-model-selector')).toBeInTheDocument()
     expect(
       screen.getByTestId('mock-model-load-progress-bar')
     ).toBeInTheDocument()
