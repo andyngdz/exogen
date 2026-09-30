@@ -6,6 +6,9 @@ import { GeneratorInspector } from '../GeneratorInspector'
 vi.mock('@/features/generator-inspector/states/useImageSizeFamilySync', () => ({
   useImageSizeFamilySync: vi.fn()
 }))
+vi.mock('@/features/generator-config-styles/states', () => ({
+  useDefaultStyles: vi.fn()
+}))
 vi.mock('../basic/GeneratorInspectorBasic', () => ({
   GeneratorInspectorBasic: () => <div>Basic panel</div>
 }))

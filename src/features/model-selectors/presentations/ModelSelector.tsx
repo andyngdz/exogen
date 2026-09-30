@@ -1,14 +1,20 @@
 'use client'
 
 import { useModelSelectorMenu } from '@/features/model-selectors/states/useModelSelectorMenu'
-import { Button, Chip, Dropdown } from '@heroui/react'
+import { Button, Dropdown, Spinner } from '@heroui/react'
 import { map } from 'es-toolkit/compat'
 import { ChevronDown } from 'lucide-react'
 import { useMemo } from 'react'
 
 export const ModelSelector = () => {
-  const { downloadedModels, selectedModelId, familyLabel, onSelectionChange } =
-    useModelSelectorMenu()
+  const {
+    downloadedModels,
+    selectedModelId,
+    familyLabel,
+    isLoading,
+    loadPercentLabel,
+    onSelectionChange
+  } = useModelSelectorMenu()
 
   const items = useMemo(() => {
     return map(downloadedModels, (downloadedModel) => {
@@ -24,18 +30,24 @@ export const ModelSelector = () => {
     })
   }, [downloadedModels])
 
+  const StatusIcon = useMemo(() => {
+    if (isLoading) return <Spinner size="sm" color="current" />
+    return <span className="size-2 rounded-full bg-success" />
+  }, [isLoading])
+
+  const trailingLabel = isLoading ? loadPercentLabel : familyLabel
+
   return (
     <Dropdown>
-      <Button variant="ghost" className="text-accent">
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="min-w-0 truncate">{selectedModelId}</span>
-          {familyLabel && (
-            <Chip size="sm" variant="soft">
-              {familyLabel}
-            </Chip>
-          )}
+      <Button variant="outline">
+        {StatusIcon}
+        <span className="max-w-60 min-w-0 truncate">
+          {selectedModelId || 'Select a model'}
         </span>
-        <ChevronDown size={16} />
+        {trailingLabel && (
+          <span className="font-mono text-xs text-muted">{trailingLabel}</span>
+        )}
+        <ChevronDown size={16} className="text-muted" />
       </Button>
       <Dropdown.Popover>
         <Dropdown.Menu

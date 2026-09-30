@@ -131,12 +131,12 @@ The 3g panel offers "Try again" (`onSubmit`), "Memory settings" (`openModal(Sett
 
 ### 7. Removed code
 
-- `EditorNavbar`, `ModelSearchOpenIconButton`, the Allotment dependency and its CSS import.
+- `EditorNavbar`, `ModelSearchOpenIconButton`, and the Allotment layout in `Generator`. The dependency stays: `ModelSearchContainer` still splits its panes with it until the Models view is redone in phase 2.
 - `GeneratorConfig` (the left column) and `GeneratorConfigFormat` (its size and hires toggle move to the inspector).
 - `ModeTabs`, `Text2ImagePanel`, `Image2ImagePanel`, `GeneratorModePanelLayout`.
 - `GeneratorConfigStyleModal` and `GeneratorConfigStyle`'s modal trigger.
 - `ExtraModal` and `ExtraSelector`.
-- `GeneratorAction`'s view select.
+- `GeneratorAction` and its submit button, now that the dock owns Generate and the top bar owns the view switch.
 - `ModelLoadProgressBar` and the model-load `FullScreenLoader` in `Generator`.
 
 Tests for removed components are removed with them; tests for moved logic move with it.

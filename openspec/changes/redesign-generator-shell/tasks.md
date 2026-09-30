@@ -106,14 +106,14 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 11. Generator Layout Switch [depends-on: 4, 7, 8, 9, 10] [writes: src/features/generators/presentations/, src/features/generator-modes/, src/features/generator-configs/presentations/, src/features/generator-config-formats/, src/features/generator-config-styles/presentations/, src/features/extra/, src/features/generator-actions/, src/features/model-selectors/presentations/, src/features/model-load-progress/presentations/, src/features/histories/presentations/Histories.tsx, src/features/editors/, package.json, pnpm-lock.yaml] [parallel-safe: no]
 
-- [ ] Recompose `Generator` from `GeneratorTopBar`, `GeneratorStage`, `GeneratorDock`, `GeneratorInspector` and the history column toggled by `isHistoryOpen`. Restyle `ModelSelector` with load progress for the top bar.
-- [ ] Delete the following, with their tests:
-  - The Allotment layout and dependency.
+- [x] Recompose `Generator` from `GeneratorTopBar`, `GeneratorStage`, `GeneratorDock`, `GeneratorInspector` and the history column toggled by `isHistoryOpen`. Restyle `ModelSelector` with load progress for the top bar.
+- [x] Delete the following, with their tests:
+  - The Allotment layout in `Generator` (the dependency stays for `ModelSearchContainer` until phase 2).
   - The model-load `FullScreenLoader`.
   - `GeneratorConfig` and `GeneratorConfigFormat`.
   - `ModeTabs`, `Text2ImagePanel`, `Image2ImagePanel` and `GeneratorModePanelLayout`.
   - `GeneratorConfigStyleModal`, `ExtraModal` and `ExtraSelector`.
-  - The view select in `GeneratorAction`, and `ModelLoadProgressBar`.
+  - `GeneratorAction` with its view select, and `ModelLoadProgressBar`.
 
 ## 12. Verification [depends-on: 1, 11] [writes: -] [parallel-safe: no]
 

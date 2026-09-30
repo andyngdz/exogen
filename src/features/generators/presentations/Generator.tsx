@@ -1,20 +1,17 @@
 'use client'
 
-import { FullScreenLoader } from '@/cores/presentations'
-import { GenerationPhaseStepper } from '@/features/generation-phase-stepper'
-import { GeneratorConfig } from '@/features/generator-configs'
-import { ModeTabs } from '@/features/generator-modes'
+import { GeneratorDock } from '@/features/generator-dock'
+import { GeneratorInspector } from '@/features/generator-inspector'
 import { GeneratorPhotoviewModal } from '@/features/generator-photoview'
+import { GeneratorStage } from '@/features/generator-stage'
 import { useGeneratorLayout } from '@/features/generators/states/useGeneratorLayout'
 import { Histories } from '@/features/histories'
 import { Form, ProgressBar } from '@heroui/react'
-import { Allotment } from 'allotment'
-import 'allotment/dist/style.css'
-import clsx from 'clsx'
 import { FormProvider } from 'react-hook-form'
+import { GeneratorTopBar } from './GeneratorTopBar'
 
 export const Generator = () => {
-  const { isMounted, methods, loadingMessage, canMountPhotoview } =
+  const { isMounted, methods, isHistoryOpen, canMountPhotoview } =
     useGeneratorLayout()
 
   if (!isMounted)
@@ -28,32 +25,31 @@ export const Generator = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="relative w-full h-full">
-        <Form
-          aria-label="Generator"
-          onSubmit={(event) => {
-            event.preventDefault()
-          }}
-          className={clsx('w-full h-full opacity-0 transition-opacity', {
-            'opacity-100': isMounted
-          })}
-        >
-          <Allotment defaultSizes={[300, 0, 300]}>
-            <Allotment.Pane maxSize={350} minSize={300} preferredSize={300}>
-              <GeneratorConfig />
-            </Allotment.Pane>
-            <Allotment.Pane>
-              <ModeTabs />
-            </Allotment.Pane>
-            <Allotment.Pane maxSize={350} minSize={300} preferredSize={300}>
-              <Histories />
-            </Allotment.Pane>
-          </Allotment>
-        </Form>
-        {loadingMessage && <FullScreenLoader message={loadingMessage} />}
-        <GenerationPhaseStepper />
-        {canMountPhotoview && <GeneratorPhotoviewModal />}
-      </div>
+      <Form
+        aria-label="Generator"
+        onSubmit={(event) => {
+          event.preventDefault()
+        }}
+        className="flex h-full w-full"
+      >
+        <main className="flex min-w-0 flex-1 flex-col gap-4 pb-4">
+          <GeneratorTopBar />
+          <GeneratorStage />
+          <div className="flex justify-center px-4">
+            <GeneratorDock />
+          </div>
+        </main>
+        <GeneratorInspector />
+        {isHistoryOpen && (
+          <aside
+            aria-label="History"
+            className="w-75 shrink-0 border-l border-separator"
+          >
+            <Histories />
+          </aside>
+        )}
+      </Form>
+      {canMountPhotoview && <GeneratorPhotoviewModal />}
     </FormProvider>
   )
 }

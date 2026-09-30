@@ -1,5 +1,6 @@
 'use client'
 
+import { useDefaultStyles } from '@/features/generator-config-styles/states'
 import { useImageSizeFamilySync } from '@/features/generator-inspector/states/useImageSizeFamilySync'
 import { Tabs } from '@heroui/react'
 import clsx from 'clsx'
@@ -9,9 +10,10 @@ import { GeneratorInspectorLora } from './GeneratorInspectorLora'
 import { GeneratorInspectorStyles } from './GeneratorInspectorStyles'
 
 export const GeneratorInspector = () => {
-  // Mounted here, not in the Basic tab: a model can finish loading while
-  // another tab is open, and the size still has to follow its family.
+  // Mounted here, not in a tab: a model can finish loading while another tab
+  // is open, and first-run default styles must apply without opening Styles.
   useImageSizeFamilySync()
+  useDefaultStyles()
 
   return (
     <aside
