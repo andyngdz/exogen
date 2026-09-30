@@ -1,5 +1,5 @@
 import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
-import { useSettingsStore } from '@/features/settings/states/useSettingsStore'
+import { AppView } from '@/features/app-shell/types'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -13,11 +13,11 @@ vi.mock('next/image', async () => {
 describe('AppRail', () => {
   beforeEach(() => {
     useAppShellStore.setState({
+      activeView: AppView.GENERATE,
       isModelSearchOpen: false,
       isHistoryOpen: false,
       isLogsOpen: false
     })
-    useSettingsStore.setState({ isModalOpen: false })
   })
 
   it('marks Generate as the current view', () => {
@@ -39,7 +39,15 @@ describe('AppRail', () => {
 
     expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
     expect(useAppShellStore.getState().isLogsOpen).toBe(true)
-    expect(useSettingsStore.getState().isModalOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Generate' }))
+
+    expect(useAppShellStore.getState().activeView).toBe(AppView.GENERATE)
   })
 
   it('toggles the history column and shows it as active while open', async () => {

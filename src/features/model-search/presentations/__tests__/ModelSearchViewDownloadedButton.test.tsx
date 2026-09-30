@@ -1,29 +1,22 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import userEvent from '@testing-library/user-event'
 
 import { ModelSearchViewDownloadedButton } from '../ModelSearchViewDownloadedButton'
-import { SettingsTab } from '@/features/settings/states/useSettingsStore'
-
-// Mock openModal function
-const mockOpenModal = vi.fn()
-
-// Mock the settings store, keeping SettingsTab from the real module
-vi.mock('@/features/settings/states/useSettingsStore', async () => {
-  const actual = await vi.importActual<
-    typeof import('@/features/settings/states/useSettingsStore')
-  >('@/features/settings/states/useSettingsStore')
-  return {
-    ...actual,
-    useSettingsStore: (
-      selector: (state: { openModal: typeof mockOpenModal }) => unknown
-    ) => selector({ openModal: mockOpenModal })
-  }
-})
+import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
+import { AppView } from '@/features/app-shell/types'
+import {
+  SettingsTab,
+  useSettingsStore
+} from '@/features/settings/states/useSettingsStore'
 
 describe('ModelSearchViewDownloadedButton', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    useAppShellStore.setState({
+      activeView: AppView.GENERATE,
+      isModelSearchOpen: true
+    })
+    useSettingsStore.setState({ selectedTab: SettingsTab.GENERAL })
   })
 
   describe('Rendering', () => {
@@ -46,44 +39,19 @@ describe('ModelSearchViewDownloadedButton', () => {
   })
 
   describe('User Interaction', () => {
-    it('opens settings modal with models tab when clicked', async () => {
-      // Arrange
+    it('closes model search and opens Model management in Settings', async () => {
       const user = userEvent.setup()
       render(<ModelSearchViewDownloadedButton />)
 
-      // Act
-      const button = screen.getByRole('button', { name: 'Manage this model' })
-      await user.click(button)
+      await user.click(
+        screen.getByRole('button', { name: 'Manage this model' })
+      )
 
-      // Assert
-      expect(mockOpenModal).toHaveBeenCalledTimes(1)
-      expect(mockOpenModal).toHaveBeenCalledWith(SettingsTab.MODELS)
-    })
-
-    it('opens modal to models tab specifically, not general tab', async () => {
-      const user = userEvent.setup()
-      render(<ModelSearchViewDownloadedButton />)
-
-      const button = screen.getByRole('button', { name: 'Manage this model' })
-      await user.click(button)
-
-      // Verify it's called with models and not other tabs
-      expect(mockOpenModal).not.toHaveBeenCalledWith(SettingsTab.GENERAL)
-      expect(mockOpenModal).not.toHaveBeenCalledWith(SettingsTab.UPDATES)
-      expect(mockOpenModal).toHaveBeenCalledWith(SettingsTab.MODELS)
-    })
-
-    it('can be clicked multiple times', async () => {
-      const user = userEvent.setup()
-      render(<ModelSearchViewDownloadedButton />)
-
-      const button = screen.getByRole('button', { name: 'Manage this model' })
-      await user.click(button)
-      await user.click(button)
-      await user.click(button)
-
-      expect(mockOpenModal).toHaveBeenCalledTimes(3)
-      expect(mockOpenModal).toHaveBeenCalledWith(SettingsTab.MODELS)
+      expect(useAppShellStore.getState()).toMatchObject({
+        activeView: AppView.SETTINGS,
+        isModelSearchOpen: false
+      })
+      expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MODELS)
     })
   })
 })

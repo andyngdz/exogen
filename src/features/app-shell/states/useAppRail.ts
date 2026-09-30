@@ -1,16 +1,18 @@
-import { useSettingsStore } from '@/features/settings/states/useSettingsStore'
+import { AppView } from '@/features/app-shell/types'
 import { APP_SHELL_ACTIONS, useAppShellStore } from './useAppShellStore'
 
-/** Rail actions for phase 1: every item except Generate opens the existing UI. */
+/** Rail state: which view is open, and the items not yet moved to a view. */
 export const useAppRail = () => {
+  const activeView = useAppShellStore((state) => state.activeView)
   const isHistoryOpen = useAppShellStore((state) => state.isHistoryOpen)
-  const openSettings = useSettingsStore((state) => state.openModal)
 
   return {
+    activeView,
     isHistoryOpen,
+    onOpenView: APP_SHELL_ACTIONS.setView,
     onOpenModels: () => APP_SHELL_ACTIONS.setModelSearchOpen(true),
     onToggleHistory: APP_SHELL_ACTIONS.toggleHistory,
     onOpenLogs: () => APP_SHELL_ACTIONS.setLogsOpen(true),
-    onOpenSettings: () => openSettings()
+    onOpenSettings: () => APP_SHELL_ACTIONS.setView(AppView.SETTINGS)
   }
 }
