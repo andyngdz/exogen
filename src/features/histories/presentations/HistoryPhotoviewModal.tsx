@@ -11,21 +11,15 @@ export const HistoryPhotoviewModal = () => {
   if (!currentHistoryId) return
 
   return (
-    <Modal>
-      <Modal.Backdrop
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        variant="blur"
-      >
-        <Modal.Container size="lg" scroll="outside">
-          <Modal.Dialog aria-label="History photo viewer" className="max-w-5xl">
-            <Modal.CloseTrigger className="z-50" />
-            <Modal.Body>
-              <HistoryPhotoviewCarousel currentHistoryId={currentHistoryId} />
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+    <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange} variant="blur">
+      <Modal.Container size="lg" scroll="outside">
+        <Modal.Dialog aria-label="History photo viewer" className="max-w-5xl">
+          <Modal.CloseTrigger className="z-50" />
+          <Modal.Body>
+            <HistoryPhotoviewCarousel currentHistoryId={currentHistoryId} />
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   )
 }

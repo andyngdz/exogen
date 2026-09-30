@@ -30,29 +30,27 @@ export const GeneratorConfigStyleModal: FC<GeneratorConfigStyleModalProps> = ({
   }, [isEmptyState, query, filteredSections])
 
   return (
-    <Modal>
-      <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
-        <Modal.Container placement="bottom" size="lg" scroll="inside">
-          <Modal.Dialog className="max-w-2xl">
-            <Modal.CloseTrigger />
-            <Modal.Header className="flex flex-row justify-between items-center gap-2 pe-8">
-              <Modal.Heading>Styles</Modal.Heading>
-              <Chip color="warning" variant="soft" size="sm">
-                Some styles may contain NSFW content. Please preview before
-                applying
-              </Chip>
-            </Modal.Header>
-            <div className="pb-4">
-              <GeneratorConfigStyleSearchInput
-                value={query}
-                onChange={setQuery}
-                onClear={onClear}
-              />
-            </div>
-            <Modal.Body>{content}</Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+    <Modal.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Container placement="bottom" size="lg" scroll="inside">
+        <Modal.Dialog className="max-w-2xl">
+          <Modal.CloseTrigger />
+          <Modal.Header className="flex flex-row justify-between items-center gap-2 pe-8">
+            <Modal.Heading>Styles</Modal.Heading>
+            <Chip color="warning" variant="soft" size="sm">
+              Some styles may contain NSFW content. Please preview before
+              applying
+            </Chip>
+          </Modal.Header>
+          <div className="pb-4">
+            <GeneratorConfigStyleSearchInput
+              value={query}
+              onChange={setQuery}
+              onClear={onClear}
+            />
+          </div>
+          <Modal.Body>{content}</Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   )
 }

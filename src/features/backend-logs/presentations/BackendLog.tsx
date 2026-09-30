@@ -1,25 +1,20 @@
 'use client'
 
-import { Button, Drawer, useOverlayState } from '@heroui/react'
+import { Button, Drawer } from '@heroui/react'
 import { FolderOpen, SquareChevronRight } from 'lucide-react'
 import { useBackendFolder } from '@/features/backend-logs/states'
 import { BackendLogList } from './BackendLogList'
 
 export const BackendLog = () => {
-  const drawerState = useOverlayState()
   const { onOpenBackendFolder } = useBackendFolder()
 
   return (
     <section>
-      <Button
-        variant="ghost"
-        className="text-foreground"
-        onPress={drawerState.open}
-      >
-        Console
-        <SquareChevronRight size={16} />
-      </Button>
-      <Drawer state={drawerState}>
+      <Drawer>
+        <Button variant="ghost" className="text-foreground">
+          Console
+          <SquareChevronRight size={16} />
+        </Button>
         <Drawer.Backdrop>
           <Drawer.Content placement="right">
             <Drawer.Dialog className="w-full max-w-5xl">
