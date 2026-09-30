@@ -77,6 +77,9 @@ describe('useModelSelectors', () => {
 
   it('should keep the model loaded when the selector unmounts and remounts', async () => {
     const mockedApi = vi.mocked(await import('@/services/api')).api
+    vi.mocked(mockedApi.loadModel).mockResolvedValue(
+      loadResponse(ModelFamily.SD15)
+    )
     selectModel('llama-3')
 
     const { unmount } = renderHook(() => useModelSelectors())
@@ -89,6 +92,14 @@ describe('useModelSelectors', () => {
 
     await waitFor(() => {
       expect(mockedApi.loadModel).toHaveBeenCalledTimes(2)
+    })
+    await waitFor(() => {
+      expect(useModelSelectorStore.getState().loaded_model_family).toBe(
+        ModelFamily.SD15
+      )
+    })
+    expect(mockedApi.loadModel).toHaveBeenLastCalledWith({
+      model_id: 'llama-3'
     })
     expect(mockedApi.unloadModel).not.toHaveBeenCalled()
   })

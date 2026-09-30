@@ -18,8 +18,9 @@ export const useModelSelectors = () => {
     previousModelIdRef.current = selectedModelId
     setLoadedModelFamily(ModelFamily.UNKNOWN)
 
-    // The backend refuses to load over a loaded model, so free the old one first.
-    // Never unload on unmount: a remount would kill a generation that is still running.
+    // The backend refuses to load a different model while one is loaded, so free the old
+    // one first. Reloading the same model returns its config without reloading, which is
+    // why a remount skips the unload: unloading would kill a generation still running.
     if (!isEmpty(previousModelId) && previousModelId !== selectedModelId) {
       await api.unloadModel()
     }
