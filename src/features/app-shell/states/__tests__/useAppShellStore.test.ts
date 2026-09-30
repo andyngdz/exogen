@@ -11,10 +11,9 @@ describe('useAppShellStore', () => {
     useAppShellStore.setState(useAppShellStore.getInitialState())
   })
 
-  it('starts on Generate with model search closed', () => {
+  it('starts on Generate', () => {
     expect(useAppShellStore.getState()).toEqual({
-      activeView: AppView.GENERATE,
-      isModelSearchOpen: false
+      activeView: AppView.GENERATE
     })
   })
 
@@ -28,13 +27,5 @@ describe('useAppShellStore', () => {
 
     expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
     expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MEMORY)
-  })
-
-  it('opens and closes model search', () => {
-    APP_SHELL_ACTIONS.setModelSearchOpen(true)
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
-
-    APP_SHELL_ACTIONS.setModelSearchOpen(false)
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(false)
   })
 })

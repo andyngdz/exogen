@@ -7,7 +7,7 @@ import { SettingsTab } from '@/features/settings/states/useSettingsStore'
 export const useStageActions = () => {
   return {
     onOpenLogs: () => APP_SHELL_ACTIONS.setView(AppView.LOGS),
-    onOpenModelSearch: () => APP_SHELL_ACTIONS.setModelSearchOpen(true),
+    onOpenModelSearch: () => APP_SHELL_ACTIONS.setView(AppView.MODELS),
     onOpenMemorySettings: () =>
       APP_SHELL_ACTIONS.openSettings(SettingsTab.MEMORY),
     onRetryConnection: reconnectSocket

@@ -7,7 +7,7 @@ import NextImage from 'next/image'
 import { AppRailItem } from './AppRailItem'
 
 export const AppRail = () => {
-  const { activeView, onOpenView, onOpenModels, onOpenSettings } = useAppRail()
+  const { activeView, onOpenView } = useAppRail()
 
   return (
     <nav
@@ -29,7 +29,8 @@ export const AppRail = () => {
         <AppRailItem
           label="Models"
           icon={<Box size={18} />}
-          onPress={onOpenModels}
+          isActive={activeView === AppView.MODELS}
+          onPress={() => onOpenView(AppView.MODELS)}
         />
         <AppRailItem
           label="History"
@@ -49,7 +50,7 @@ export const AppRail = () => {
           label="Settings"
           icon={<Settings size={18} />}
           isActive={activeView === AppView.SETTINGS}
-          onPress={onOpenSettings}
+          onPress={() => onOpenView(AppView.SETTINGS)}
         />
       </div>
     </nav>

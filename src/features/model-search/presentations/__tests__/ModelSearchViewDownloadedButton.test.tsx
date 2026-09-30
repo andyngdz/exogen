@@ -12,10 +12,7 @@ import {
 
 describe('ModelSearchViewDownloadedButton', () => {
   beforeEach(() => {
-    useAppShellStore.setState({
-      activeView: AppView.GENERATE,
-      isModelSearchOpen: true
-    })
+    useAppShellStore.setState({ activeView: AppView.MODELS })
     useSettingsStore.setState({ selectedTab: SettingsTab.GENERAL })
   })
 
@@ -39,7 +36,7 @@ describe('ModelSearchViewDownloadedButton', () => {
   })
 
   describe('User Interaction', () => {
-    it('closes model search and opens Model management in Settings', async () => {
+    it('opens Model management in Settings', async () => {
       const user = userEvent.setup()
       render(<ModelSearchViewDownloadedButton />)
 
@@ -47,10 +44,7 @@ describe('ModelSearchViewDownloadedButton', () => {
         screen.getByRole('button', { name: 'Manage this model' })
       )
 
-      expect(useAppShellStore.getState()).toMatchObject({
-        activeView: AppView.SETTINGS,
-        isModelSearchOpen: false
-      })
+      expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
       expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MODELS)
     })
   })

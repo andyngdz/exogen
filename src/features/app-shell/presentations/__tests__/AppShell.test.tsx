@@ -22,9 +22,8 @@ vi.mock('@/features/model-load-progress/states', () => ({
 vi.mock('@/features/settings/presentations/SettingsView', () => ({
   SettingsView: () => <div>Settings view</div>
 }))
-vi.mock('@/features/model-search', () => ({
-  ModelSearchModal: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Model search modal</div>
+vi.mock('@/features/model-search/presentations/ModelsView', () => ({
+  ModelsView: () => <div>Models view</div>
 }))
 vi.mock('@/features/histories/presentations/HistoryView', () => ({
   HistoryView: () => <div>History view</div>
@@ -35,10 +34,7 @@ vi.mock('@/features/backend-logs/presentations/BackendLogView', () => ({
 
 describe('AppShell', () => {
   beforeEach(() => {
-    useAppShellStore.setState({
-      activeView: AppView.GENERATE,
-      isModelSearchOpen: false
-    })
+    useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
 
   it('renders the page between the rail and the status bar', () => {
@@ -76,17 +72,17 @@ describe('AppShell', () => {
     expect(screen.getByText('Editor').parentElement).not.toHaveClass('hidden')
   })
 
-  it('opens model search from the shell store and logs as a view', () => {
+  it.each([
+    [AppView.MODELS, 'Models view'],
+    [AppView.HISTORY, 'History view'],
+    [AppView.LOGS, 'Logs view']
+  ])('shows the %s view', (view, text) => {
     render(<AppShell>page</AppShell>)
 
     act(() => {
-      useAppShellStore.setState({
-        isModelSearchOpen: true,
-        activeView: AppView.LOGS
-      })
+      APP_SHELL_ACTIONS.setView(view)
     })
 
-    expect(screen.getByText('Model search modal')).toBeInTheDocument()
-    expect(screen.getByText('Logs view')).toBeInTheDocument()
+    expect(screen.getByText(text)).toBeInTheDocument()
   })
 })

@@ -5,15 +5,13 @@ import {
 } from '@/features/settings/states/useSettingsStore'
 import { create } from 'zustand'
 
-/** Which rail view the editor shows, and the overlays still opened from it. Not persisted. */
+/** Which rail view the editor shows. Not persisted. */
 export interface AppShellState {
   activeView: AppView
-  isModelSearchOpen: boolean
 }
 
 export const useAppShellStore = create<AppShellState>()(() => ({
-  activeView: AppView.GENERATE,
-  isModelSearchOpen: false
+  activeView: AppView.GENERATE
 }))
 
 export const APP_SHELL_ACTIONS = {
@@ -21,7 +19,5 @@ export const APP_SHELL_ACTIONS = {
   openSettings: (tab = SettingsTab.GENERAL) => {
     useSettingsStore.getState().setSelectedTab(tab)
     useAppShellStore.setState({ activeView: AppView.SETTINGS })
-  },
-  setModelSearchOpen: (isModelSearchOpen: boolean) =>
-    useAppShellStore.setState({ isModelSearchOpen })
+  }
 }

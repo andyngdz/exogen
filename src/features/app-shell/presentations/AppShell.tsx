@@ -4,7 +4,7 @@ import { useAppShell } from '@/features/app-shell/states/useAppShell'
 import { AppView } from '@/features/app-shell/types'
 import { BackendLogView } from '@/features/backend-logs/presentations/BackendLogView'
 import { HistoryView } from '@/features/histories/presentations/HistoryView'
-import { ModelSearchModal } from '@/features/model-search'
+import { ModelsView } from '@/features/model-search/presentations/ModelsView'
 import { SettingsView } from '@/features/settings/presentations/SettingsView'
 import clsx from 'clsx'
 import { FC, PropsWithChildren } from 'react'
@@ -12,6 +12,7 @@ import { AppRail } from './AppRail'
 import { AppStatusBar } from './AppStatusBar'
 
 const RAIL_VIEWS: Partial<Record<AppView, FC>> = {
+  [AppView.MODELS]: ModelsView,
   [AppView.HISTORY]: HistoryView,
   [AppView.LOGS]: BackendLogView,
   [AppView.SETTINGS]: SettingsView
@@ -23,12 +24,7 @@ const RAIL_VIEWS: Partial<Record<AppView, FC>> = {
  * values while the user looks elsewhere.
  */
 export const AppShell: FC<PropsWithChildren> = ({ children }) => {
-  const {
-    activeView,
-    isGenerateView,
-    isModelSearchOpen,
-    onModelSearchOpenChange
-  } = useAppShell()
+  const { activeView, isGenerateView } = useAppShell()
   const RailView = RAIL_VIEWS[activeView]
 
   return (
@@ -47,10 +43,6 @@ export const AppShell: FC<PropsWithChildren> = ({ children }) => {
         )}
       </div>
       <AppStatusBar />
-      <ModelSearchModal
-        isOpen={isModelSearchOpen}
-        onOpenChange={onModelSearchOpenChange}
-      />
     </div>
   )
 }

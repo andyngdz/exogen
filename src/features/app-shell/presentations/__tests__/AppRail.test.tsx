@@ -12,10 +12,7 @@ vi.mock('next/image', async () => {
 
 describe('AppRail', () => {
   beforeEach(() => {
-    useAppShellStore.setState({
-      activeView: AppView.GENERATE,
-      isModelSearchOpen: false
-    })
+    useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
 
   it('marks Generate as the current view', () => {
@@ -27,12 +24,12 @@ describe('AppRail', () => {
     )
   })
 
-  it('opens model search, logs and settings', async () => {
+  it('opens the Models, Logs and Settings views', async () => {
     const user = userEvent.setup()
     render(<AppRail />)
 
     await user.click(screen.getByRole('button', { name: 'Models' }))
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.MODELS)
 
     await user.click(screen.getByRole('button', { name: 'Backend logs' }))
     expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
