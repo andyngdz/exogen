@@ -85,7 +85,7 @@ The packaged app reads it from `path.join(process.resourcesPath, 'backend')`. In
 
 ### 4. CI and tooling
 
-- `.github/workflows/backend.yml` runs on pushes and pull requests that touch `backend/**` or the workflow: `uv sync --frozen`, `uv run ruff format --check`, `uv run ruff check`, `uv run ty check`, `uv run pytest --cov=app --cov-report=xml`, then SonarCloud with `projectBaseDir: backend` and the existing `backend/sonar-project.properties` (project `andyngdz_exogen_backend`). Every step runs with `working-directory: backend`.
+- `.github/workflows/backend.yml` runs on pushes and pull requests that touch `backend/**` or the workflow: `uv sync --frozen`, `uv run ruff format --check`, `uv run ruff check`, `uv run ty check`, `uv run pytest --cov=app --cov-report=term`. Every step runs with `working-directory: backend`.
 - `.github/workflows/build.yml` adds `!backend/**` as the last entry of both path filters. Its globs (`**/*.json`, `**/*.ts`) would otherwise match backend files, and GitHub applies a negation only after the positive patterns.
 - `lint-staged.config.mjs` adds `backend/**/*.py` → `uv run --directory backend ruff format`, `ruff check --fix` and `ty check` on the staged files, replacing the backend's own husky hook.
 - `tsconfig.json` excludes `backend`, so `tsc --noEmit` does not walk `backend/.venv`. `.prettierignore` lists `backend/`, so lint-staged's Prettier step leaves backend docs to their own conventions.

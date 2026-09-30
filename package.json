@@ -25,7 +25,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
-    "ci:lint": "eslint src --ext .ts,.tsx,.js,.jsx --max-warnings=0 -f json -o eslint-report.json",
+    "ci:lint": "eslint src --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "ci:format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
     "test": "vitest --run",
     "test:coverage": "vitest --coverage",
@@ -115,7 +115,6 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.11",
     "vitest-localstorage-mock": "^0.1.2",
-    "vitest-sonar-reporter": "^3.0.0",
     "wait-on": "^9.0.3"
   }
 }
