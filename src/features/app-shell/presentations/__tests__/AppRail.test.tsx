@@ -15,8 +15,7 @@ describe('AppRail', () => {
     useAppShellStore.setState({
       activeView: AppView.GENERATE,
       isModelSearchOpen: false,
-      isHistoryOpen: false,
-      isLogsOpen: false
+      isHistoryOpen: false
     })
   })
 
@@ -34,11 +33,12 @@ describe('AppRail', () => {
     render(<AppRail />)
 
     await user.click(screen.getByRole('button', { name: 'Models' }))
-    await user.click(screen.getByRole('button', { name: 'Backend logs' }))
-    await user.click(screen.getByRole('button', { name: 'Settings' }))
-
     expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Backend logs' }))
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
     expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
     expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
       'aria-pressed',

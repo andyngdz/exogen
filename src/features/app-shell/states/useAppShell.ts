@@ -14,14 +14,11 @@ export const useAppShell = () => {
 
   const activeView = useAppShellStore((state) => state.activeView)
   const isModelSearchOpen = useAppShellStore((state) => state.isModelSearchOpen)
-  const isLogsOpen = useAppShellStore((state) => state.isLogsOpen)
 
   return {
     activeView,
     isGenerateView: activeView === AppView.GENERATE,
     isModelSearchOpen,
-    onModelSearchOpenChange: APP_SHELL_ACTIONS.setModelSearchOpen,
-    isLogsOpen,
-    onLogsOpenChange: APP_SHELL_ACTIONS.setLogsOpen
+    onModelSearchOpenChange: APP_SHELL_ACTIONS.setModelSearchOpen
   }
 }

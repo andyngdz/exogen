@@ -10,14 +10,12 @@ export interface AppShellState {
   activeView: AppView
   isModelSearchOpen: boolean
   isHistoryOpen: boolean
-  isLogsOpen: boolean
 }
 
 export const useAppShellStore = create<AppShellState>()(() => ({
   activeView: AppView.GENERATE,
   isModelSearchOpen: false,
-  isHistoryOpen: false,
-  isLogsOpen: false
+  isHistoryOpen: false
 }))
 
 export const APP_SHELL_ACTIONS = {
@@ -28,8 +26,6 @@ export const APP_SHELL_ACTIONS = {
   },
   setModelSearchOpen: (isModelSearchOpen: boolean) =>
     useAppShellStore.setState({ isModelSearchOpen }),
-  setLogsOpen: (isLogsOpen: boolean) =>
-    useAppShellStore.setState({ isLogsOpen }),
   toggleHistory: () =>
     useAppShellStore.setState({
       isHistoryOpen: !useAppShellStore.getState().isHistoryOpen

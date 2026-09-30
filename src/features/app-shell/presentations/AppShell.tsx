@@ -2,7 +2,7 @@
 
 import { useAppShell } from '@/features/app-shell/states/useAppShell'
 import { AppView } from '@/features/app-shell/types'
-import { BackendLogDrawer } from '@/features/backend-logs'
+import { BackendLogView } from '@/features/backend-logs/presentations/BackendLogView'
 import { ModelSearchModal } from '@/features/model-search'
 import { SettingsView } from '@/features/settings/presentations/SettingsView'
 import clsx from 'clsx'
@@ -11,6 +11,7 @@ import { AppRail } from './AppRail'
 import { AppStatusBar } from './AppStatusBar'
 
 const RAIL_VIEWS: Partial<Record<AppView, FC>> = {
+  [AppView.LOGS]: BackendLogView,
   [AppView.SETTINGS]: SettingsView
 }
 
@@ -24,9 +25,7 @@ export const AppShell: FC<PropsWithChildren> = ({ children }) => {
     activeView,
     isGenerateView,
     isModelSearchOpen,
-    onModelSearchOpenChange,
-    isLogsOpen,
-    onLogsOpenChange
+    onModelSearchOpenChange
   } = useAppShell()
   const RailView = RAIL_VIEWS[activeView]
 
@@ -50,7 +49,6 @@ export const AppShell: FC<PropsWithChildren> = ({ children }) => {
         isOpen={isModelSearchOpen}
         onOpenChange={onModelSearchOpenChange}
       />
-      <BackendLogDrawer isOpen={isLogsOpen} onOpenChange={onLogsOpenChange} />
     </div>
   )
 }

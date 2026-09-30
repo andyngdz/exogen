@@ -13,7 +13,6 @@ export const AppRail = () => {
     onOpenView,
     onOpenModels,
     onToggleHistory,
-    onOpenLogs,
     onOpenSettings
   } = useAppRail()
 
@@ -50,7 +49,8 @@ export const AppRail = () => {
         <AppRailItem
           label="Backend logs"
           icon={<SquareTerminal size={18} />}
-          onPress={onOpenLogs}
+          isActive={activeView === AppView.LOGS}
+          onPress={() => onOpenView(AppView.LOGS)}
         />
         <AppRailItem
           label="Settings"

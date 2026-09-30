@@ -26,17 +26,15 @@ vi.mock('@/features/model-search', () => ({
   ModelSearchModal: ({ isOpen }: { isOpen: boolean }) =>
     isOpen && <div>Model search modal</div>
 }))
-vi.mock('@/features/backend-logs', () => ({
-  BackendLogDrawer: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Log drawer</div>
+vi.mock('@/features/backend-logs/presentations/BackendLogView', () => ({
+  BackendLogView: () => <div>Logs view</div>
 }))
 
 describe('AppShell', () => {
   beforeEach(() => {
     useAppShellStore.setState({
       activeView: AppView.GENERATE,
-      isModelSearchOpen: false,
-      isLogsOpen: false
+      isModelSearchOpen: false
     })
   })
 
@@ -75,14 +73,17 @@ describe('AppShell', () => {
     expect(screen.getByText('Editor').parentElement).not.toHaveClass('hidden')
   })
 
-  it('opens model search and logs from the shell store', () => {
+  it('opens model search from the shell store and logs as a view', () => {
     render(<AppShell>page</AppShell>)
 
     act(() => {
-      useAppShellStore.setState({ isModelSearchOpen: true, isLogsOpen: true })
+      useAppShellStore.setState({
+        isModelSearchOpen: true,
+        activeView: AppView.LOGS
+      })
     })
 
     expect(screen.getByText('Model search modal')).toBeInTheDocument()
-    expect(screen.getByText('Log drawer')).toBeInTheDocument()
+    expect(screen.getByText('Logs view')).toBeInTheDocument()
   })
 })

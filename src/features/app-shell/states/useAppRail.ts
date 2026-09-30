@@ -12,7 +12,6 @@ export const useAppRail = () => {
     onOpenView: APP_SHELL_ACTIONS.setView,
     onOpenModels: () => APP_SHELL_ACTIONS.setModelSearchOpen(true),
     onToggleHistory: APP_SHELL_ACTIONS.toggleHistory,
-    onOpenLogs: () => APP_SHELL_ACTIONS.setLogsOpen(true),
     onOpenSettings: () => APP_SHELL_ACTIONS.setView(AppView.SETTINGS)
   }
 }

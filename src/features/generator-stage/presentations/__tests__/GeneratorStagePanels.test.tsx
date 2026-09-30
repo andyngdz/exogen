@@ -34,7 +34,6 @@ describe('stage panels', () => {
       isGenerating: false,
       disabledReason: undefined
     })
-    useAppShellStore.setState({ isLogsOpen: false })
     useLastRunStore.setState({ steps: undefined })
     useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
@@ -62,7 +61,7 @@ describe('stage panels', () => {
     expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MEMORY)
 
     await user.click(screen.getByRole('button', { name: 'Logs' }))
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
   })
 
   it('counts the step against the steps the run was submitted with', () => {
@@ -94,6 +93,6 @@ describe('stage panels', () => {
     expect(reconnectSocket).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByRole('button', { name: 'Open logs' }))
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
   })
 })
