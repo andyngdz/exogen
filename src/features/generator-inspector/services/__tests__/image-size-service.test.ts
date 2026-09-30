@@ -57,4 +57,13 @@ describe('imageSizeService', () => {
       })
     ).toBe(ImageSizePreset.CUSTOM)
   })
+
+  it('labels a square size with a superscript and others with both edges', () => {
+    expect(imageSizeService.toSizeLabel({ width: 1024, height: 1024 })).toBe(
+      '1024²'
+    )
+    expect(imageSizeService.toSizeLabel({ width: 1152, height: 896 })).toBe(
+      '1152 × 896'
+    )
+  })
 })

@@ -2,7 +2,8 @@ import { reconnectSocket } from '@/cores/sockets'
 import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
 import {
   useGenerationErrorStore,
-  useGeneratorSubmit
+  useGeneratorSubmit,
+  useLastRunStore
 } from '@/features/generators/states'
 import { SettingsTab, useSettingsStore } from '@/features/settings'
 import { render, screen } from '@testing-library/react'
@@ -33,6 +34,7 @@ describe('stage panels', () => {
       disabledReason: undefined
     })
     useAppShellStore.setState({ isLogsOpen: false })
+    useLastRunStore.setState({ steps: undefined })
     useSettingsStore.setState({ isModalOpen: false })
   })
 
@@ -62,6 +64,18 @@ describe('stage panels', () => {
 
     await user.click(screen.getByRole('button', { name: 'Logs' }))
     expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+  })
+
+  it('counts the step against the steps the run was submitted with', () => {
+    useLastRunStore.setState({ steps: 30 })
+    useGenerationErrorStore.setState({
+      failure: { message: 'CUDA out of memory', step: 12 }
+    })
+    render(<GeneratorStageFailed />)
+
+    expect(
+      screen.getByText('Generation failed at step 12 of 30')
+    ).toBeInTheDocument()
   })
 
   it('titles a failure without a step event plainly', () => {

@@ -48,6 +48,12 @@ export class ImageSizeService {
     }
   }
 
+  /** Compact size text: 1024² for a square, 1152 × 896 otherwise. */
+  toSizeLabel({ width, height }: ImageSize) {
+    if (width === height) return `${width}²`
+    return `${width} × ${height}`
+  }
+
   /** Text shown on a preset's toggle. */
   getPresetLabel(preset: ImageSizePreset) {
     if (preset === ImageSizePreset.CUSTOM) return 'Custom'

@@ -1,16 +1,17 @@
+import { stageFailureService } from '@/features/generator-stage/services/stage-failure'
 import {
   useGenerationErrorStore,
-  useGeneratorSubmit
+  useGeneratorSubmit,
+  useLastRunStore
 } from '@/features/generators/states'
 
 export const useStageFailure = () => {
   const failure = useGenerationErrorStore((state) => state.failure)
+  const totalSteps = useLastRunStore((state) => state.steps)
   const { onSubmit, isDisabled } = useGeneratorSubmit()
 
   return {
-    title: failure?.step
-      ? `Generation failed at step ${failure.step}`
-      : 'Generation failed',
+    title: stageFailureService.toTitle(failure?.step, totalSteps),
     message: failure?.message,
     onTryAgain: onSubmit,
     isTryAgainDisabled: isDisabled

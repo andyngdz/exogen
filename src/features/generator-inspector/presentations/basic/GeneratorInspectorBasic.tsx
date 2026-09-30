@@ -5,6 +5,7 @@ import { InspectorSection } from '@/features/generator-inspector/presentations/I
 import { GeneratorInspectorImg2Img } from './GeneratorInspectorImg2Img'
 import { GeneratorInspectorSampling } from './GeneratorInspectorSampling'
 import { GeneratorInspectorSeed } from './GeneratorInspectorSeed'
+import { GeneratorInspectorSeedRandom } from './GeneratorInspectorSeedRandom'
 import { GeneratorInspectorSize } from './GeneratorInspectorSize'
 
 export const GeneratorInspectorBasic = () => {
@@ -30,7 +31,10 @@ export const GeneratorInspectorBasic = () => {
       <InspectorSection title="Sampler">
         <GeneratorInspectorSampling />
       </InspectorSection>
-      <InspectorSection title="Seed">
+      <InspectorSection
+        title="Seed"
+        titleAction={<GeneratorInspectorSeedRandom />}
+      >
         <GeneratorInspectorSeed />
       </InspectorSection>
     </div>

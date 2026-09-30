@@ -33,6 +33,16 @@ describe('dateFormatter', () => {
     })
   })
 
+  describe('timeWithSecondsFromTimestamp', () => {
+    it('formats a timestamp as local hours, minutes and seconds', () => {
+      const timestamp = new Date('2024-01-15T14:30:45Z').getTime()
+
+      expect(dateFormatter.timeWithSecondsFromTimestamp(timestamp)).toBe(
+        dayjs(timestamp).format('HH:mm:ss')
+      )
+    })
+  })
+
   describe('date', () => {
     it('formats an ISO string as a readable calendar date', () => {
       const isoString = '2024-01-15T14:30:45Z'

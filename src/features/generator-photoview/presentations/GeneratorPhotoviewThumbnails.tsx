@@ -33,7 +33,7 @@ export const GeneratorPhotoviewThumbnails: FC<
           aria-current={index === currentIndex}
           onPress={() => swiper.slideToLoop(index)}
           className={clsx(
-            'relative size-12 overflow-hidden p-0',
+            'relative size-12 overflow-hidden rounded-lg p-0',
             index === currentIndex && 'ring-2 ring-accent'
           )}
         >

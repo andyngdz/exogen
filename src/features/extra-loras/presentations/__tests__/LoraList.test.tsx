@@ -72,6 +72,25 @@ describe('LoraList', () => {
     expect(
       screen.getByText(/Upload a LoRA file to get started/i)
     ).toBeInTheDocument()
+    expect(screen.getByTestId('upload-button')).toBeInTheDocument()
+  })
+
+  it('shows the empty state and upload for an empty library', () => {
+    vi.mocked(useLorasQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn()
+    } as unknown as ReturnType<typeof useLorasQuery>)
+
+    render(
+      <Wrapper>
+        <LoraList />
+      </Wrapper>
+    )
+
+    expect(screen.getByText(/No LoRAs available/i)).toBeInTheDocument()
+    expect(screen.getByTestId('upload-button')).toBeInTheDocument()
   })
 
   it('renders list of LoRAs when data is available', () => {

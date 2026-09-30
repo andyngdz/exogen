@@ -31,7 +31,7 @@ vi.mock('../useImage2ImageGenerator', () => ({
 const renderSubmit = () =>
   renderHook(() => useGeneratorSubmit(), {
     wrapper: createGeneratorConfigFormWrapper({
-      overrides: { prompt: 'a lighthouse', seed: -1 }
+      overrides: { prompt: 'a lighthouse', seed: -1, steps: 24 }
     })
   })
 
@@ -47,7 +47,11 @@ describe('useGeneratorSubmit', () => {
     useGeneratorModeStore.setState({ mode: GeneratorMode.TEXT_2_IMAGE })
     useImage2ImageConfigStore.setState({ initImageBase64: undefined })
     useGenerationStatusStore.setState({ isGenerating: false })
-    useLastRunStore.setState({ prompt: undefined, seed: undefined })
+    useLastRunStore.setState({
+      prompt: undefined,
+      seed: undefined,
+      steps: undefined
+    })
   })
 
   it('runs text to image and remembers the submitted prompt and seed', async () => {
@@ -63,7 +67,8 @@ describe('useGeneratorSubmit', () => {
     expect(mockImageGenerate).not.toHaveBeenCalled()
     expect(useLastRunStore.getState()).toEqual({
       prompt: 'a lighthouse',
-      seed: -1
+      seed: -1,
+      steps: 24
     })
   })
 

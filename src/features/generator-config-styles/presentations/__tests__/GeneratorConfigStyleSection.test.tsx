@@ -1,7 +1,7 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
 import { StyleItem, StyleSection } from '@/types'
 import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleSection } from '../GeneratorConfigStyleSection'
 
@@ -72,16 +72,18 @@ describe('GeneratorConfigStyleSection', () => {
     expect(screen.getByText('realistic')).toBeInTheDocument()
   })
 
-  it('renders section headers with proper styling', () => {
+  it('groups the chips of each section under its label', () => {
     render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
       wrapper: createWrapper()
     })
 
-    const animeHeader = screen.getByText('anime')
-    const realisticHeader = screen.getByText('realistic')
+    const animeGroup = screen.getByRole('group', { name: 'anime' })
 
-    expect(animeHeader).toHaveClass('text-lg', 'font-medium', 'capitalize')
-    expect(realisticHeader).toHaveClass('text-lg', 'font-medium', 'capitalize')
+    expect(within(animeGroup).getByText('Anime Style 1')).toBeInTheDocument()
+    expect(within(animeGroup).getByText('Anime Style 2')).toBeInTheDocument()
+    expect(
+      within(animeGroup).queryByText('Realistic Style 1')
+    ).not.toBeInTheDocument()
   })
 
   it('renders all style items within sections', () => {
@@ -153,36 +155,6 @@ describe('GeneratorConfigStyleSection', () => {
     expect(screen.getByText('empty-section')).toBeInTheDocument()
     // Should not render any style items
     expect(screen.queryByTestId(/style-item-/)).not.toBeInTheDocument()
-  })
-
-  it('applies proper CSS classes to section containers', () => {
-    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
-      wrapper: createWrapper()
-    })
-
-    // Find the Card components by their tabindex attribute
-    const cardElements = screen
-      .getAllByText(/anime|realistic/)
-      .map((el) => el.closest('[tabindex="-1"]'))
-      .filter(Boolean)
-
-    cardElements.forEach((card) => {
-      expect(card).toHaveClass('flex', 'flex-col')
-    })
-  })
-
-  it('applies proper CSS classes to style item containers', () => {
-    render(<GeneratorConfigStyleSection styleSections={mockStyleSections} />, {
-      wrapper: createWrapper()
-    })
-
-    const styleItemContainers = screen
-      .getAllByTestId(/style-item-/)
-      .map((el) => el.parentElement)
-
-    styleItemContainers.forEach((container) => {
-      expect(container).toHaveClass('flex', 'flex-wrap', 'gap-2')
-    })
   })
 
   it('capitalizes section IDs in display', () => {

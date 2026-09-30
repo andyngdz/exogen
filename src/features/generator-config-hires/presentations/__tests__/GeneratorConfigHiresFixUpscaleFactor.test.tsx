@@ -26,56 +26,43 @@ const renderUpscaleFactor = (upscaleFactor?: UpscaleFactor) => {
   return { ...view, getMethods }
 }
 
-const getSelectTrigger = () =>
-  screen.getByRole('button', { name: /Upscale Factor/ })
-
-const chooseFactor = async (label: string) => {
-  const user = userEvent.setup()
-  await user.click(getSelectTrigger())
-  await user.click(screen.getByRole('option', { name: label }))
-}
+const factor = (label: string) => screen.getByRole('radio', { name: label })
 
 describe('GeneratorConfigHiresFixUpscaleFactor', () => {
-  it('renders the labelled select with the selected value', () => {
+  it('shows every factor with the current one selected', () => {
     renderUpscaleFactor(UpscaleFactor.TWO)
-
-    expect(getSelectTrigger()).toHaveTextContent('2x')
-  })
-
-  it('displays all upscale factor options', async () => {
-    const user = userEvent.setup()
-    renderUpscaleFactor(UpscaleFactor.TWO)
-
-    await user.click(getSelectTrigger())
 
     for (const label of ['1.5x', '2x', '3x', '4x']) {
-      expect(screen.getByRole('option', { name: label })).toBeInTheDocument()
+      expect(factor(label)).toBeInTheDocument()
     }
+    expect(factor('2x')).toBeChecked()
   })
 
   it('writes the chosen factor to the form as a number', async () => {
+    const user = userEvent.setup()
     const { getMethods } = renderUpscaleFactor(UpscaleFactor.TWO)
 
-    await chooseFactor('1.5x')
-
+    await user.click(factor('1.5x'))
     expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(1.5)
-    expect(getSelectTrigger()).toHaveTextContent('1.5x')
+    expect(factor('1.5x')).toBeChecked()
+
+    await user.click(factor('4x'))
+    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(4)
   })
 
-  it('handles each factor value', async () => {
+  it('keeps the factor when the selected one is pressed again', async () => {
+    const user = userEvent.setup()
     const { getMethods } = renderUpscaleFactor(UpscaleFactor.TWO)
 
-    await chooseFactor('4x')
-    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(4)
+    await user.click(factor('2x'))
 
-    await chooseFactor('3x')
-    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(3)
+    expect(getMethods().getValues('hires_fix.upscale_factor')).toBe(2)
   })
 
   it('shows the loader while the form has no upscale factor', () => {
     const { container } = renderUpscaleFactor()
 
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(container.firstElementChild).toHaveClass('skeleton', 'h-14')
   })
 })

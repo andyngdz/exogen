@@ -1,4 +1,5 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
+import { imageSizeService } from '@/features/generator-inspector/services/image-size-service'
 import { useFormContext, useWatch } from 'react-hook-form'
 
 /** Size before and after the hires upscale, for the Hires tab's output line. */
@@ -21,9 +22,12 @@ export const useHiresOutputSize = () => {
   })
 
   return {
-    baseLabel: `${width} × ${height}`,
+    baseLabel: imageSizeService.toSizeLabel({ width, height }),
     ...(upscaleFactor && {
-      outputLabel: `${Math.round(width * upscaleFactor)} × ${Math.round(height * upscaleFactor)}`
+      outputLabel: imageSizeService.toSizeLabel({
+        width: Math.round(width * upscaleFactor),
+        height: Math.round(height * upscaleFactor)
+      })
     })
   }
 }

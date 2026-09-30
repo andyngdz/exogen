@@ -10,8 +10,8 @@ vi.mock('@/features/generator-config-formats/states', () => ({
   useGeneratorConfigFormats: vi.fn()
 }))
 vi.mock(
-  '@/features/generator-config-hires/presentations/GeneratorConfigHiresFix',
-  () => ({ GeneratorConfigHiresFix: () => <div>Hires controls</div> })
+  '@/features/generator-config-hires/presentations/GeneratorConfigHiresFixUpscaler',
+  () => ({ GeneratorConfigHiresFixUpscaler: () => <div>Upscaler select</div> })
 )
 
 const onHiresFixToggle = vi.fn()
@@ -47,7 +47,7 @@ describe('GeneratorInspectorHires', () => {
     const user = userEvent.setup()
     renderHires(false)
 
-    expect(screen.queryByText('Hires controls')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upscaler select')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('switch'))
 
@@ -57,7 +57,14 @@ describe('GeneratorInspectorHires', () => {
   it('shows the controls and the upscaled output size when on', () => {
     renderHires(true)
 
-    expect(screen.getByText('Hires controls')).toBeInTheDocument()
+    expect(screen.getByText('Upscaler select')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: '2x' })).toBeChecked()
+    expect(
+      screen.getByRole('slider', { name: 'Hires steps' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('slider', { name: 'Denoising strength' })
+    ).toBeInTheDocument()
     expect(screen.getByText('832 × 1216 → 1664 × 2432')).toBeInTheDocument()
   })
 })

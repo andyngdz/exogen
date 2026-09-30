@@ -1,8 +1,11 @@
-import { GeneratorConfigHiresFix } from '@/features/generator-config-hires/presentations/GeneratorConfigHiresFix'
+import { SliderController } from '@/cores/presentations/SliderController'
 import { useGeneratorConfigFormats } from '@/features/generator-config-formats/states'
+import { GeneratorConfigHiresFixUpscaleFactor } from '@/features/generator-config-hires/presentations/GeneratorConfigHiresFixUpscaleFactor'
+import { GeneratorConfigHiresFixUpscaler } from '@/features/generator-config-hires/presentations/GeneratorConfigHiresFixUpscaler'
+import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { InspectorSection } from '@/features/generator-inspector/presentations/InspectorSection'
 import { useHiresOutputSize } from '@/features/generator-inspector/states/useHiresOutputSize'
-import { Switch } from '@heroui/react'
+import { Card, Switch } from '@heroui/react'
 
 export const GeneratorInspectorHires = () => {
   const { isHiresFixEnabled, onHiresFixToggle } = useGeneratorConfigFormats()
@@ -21,17 +24,45 @@ export const GeneratorInspectorHires = () => {
         </Switch>
       </InspectorSection>
       {isHiresFixEnabled && (
-        <InspectorSection title="Second pass">
-          <GeneratorConfigHiresFix />
-          {outputLabel && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted">Output size</span>
-              <span className="font-mono tabular-nums">
-                {baseLabel} → {outputLabel}
+        <>
+          <InspectorSection title="Upscaler">
+            <GeneratorConfigHiresFixUpscaler />
+            <GeneratorConfigHiresFixUpscaleFactor />
+          </InspectorSection>
+          <InspectorSection title="Second pass">
+            <div className="flex flex-col gap-2">
+              <SliderController<GeneratorConfigFormValues>
+                controlName="hires_fix.steps"
+                label="Hires steps"
+                minValue={0}
+                maxValue={100}
+                step={1}
+              />
+              <span className="text-xs text-muted">
+                0 uses the same number of steps as the base pass.
               </span>
             </div>
-          )}
-        </InspectorSection>
+            <SliderController<GeneratorConfigFormValues>
+              controlName="hires_fix.denoising_strength"
+              label="Denoising strength"
+              minValue={0}
+              maxValue={1}
+              step={0.05}
+            />
+            {outputLabel && (
+              <Card variant="secondary">
+                <Card.Content className="flex flex-row items-center justify-between gap-2 text-xs">
+                  <span className="whitespace-nowrap text-muted">
+                    Output size
+                  </span>
+                  <span className="font-mono whitespace-nowrap tabular-nums">
+                    {baseLabel} → {outputLabel}
+                  </span>
+                </Card.Content>
+              </Card>
+            )}
+          </InspectorSection>
+        </>
       )}
     </div>
   )

@@ -8,7 +8,7 @@ export const useStageOffline = () => {
 
   return {
     ...(lastConnectedAt && {
-      lastResponseLabel: `Last response ${dateFormatter.timeFromTimestamp(lastConnectedAt)}`
+      lastResponseLabel: `Last response ${dateFormatter.timeWithSecondsFromTimestamp(lastConnectedAt)}`
     })
   }
 }

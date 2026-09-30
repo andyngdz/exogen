@@ -1,6 +1,7 @@
 import { useGeneratorConfigForm } from '@/features/generator-configs/states/useGeneratorConfigForm'
 import { ValueChanged } from '@/types'
-import type { Key } from 'react-aria-components'
+import { selectionService } from '@/features/generators/services/selection'
+import type { Selection } from 'react-aria-components'
 import { useController } from 'react-hook-form'
 
 export const useHiresFixUpscaleFactor = () => {
@@ -10,7 +11,8 @@ export const useHiresFixUpscaleFactor = () => {
     name: 'hires_fix.upscale_factor'
   })
 
-  const onUpscaleFactorChange: ValueChanged<Key | null> = (key) => {
+  const onUpscaleFactorChange: ValueChanged<Selection> = (selection) => {
+    const key = selectionService.toSelectedKey(selection)
     if (!key) return
 
     field.onChange(Number(key))

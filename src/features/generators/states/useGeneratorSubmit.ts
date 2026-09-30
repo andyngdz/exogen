@@ -46,7 +46,7 @@ export const useGeneratorSubmit = () => {
   const isDisabled = isGenerating || Boolean(disabledReason)
 
   const onValid: SubmitHandler<GeneratorConfigFormValues> = (values) => {
-    LAST_RUN_ACTIONS.setLastRun(values.prompt, values.seed)
+    LAST_RUN_ACTIONS.setLastRun(values.prompt, values.seed, values.steps)
 
     if (isImageMode) return onImageGenerate(values)
     return onTextGenerate(values)
