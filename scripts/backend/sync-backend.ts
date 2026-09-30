@@ -84,31 +84,36 @@ const isSyncedTo = async (backendPath: string, version: string) => {
   return (await readSyncedVersion(backendPath)) === version
 }
 
-/** Deletes every code entry in the backend directory, keeping user data. */
-const removeCodeEntries = async (backendPath: string) => {
+/** Lists every code path in the backend directory, leaving user data out. */
+const listCodePaths = async (backendPath: string) => {
   const entries = await fs.readdir(backendPath, { withFileTypes: true })
+  const codeEntries = entries.filter((entry) => !isProtectedEntry(entry.name))
 
-  for (const entry of entries) {
-    if (isProtectedEntry(entry.name)) continue
-
-    const entryPath = path.join(backendPath, entry.name)
-
-    if (entry.name === STATIC_DIRNAME && entry.isDirectory()) {
-      const staticEntries = await fs.readdir(entryPath)
-
-      for (const staticEntry of staticEntries) {
-        if (staticEntry === GENERATED_IMAGES_DIRNAME) continue
-        await fs.rm(path.join(entryPath, staticEntry), {
-          recursive: true,
-          force: true
-        })
+  const pathGroups = await Promise.all(
+    codeEntries.map(async (entry) => {
+      const entryPath = path.join(backendPath, entry.name)
+      if (entry.name !== STATIC_DIRNAME || !entry.isDirectory()) {
+        return [entryPath]
       }
 
-      continue
-    }
+      const staticEntries = await fs.readdir(entryPath)
+      return staticEntries
+        .filter((staticEntry) => staticEntry !== GENERATED_IMAGES_DIRNAME)
+        .map((staticEntry) => path.join(entryPath, staticEntry))
+    })
+  )
 
-    await fs.rm(entryPath, { recursive: true, force: true })
-  }
+  return pathGroups.flat()
+}
+
+/** Deletes every code entry in the backend directory, keeping user data. */
+const removeCodeEntries = async (backendPath: string) => {
+  const codePaths = await listCodePaths(backendPath)
+  await Promise.all(
+    codePaths.map((codePath) =>
+      fs.rm(codePath, { recursive: true, force: true })
+    )
+  )
 }
 
 /**
