@@ -6,8 +6,9 @@ The backend source SHALL live in `backend/` of this repository with the history 
 
 #### Scenario: History is preserved
 
-- **WHEN** `git log --follow backend/main.py` runs on `main` after the merge
-- **THEN** it lists commits authored in the former `exogen_backend` repository
+- **WHEN** `git blame backend/main.py` runs on `main` after the merge
+- **THEN** its lines are attributed to commits authored in the former `exogen_backend` repository
+- **AND** the subtree merge commit's second parent reaches all 558 former commits
 
 #### Scenario: Backend tests run from the folder
 

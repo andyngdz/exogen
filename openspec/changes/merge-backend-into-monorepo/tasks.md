@@ -4,9 +4,9 @@ Dependency levels: unit 1 is level 0; units 2, 3 and 4 are level 1; unit 5 is le
 
 ## 1. Import With History [depends-on: -] [writes: backend/] [parallel-safe: no]
 
-- [ ] `git subtree add --prefix=backend https://github.com/andyngdz/exogen_backend.git main`.
+- [x] `git subtree add --prefix=backend https://github.com/andyngdz/exogen_backend.git main`.
 - [ ] Remove `backend/package.json`, `backend/pnpm-lock.yaml`, `backend/.releaserc.json`, `backend/.husky/` and `backend/.github/` in a follow-up commit.
-- [ ] Confirm `git log --follow backend/main.py` shows backend history, and `uv sync --frozen && uv run pytest` passes in `backend/`.
+- [ ] Confirm `git blame backend/main.py` attributes lines to former backend commits (`git log --follow` does not cross a subtree merge), and `uv sync --frozen && uv run pytest` passes in `backend/`.
 
 ## 2. Sync Replaces Clone [depends-on: 1] [writes: scripts/backend/, electron/main.ts] [parallel-safe: yes]
 
