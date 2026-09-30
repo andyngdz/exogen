@@ -78,7 +78,7 @@ describe('setupVenv', () => {
 
       expect(mockEmit).toHaveBeenCalledWith({
         level: BackendStatusLevel.Error,
-        message: 'Backend directory not found. Clone the backend first.'
+        message: 'Backend directory not found. Restart ExoGen to set it up again.'
       })
 
       expect(mockPathExists).toHaveBeenCalledWith(expectedBackendPath)

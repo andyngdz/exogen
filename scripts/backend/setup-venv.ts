@@ -27,7 +27,7 @@ const setupVenv = async ({
   if (!backendExists) {
     emit({
       level: BackendStatusLevel.Error,
-      message: 'Backend directory not found. Clone the backend first.'
+      message: 'Backend directory not found. Restart ExoGen to set it up again.'
     })
     throw new Error('Backend directory not found')
   }

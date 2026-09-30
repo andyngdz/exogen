@@ -48,7 +48,7 @@ describe('useUploadLoraButton', () => {
   })
 
   it('does not upload when no file is selected', async () => {
-    mockSelectFile.mockResolvedValue(null)
+    mockSelectFile.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useUploadLoraButton())
 

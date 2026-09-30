@@ -14,6 +14,25 @@ files:
   - '!src/**'
   - '!scripts/**'
   - '!**/*.md'
+# The backend runs as its own Python process; the app syncs this copy into
+# userData/exogen_backend at startup (scripts/backend/sync-backend.ts).
+extraResources:
+  - from: 'backend'
+    to: 'backend'
+    filter:
+      - '**/*'
+      - '!.venv/**'
+      - '!.cache/**'
+      - '!.git/**'
+      - '!tests/**'
+      - '!**/__pycache__/**'
+      - '!.pytest_cache/**'
+      - '!.ruff_cache/**'
+      - '!*.db'
+      - '!static/generated_images/**'
+      - '!*.egg-info/**'
+      - '!openspec/**'
+      - '!docs/**'
 publish:
   provider: 'github'
   owner: 'andyngdz'
