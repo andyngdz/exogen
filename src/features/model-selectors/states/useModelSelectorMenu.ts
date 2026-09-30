@@ -1,4 +1,5 @@
 import { useDownloadedModels } from '@/cores/hooks'
+import { useModelLoadStatus } from '@/features/model-load-progress/states/useModelLoadStatus'
 import { ModelFamily, ValueChanged } from '@/types'
 import { first } from 'es-toolkit/compat'
 import type { Selection } from 'react-aria-components'
@@ -17,6 +18,7 @@ const MODEL_FAMILY_LABELS: Record<ModelFamily, string> = {
 export const useModelSelectorMenu = () => {
   useModelSelectors()
   const { downloadedModels } = useDownloadedModels()
+  const { isLoading, percentage } = useModelLoadStatus()
   const selectedModelId = useModelSelectorStore(
     (state) => state.selected_model_id
   )
@@ -40,6 +42,8 @@ export const useModelSelectorMenu = () => {
     downloadedModels,
     selectedModelId,
     familyLabel: MODEL_FAMILY_LABELS[loadedModelFamily],
+    isLoading,
+    loadPercentLabel: `${percentage}%`,
     onSelectionChange
   }
 }

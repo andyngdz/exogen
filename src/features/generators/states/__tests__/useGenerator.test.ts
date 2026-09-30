@@ -8,6 +8,7 @@ import { toast } from '@heroui/react'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGenerator } from '../useGenerator'
+import { useGenerationErrorStore } from '../useGenerationErrorStore'
 import { useGenerationStatusStore } from '../useGenerationStatusStore'
 import { useHiresFixEnabledStore } from '../useHiresFixEnabledStore'
 import { useUseImageGenerationStore } from '../useImageGenerationResponseStores'
@@ -38,11 +39,14 @@ vi.mock('../useGenerationStatusStore', () => ({
 }))
 
 vi.mock('../useImageGenerationResponseStores', () => ({
-  useUseImageGenerationStore: vi.fn((selector: (state: object) => unknown) =>
-    selector({
-      onCompleted: vi.fn(),
-      onInit: vi.fn()
-    })
+  useUseImageGenerationStore: Object.assign(
+    vi.fn((selector: (state: object) => unknown) =>
+      selector({
+        onCompleted: vi.fn(),
+        onInit: vi.fn()
+      })
+    ),
+    { getState: () => ({ imageStepEnds: [] }) }
   )
 }))
 
@@ -55,6 +59,7 @@ afterEach(() => {
 })
 
 beforeEach(() => {
+  useGenerationErrorStore.setState({ failure: undefined })
   vi.mocked(useHiresFixEnabledStore).mockImplementation(
     createStoreSelectorMock({
       isHiresFixEnabled: false,
@@ -150,7 +155,7 @@ describe('useGenerator', () => {
     expect(mockSetIsGenerating).toHaveBeenCalledWith(false)
   })
 
-  it('should handle error case in addHistory and reset generation status', async () => {
+  it('records an addHistory failure and resets the generation status', async () => {
     const mockError = new Error('Test error')
     vi.mocked(api.addHistory).mockRejectedValue(mockError)
 
@@ -173,21 +178,14 @@ describe('useGenerator', () => {
     const wrapper = createQueryClientWrapper()
     const { result } = renderHook(() => useGenerator(), { wrapper })
 
-    // Explicitly checking for the error
-    let errorWasCaught = false
-
     await act(async () => {
-      try {
-        await result.current.onGenerate(mockConfig)
-        // If we get here, the test should fail because we expect an error
-        expect('This code should not be reached').toBe('Promise should reject')
-      } catch (err) {
-        errorWasCaught = true
-        expect(err).toEqual(mockError)
-      }
+      await result.current.onGenerate(mockConfig)
     })
 
-    expect(errorWasCaught).toBe(true)
+    expect(useGenerationErrorStore.getState().failure).toEqual({
+      message: 'Test error',
+      step: undefined
+    })
     expect(api.addHistory).toHaveBeenCalledWith(mockConfig)
     // Generator function should not be called since addHistory fails
     expect(api.generator).not.toHaveBeenCalled()
@@ -197,7 +195,7 @@ describe('useGenerator', () => {
     expect(mockSetIsGenerating).toHaveBeenCalledWith(false)
   })
 
-  it('should handle error case for generator and show toast', async () => {
+  it('records a generator failure for the stage instead of a toast', async () => {
     const error = new Error('Generator error')
     vi.mocked(api.addHistory).mockResolvedValue(1)
     vi.mocked(api.generator).mockRejectedValue(error)
@@ -222,23 +220,16 @@ describe('useGenerator', () => {
     const { result } = renderHook(() => useGenerator(), { wrapper })
 
     await act(async () => {
-      // We expect the promise to reject, but we don't need to do anything with the error
-      // since we're just testing that onError callback was triggered
-      try {
-        await result.current.onGenerate(mockConfig)
-        // If we get here, the test should fail because we expect an error
-        expect('This code should not be reached').toBe('Promise should reject')
-      } catch {
-        // Error is expected - test will continue
-      }
+      await result.current.onGenerate(mockConfig)
     })
 
     expect(api.addHistory).toHaveBeenCalledWith(mockConfig)
     expect(api.generator).toHaveBeenCalled()
-    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
-      'Something went wrong',
-      expect.anything()
-    )
+    expect(useGenerationErrorStore.getState().failure).toEqual({
+      message: 'Generator error',
+      step: undefined
+    })
+    expect(vi.mocked(toast.danger)).not.toHaveBeenCalled()
 
     // Verify store interactions
     expect(mockSetIsGenerating).toHaveBeenCalledWith(true)

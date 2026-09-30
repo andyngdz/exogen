@@ -1,4 +1,7 @@
-import { ModelLoadPhase } from '@/cores/sockets'
+import {
+  APP_SHELL_ACTIONS,
+  useAppShellStore
+} from '@/features/app-shell/states/useAppShellStore'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import {
   useGenerationStatusStore,
@@ -12,14 +15,20 @@ import { useGeneratorForm } from '../../states/useGeneratorForm'
 import { Generator } from '../Generator'
 import { useMountedState } from 'react-use'
 
-vi.mock('@/features/generator-configs', () => ({
-  GeneratorConfig: () => (
-    <div data-testid="generator-config">GeneratorConfig</div>
-  )
+vi.mock('../GeneratorTopBar', () => ({
+  GeneratorTopBar: () => <div data-testid="top-bar">TopBar</div>
 }))
 
-vi.mock('@/features/generator-modes', () => ({
-  ModeTabs: () => <div data-testid="mode-tabs">ModeTabs</div>
+vi.mock('@/features/generator-stage', () => ({
+  GeneratorStage: () => <div data-testid="stage">Stage</div>
+}))
+
+vi.mock('@/features/generator-dock', () => ({
+  GeneratorDock: () => <div data-testid="dock">Dock</div>
+}))
+
+vi.mock('@/features/generator-inspector', () => ({
+  GeneratorInspector: () => <div data-testid="inspector">Inspector</div>
 }))
 
 vi.mock('@/features/histories', () => ({
@@ -29,63 +38,6 @@ vi.mock('@/features/histories', () => ({
 vi.mock('@/features/generator-photoview', () => ({
   GeneratorPhotoviewModal: () => (
     <div data-testid="generator-photoview-modal">GeneratorPhotoviewModal</div>
-  )
-}))
-
-// Mock Allotment component
-vi.mock('allotment', () => {
-  const AllotmentPane = ({
-    children,
-    className,
-    maxSize,
-    minSize,
-    preferredSize
-  }: {
-    children: React.ReactNode
-    className?: string
-    maxSize?: number
-    minSize?: number
-    preferredSize?: number
-  }) => (
-    <div
-      data-testid="allotment-pane"
-      className={className}
-      data-max-size={maxSize}
-      data-min-size={minSize}
-      data-preferred-size={preferredSize}
-    >
-      {children}
-    </div>
-  )
-
-  const AllotmentComponent = Object.assign(
-    ({
-      children,
-      defaultSizes
-    }: {
-      children: React.ReactNode
-      defaultSizes: number[]
-    }) => (
-      <div
-        data-testid="allotment"
-        data-default-sizes={JSON.stringify(defaultSizes)}
-      >
-        {children}
-      </div>
-    ),
-    { Pane: AllotmentPane }
-  )
-
-  return {
-    Allotment: AllotmentComponent,
-    __esModule: true
-  }
-})
-
-// Mock FullScreenLoader to avoid loading lottie/assets
-vi.mock('@/cores/presentations', () => ({
-  FullScreenLoader: ({ message }: { message: string }) => (
-    <div data-testid="fullscreen-loader">{message}</div>
   )
 }))
 
@@ -140,79 +92,40 @@ describe('Generator', () => {
       nsfw_content_detected: []
     })
     useGeneratorPhotoviewStore.setState({ isOpen: false, currentIndex: 0 })
+    useAppShellStore.setState({ isHistoryOpen: false })
   })
 
   afterEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders all main components', () => {
+  it('renders the top bar, stage, dock and inspector', () => {
     render(<Generator />)
 
-    expect(screen.getByTestId('generator-config')).toBeInTheDocument()
-    expect(screen.getByTestId('mode-tabs')).toBeInTheDocument()
-    expect(screen.getByTestId('histories')).toBeInTheDocument()
+    expect(screen.getByTestId('top-bar')).toBeInTheDocument()
+    expect(screen.getByTestId('stage')).toBeInTheDocument()
+    expect(screen.getByTestId('dock')).toBeInTheDocument()
+    expect(screen.getByTestId('inspector')).toBeInTheDocument()
+  })
+
+  it('shows the history column only while it is toggled open', () => {
+    const { rerender } = render(<Generator />)
+    expect(screen.queryByTestId('histories')).not.toBeInTheDocument()
+
+    act(() => {
+      APP_SHELL_ACTIONS.toggleHistory()
+    })
+    rerender(<Generator />)
+
+    expect(
+      screen.getByRole('complementary', { name: 'History' })
+    ).toContainElement(screen.getByTestId('histories'))
   })
 
   it('uses useGeneratorForm hook', () => {
     render(<Generator />)
 
     expect(useGeneratorForm).toHaveBeenCalled()
-  })
-
-  it('renders form with correct attributes', () => {
-    render(<Generator />)
-
-    const form = screen.getByRole('form')
-    expect(form).toHaveAttribute('aria-label', 'Generator')
-  })
-
-  it('renders Allotment with correct default sizes', () => {
-    render(<Generator />)
-
-    const allotment = screen.getByTestId('allotment')
-    expect(allotment).toHaveAttribute(
-      'data-default-sizes',
-      JSON.stringify([300, 0, 300])
-    )
-  })
-
-  it('renders three Allotment panes with correct configurations', () => {
-    render(<Generator />)
-
-    const panes = screen.getAllByTestId('allotment-pane')
-    expect(panes).toHaveLength(3)
-
-    const [configPane, , historiesPane] = panes
-    for (const sidePane of [configPane, historiesPane]) {
-      expect(sidePane).toHaveAttribute('data-max-size', '350')
-      expect(sidePane).toHaveAttribute('data-min-size', '300')
-      expect(sidePane).toHaveAttribute('data-preferred-size', '300')
-    }
-  })
-
-  it('renders with proper layout structure', () => {
-    render(<Generator />)
-
-    // Should have the main form container
-    const form = screen.getByRole('form')
-    expect(form).toBeInTheDocument()
-
-    // Should have all the required panes
-    const panes = screen.getAllByTestId('allotment-pane')
-    expect(panes).toHaveLength(3)
-  })
-
-  it('renders form with correct CSS classes', () => {
-    render(<Generator />)
-
-    const form = screen.getByRole('form')
-    expect(form).toHaveClass(
-      'w-full',
-      'h-full',
-      'transition-opacity',
-      'opacity-100'
-    )
   })
 
   it('renders the form when mounted', () => {
@@ -233,37 +146,6 @@ describe('Generator', () => {
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
     expect(screen.queryByRole('form')).not.toBeInTheDocument()
-  })
-
-  it('shows fullscreen loader when model is loading', async () => {
-    const { useModelLoadProgressStore } =
-      await import('@/features/model-load-progress/states/useModelLoadProgressStore')
-
-    // Simulate loading state wrapped in act
-    act(() => {
-      useModelLoadProgressStore.setState({
-        model_id: 'model-123',
-        progress: {
-          model_id: 'model-123',
-          step: 1,
-          total: 2,
-          message: 'Loading...',
-          phase: ModelLoadPhase.INITIALIZATION
-        }
-      })
-    })
-
-    render(<Generator />)
-
-    // Loader overlay should be present
-    expect(screen.getByTestId('fullscreen-loader')).toHaveTextContent(
-      'Loading...'
-    )
-
-    // Cleanup loading state
-    act(() => {
-      useModelLoadProgressStore.getState().reset()
-    })
   })
 
   it('prevents default form submission', () => {

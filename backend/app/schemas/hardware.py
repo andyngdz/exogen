@@ -57,6 +57,22 @@ class GPUDriverInfo(BaseModel):
 	)
 
 
+class AcceleratorMemoryDevice(str, Enum):
+	"""Accelerator that the memory figures describe."""
+
+	CUDA = 'cuda'
+	MPS = 'mps'
+	CPU = 'cpu'
+
+
+class AcceleratorMemoryInfo(BaseModel):
+	"""Memory in use on the active accelerator; zeros when running on CPU."""
+
+	device: AcceleratorMemoryDevice = Field(..., description='Accelerator the figures describe.')
+	used_bytes: int = Field(..., ge=0, description='Bytes currently in use on the accelerator.')
+	total_bytes: int = Field(..., ge=0, description='Total bytes available on the accelerator.')
+
+
 class CleanupMetrics(BaseModel):
 	"""Metrics from GPU model cleanup operation."""
 

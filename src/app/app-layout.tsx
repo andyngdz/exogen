@@ -13,6 +13,8 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
   const pathname = usePathname()
   const isInitialized = useBackendInitStore((state) => state.isInitialized)
   const isHomePage = pathname === '/'
+  // The editor has its own rail and status bar in place of the footer.
+  const hasFooter = !pathname.startsWith('/editor')
   // Home page (HealthCheck) should always render to show initialization logs
   // Other pages should wait for backend initialization to complete
   const shouldRenderContent = isHomePage || isInitialized
@@ -27,9 +29,9 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen">
-      <main className="flex justify-center flex-1">{content}</main>
-      <AppFooter />
+    <div className="flex flex-col gap-0 h-screen">
+      <main className="flex min-h-0 flex-1 justify-center">{content}</main>
+      {hasFooter && <AppFooter />}
     </div>
   )
 }

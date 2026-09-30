@@ -1,4 +1,6 @@
 import { useDownloadedModels } from '@/cores/hooks'
+import { ModelLoadProgressResponse } from '@/cores/sockets'
+import { useModelLoadProgressStore } from '@/features/model-load-progress/states/useModelLoadProgressStore'
 import { createStoreSelectorMock } from '@/cores/test-utils'
 import { ModelDownloaded } from '@/types/api'
 import { ModelFamily } from '@/types'
@@ -86,6 +88,31 @@ describe('ModelSelector', () => {
 
     render(<ModelSelector />)
     expect(screen.getByText(label)).toBeInTheDocument()
+  })
+
+  it('shows the load percent in place of the family while loading', () => {
+    vi.mocked(useModelSelectorStore).mockImplementation(
+      createStoreSelectorMock({
+        selected_model_id: 'model-1',
+        loaded_model_family: ModelFamily.SDXL,
+        setSelectedModelId: mockSetId,
+        setLoadedModelFamily: vi.fn()
+      })
+    )
+    useModelLoadProgressStore.setState({
+      model_id: 'model-1',
+      progress: { step: 5, total: 8 } as ModelLoadProgressResponse
+    })
+
+    render(<ModelSelector />)
+
+    expect(screen.getByText('63%')).toBeInTheDocument()
+    expect(screen.queryByText('SDXL')).not.toBeInTheDocument()
+
+    useModelLoadProgressStore.setState({
+      model_id: undefined,
+      progress: undefined
+    })
   })
 
   it('does not show model family label when unknown', () => {

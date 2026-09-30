@@ -82,7 +82,35 @@ describe('AppLayout', () => {
     expect(screen.queryByTestId('editor-content')).not.toBeInTheDocument()
     expect(screen.getByTestId('full-screen-loader')).toBeInTheDocument()
     expect(screen.getByText('Initializing backend...')).toBeInTheDocument()
+    expect(screen.queryByTestId('app-footer')).not.toBeInTheDocument()
+  })
+
+  it('keeps the footer on onboarding pages', async () => {
+    const { usePathname } = await import('next/navigation')
+    vi.mocked(usePathname).mockReturnValue('/gpu-detection')
+    mockUseBackendInitStore.mockReturnValue(true)
+
+    render(
+      <AppLayout>
+        <div data-testid="onboarding-content">Onboarding</div>
+      </AppLayout>
+    )
+
     expect(screen.getByTestId('app-footer')).toBeInTheDocument()
+  })
+
+  it('hides the footer on the editor, whose path ends with a slash', async () => {
+    const { usePathname } = await import('next/navigation')
+    vi.mocked(usePathname).mockReturnValue('/editor/')
+    mockUseBackendInitStore.mockReturnValue(true)
+
+    render(
+      <AppLayout>
+        <div data-testid="editor-content">Editor Content</div>
+      </AppLayout>
+    )
+
+    expect(screen.queryByTestId('app-footer')).not.toBeInTheDocument()
   })
 
   it('renders children on other pages when initialized', async () => {

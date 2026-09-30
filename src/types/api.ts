@@ -20,6 +20,18 @@ export interface HardwareResponse {
   message: string
 }
 
+export enum AcceleratorMemoryDevice {
+  CUDA = 'cuda',
+  MPS = 'mps',
+  CPU = 'cpu'
+}
+
+export interface HardwareMemoryResponse {
+  device: AcceleratorMemoryDevice
+  used_bytes: number
+  total_bytes: number
+}
+
 export interface MaxMemoryRequest {
   gpu_scale_factor: number
   ram_scale_factor: number

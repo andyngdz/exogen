@@ -9,8 +9,8 @@ import {
   SliderChangeValue,
   ValueChanged
 } from '@/types'
-import { find, values } from 'es-toolkit/compat'
-import type { Key } from 'react-aria-components'
+import { find, first, values } from 'es-toolkit/compat'
+import type { Key, Selection } from 'react-aria-components'
 
 export const useGeneratorConfigImg2Img = () => {
   const mode = useGeneratorModeStore((state) => state.mode)
@@ -35,11 +35,21 @@ export const useGeneratorConfigImg2Img = () => {
     setResizeMode(nextResizeMode)
   }
 
+  const onResizeModeSelectionChange: ValueChanged<Selection> = (keys) => {
+    if (keys === 'all') return
+
+    const key = first(Array.from(keys))
+    if (!key) return
+
+    onResizeModeChange(key)
+  }
+
   return {
     isImage2Image: mode === GeneratorMode.IMAGE_2_IMAGE,
     strength,
     onStrengthChange,
     resizeMode,
-    onResizeModeChange
+    onResizeModeChange,
+    onResizeModeSelectionChange
   }
 }

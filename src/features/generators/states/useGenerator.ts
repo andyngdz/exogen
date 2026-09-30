@@ -1,12 +1,15 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { api } from '@/services'
 import { ImageGenerationRequest } from '@/types'
-import { toast } from '@heroui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SubmitHandler } from 'react-hook-form'
 import { getGenerationHistoryConfig } from '@/features/generators/services/getGenerationHistoryConfig'
 import { useGenerationStatusStore } from './useGenerationStatusStore'
 import { useAddHistoryMutation } from './useAddHistoryMutation'
+import {
+  GENERATION_ERROR_ACTIONS,
+  useGenerationErrorStore
+} from './useGenerationErrorStore'
 import { useHiresFixEnabledStore } from './useHiresFixEnabledStore'
 import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 
@@ -30,11 +33,7 @@ export const useGenerator = () => {
     mutationFn: (request: ImageGenerationRequest) => {
       return api.generator(request)
     },
-    onError: () => {
-      toast.danger('Something went wrong', {
-        description: 'There was an error generating your image.'
-      })
-    },
+    onError: GENERATION_ERROR_ACTIONS.recordFailure,
     onSuccess: onCompleted
   })
 
@@ -42,6 +41,7 @@ export const useGenerator = () => {
     config
   ) => {
     try {
+      GENERATION_ERROR_ACTIONS.clear()
       onSetIsGenerating(true)
       const historyConfig = getGenerationHistoryConfig(
         config,
@@ -53,6 +53,12 @@ export const useGenerator = () => {
       onInit(config.number_of_images)
 
       await generator.mutateAsync({ history_id, config: historyConfig })
+    } catch (error) {
+      // The generation mutation records its own failure in onError; a failed
+      // addHistory only raised a toast, so the stage records it here.
+      if (!useGenerationErrorStore.getState().failure) {
+        GENERATION_ERROR_ACTIONS.recordStartFailure(error)
+      }
     } finally {
       onSetIsGenerating(false)
       void refetchHistories()

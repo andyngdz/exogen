@@ -3,6 +3,7 @@ import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import axios from 'axios'
 import type {
   BackendConfig,
+  HardwareMemoryResponse,
   HardwareResponse,
   HealthResponse,
   HistoryItem,
@@ -22,7 +23,7 @@ import type {
   Sampler,
   SelectDeviceRequest,
   StyleSection
-} from '../types'
+} from '@/types'
 
 export const client = axios.create({
   baseURL: DEFAULT_BACKEND_URL,
@@ -40,6 +41,13 @@ class API {
 
   async getHardwareStatus() {
     const { data } = await client.get<HardwareResponse>('/hardware/')
+
+    return data
+  }
+
+  async getHardwareMemory() {
+    const { data } =
+      await client.get<HardwareMemoryResponse>('/hardware/memory')
 
     return data
   }

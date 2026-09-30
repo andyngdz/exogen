@@ -2,6 +2,7 @@ import { api } from '@/services/api'
 import {
   ApiError,
   BackendConfig,
+  HardwareMemoryResponse,
   HardwareResponse,
   HealthResponse,
   HistoryItem,
@@ -13,7 +14,15 @@ import {
   Sampler,
   StyleSection
 } from '@/types'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Query,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
+
+const HARDWARE_MEMORY_POLL_MS = 5000
 
 const useHealthQuery = (enabled = true) => {
   return useQuery<HealthResponse, ApiError>({
@@ -28,6 +37,31 @@ const useHardwareQuery = () => {
   return useQuery<HardwareResponse, ApiError>({
     queryKey: ['getHardwareStatus'],
     queryFn: () => api.getHardwareStatus()
+  })
+}
+
+const isNotFoundError = (error: unknown) =>
+  isAxiosError(error) && error.response?.status === 404
+
+/** False once the backend answered 404, which means it predates the endpoint. */
+const isHardwareMemorySupported = (
+  query: Query<HardwareMemoryResponse, ApiError>
+) => !isNotFoundError(query.state.error)
+
+/**
+ * Polls memory in use on the accelerator. A backend without the endpoint
+ * answers 404; after that nothing refetches it, not the interval, a window
+ * focus or a remount, for the rest of the session.
+ */
+const useHardwareMemoryQuery = () => {
+  return useQuery<HardwareMemoryResponse, ApiError>({
+    queryKey: ['getHardwareMemory'],
+    queryFn: () => api.getHardwareMemory(),
+    retry: false,
+    refetchInterval: (query) =>
+      isHardwareMemorySupported(query) ? HARDWARE_MEMORY_POLL_MS : false,
+    refetchOnWindowFocus: isHardwareMemorySupported,
+    refetchOnMount: isHardwareMemorySupported
   })
 }
 
@@ -132,6 +166,7 @@ export {
   useBackendConfigQuery,
   useDeleteLoraMutation,
   useDownloadedModelsQuery,
+  useHardwareMemoryQuery,
   useHardwareQuery,
   useHealthQuery,
   useHistoriesQuery,

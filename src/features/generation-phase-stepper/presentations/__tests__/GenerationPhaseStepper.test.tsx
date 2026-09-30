@@ -93,7 +93,7 @@ describe('GenerationPhaseStepper', () => {
     const { container } = render(<GenerationPhaseStepper />)
 
     const stepper = container.firstChild as HTMLElement
-    expect(stepper.className).toContain('fixed')
+    expect(stepper.className).toContain('absolute')
   })
 
   it('shows indicator on current phase', () => {

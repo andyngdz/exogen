@@ -2,6 +2,8 @@
 
 from fastapi import APIRouter
 
+from app.schemas.hardware import AcceleratorMemoryInfo
+
 from .service import hardware_service
 
 hardware = APIRouter(
@@ -30,3 +32,9 @@ def recheck():
 	driver_info = hardware_service.recheck_gpu_info()
 
 	return driver_info
+
+
+@hardware.get('/memory')
+def get_memory() -> AcceleratorMemoryInfo:
+	"""Returns memory in use on the active accelerator, polled by the app status bar."""
+	return hardware_service.get_memory_usage()
