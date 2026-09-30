@@ -21,9 +21,9 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 3. Socket Connection State [depends-on: -] [writes: src/cores/sockets/] [parallel-safe: yes]
 
-- [ ] Add the state-only `useSocketConnectionStore` (`status`: `connecting`, `connected`, `disconnected`; `lastConnectedAt`) with `SOCKET_CONNECTION_ACTIONS`, including `reconnect` (calls `socket.connect()`).
-- [ ] Add `SocketEvents.CONNECT`, `DISCONNECT` and `CONNECT_ERROR`, and `useSocketConnectionWatcher`, which seeds `status` from `socket.connected` on mount and then follows the events.
-- [ ] Test seeding when the socket is already connected, each transition, and `reconnect`.
+- [x] Add the state-only `useSocketConnectionStore` (`status`: `connecting`, `connected`, `disconnected`; `lastConnectedAt`) with `SOCKET_CONNECTION_ACTIONS`, and a `reconnectSocket` service that calls `socket.connect()` (kept out of the actions object, which holds only `setState` calls).
+- [x] Add `SocketEvents.CONNECT`, `DISCONNECT` and `CONNECT_ERROR`, and `useSocketConnectionWatcher`, which seeds `status` from `socket.connected` on mount and then follows the events.
+- [x] Test seeding when the socket is already connected, each transition, and `reconnect`.
 
 ## 4. Controlled Overlays And Shell Store [depends-on: -] [writes: src/features/app-shell/states/, src/features/backend-logs/presentations/, src/features/model-search/presentations/] [parallel-safe: yes]
 
