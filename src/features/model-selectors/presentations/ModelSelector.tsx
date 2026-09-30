@@ -2,7 +2,8 @@
 
 import { useModelSelectorMenu } from '@/features/model-selectors/states/useModelSelectorMenu'
 import { Button, Dropdown, Spinner } from '@heroui/react'
-import { map } from 'es-toolkit/compat'
+import clsx from 'clsx'
+import { isEmpty, map } from 'es-toolkit/compat'
 import { ChevronDown } from 'lucide-react'
 import { useMemo } from 'react'
 
@@ -30,10 +31,19 @@ export const ModelSelector = () => {
     })
   }, [downloadedModels])
 
+  const hasModel = !isEmpty(selectedModelId)
+
   const StatusIcon = useMemo(() => {
     if (isLoading) return <Spinner size="sm" color="current" />
-    return <span className="size-2 rounded-full bg-success" />
-  }, [isLoading])
+    return (
+      <span
+        className={clsx('size-2 rounded-full', {
+          'bg-success': hasModel,
+          'bg-muted': !hasModel
+        })}
+      />
+    )
+  }, [hasModel, isLoading])
 
   const trailingLabel = isLoading ? loadPercentLabel : familyLabel
 

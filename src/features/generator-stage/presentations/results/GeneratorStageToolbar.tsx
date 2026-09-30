@@ -12,6 +12,9 @@ export const GeneratorStageToolbar: FC<GeneratorStageToolbarProps> = ({
 }) => {
   const actions = useStageHeroActions(index)
 
+  // The phase stepper sits in this corner while a run is going.
+  if (actions.isGenerating) return
+
   return (
     <Toolbar
       aria-label="Image actions"

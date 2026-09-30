@@ -29,7 +29,7 @@ export const GeneratorDockPills = () => {
   const { pills } = useDockPills()
 
   return (
-    <ul aria-label="Current settings" className="flex flex-1 flex-wrap gap-2">
+    <ul aria-label="Current settings" className="contents">
       {map(pills, (pill) => {
         const Icon = PILL_ICONS[pill.kind]
 

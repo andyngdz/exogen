@@ -99,6 +99,20 @@ describe('AppLayout', () => {
     expect(screen.getByTestId('app-footer')).toBeInTheDocument()
   })
 
+  it('hides the footer on the editor, whose path ends with a slash', async () => {
+    const { usePathname } = await import('next/navigation')
+    vi.mocked(usePathname).mockReturnValue('/editor/')
+    mockUseBackendInitStore.mockReturnValue(true)
+
+    render(
+      <AppLayout>
+        <div data-testid="editor-content">Editor Content</div>
+      </AppLayout>
+    )
+
+    expect(screen.queryByTestId('app-footer')).not.toBeInTheDocument()
+  })
+
   it('renders children on other pages when initialized', async () => {
     const { usePathname } = await import('next/navigation')
     vi.mocked(usePathname).mockReturnValue('/editor')

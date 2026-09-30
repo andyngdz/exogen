@@ -10,7 +10,7 @@ interface ImageViewModeState {
 }
 
 export const useImageViewModeStore = create<ImageViewModeState>()(() => ({
-  viewMode: ImageViewMode.GRID
+  viewMode: ImageViewMode.SLIDER
 }))
 
 export const IMAGE_VIEW_MODE_ACTIONS = {

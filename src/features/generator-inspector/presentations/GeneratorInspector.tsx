@@ -22,27 +22,29 @@ export const GeneratorInspector = () => {
         'border-l border-separator'
       )}
     >
-      <Tabs variant="secondary">
-        <Tabs.ListContainer>
-          <Tabs.List aria-label="Inspector">
-            <Tabs.Tab id="basic">
-              Basic
-              <Tabs.Indicator />
-            </Tabs.Tab>
-            <Tabs.Tab id="hires">
-              Hires
-              <Tabs.Indicator />
-            </Tabs.Tab>
-            <Tabs.Tab id="lora">
-              LoRA
-              <Tabs.Indicator />
-            </Tabs.Tab>
-            <Tabs.Tab id="styles">
-              Styles
-              <Tabs.Indicator />
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs.ListContainer>
+      <Tabs>
+        <div className="px-4 pt-4">
+          <Tabs.ListContainer>
+            <Tabs.List aria-label="Inspector" className="w-full">
+              <Tabs.Tab id="basic" className="flex-1 px-0">
+                Basic
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="hires" className="flex-1 px-0">
+                Hires
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="lora" className="flex-1 px-0">
+                LoRA
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="styles" className="flex-1 px-0">
+                Styles
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </div>
         <Tabs.Panel id="basic" className="p-0">
           <GeneratorInspectorBasic />
         </Tabs.Panel>

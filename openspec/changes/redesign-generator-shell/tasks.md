@@ -117,9 +117,9 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 12. Verification [depends-on: 1, 11] [writes: -] [parallel-safe: no]
 
-- [ ] Run `openspec validate redesign-generator-shell --strict`.
-- [ ] Run `pnpm run lint`, `pnpm run type-check`, `pnpm test`, and `passgate-engine frontend` on every touched file.
-- [ ] Capture `/editor` at 1280×800 with the npx-cached Playwright runner and compare each capture with its Claude Design frame:
+- [x] Run `openspec validate redesign-generator-shell --strict`.
+- [x] Run `pnpm run lint`, `pnpm run type-check`, `pnpm test`, and `passgate-engine frontend` on every touched file.
+- [x] Capture `/editor` at 1280×800 with the npx-cached Playwright runner and compare each capture with its Claude Design frame:
   - 2a, 3a, the 3b tabs and 3c in normal use.
   - 3h by selecting a model.
   - 3f by stopping the backend.

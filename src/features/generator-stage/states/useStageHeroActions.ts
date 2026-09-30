@@ -25,6 +25,7 @@ export const useStageHeroActions = (index: number) => {
   return {
     baseURL,
     imagePath,
+    isGenerating,
     isReady: !isGenerating && !isEmpty(imagePath),
     isUsingAsInput,
     onUseAsInput: () => void loadAsInput(imageUrl),

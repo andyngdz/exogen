@@ -1,16 +1,20 @@
 import { RecentRun } from '@/features/generator-stage/types'
 import { dateFormatter } from '@/services/date-formatter'
 import { HistoryItem } from '@/types'
-import { first, map, take } from 'es-toolkit/compat'
+import { first, map, orderBy, take } from 'es-toolkit/compat'
+
+const RANDOM_SEED = -1
 
 export class RecentRunService {
-  /** The newest history runs, with a thumbnail and a one-line summary each. */
+  /** The newest history runs (the API lists oldest first), each with a thumbnail and a summary line. */
   toRecentRuns(
     histories: HistoryItem[],
     baseURL: string,
     limit: number
   ): RecentRun[] {
-    return map(take(histories, limit), (history) => {
+    const newestFirst = orderBy(histories, ['created_at'], ['desc'])
+
+    return map(take(newestFirst, limit), (history) => {
       const image = first(history.generated_images)
       const count = history.generated_images.length
 
@@ -20,11 +24,16 @@ export class RecentRunService {
         metaLabel: [
           dateFormatter.time(history.created_at),
           count === 1 ? '1 image' : `${count} images`,
-          `seed ${history.config.seed}`
+          this.toSeedLabel(history.config.seed)
         ].join(' · '),
         prompt: history.prompt
       }
     })
+  }
+
+  private toSeedLabel(seed: number) {
+    if (seed === RANDOM_SEED) return 'random seed'
+    return `seed ${seed}`
   }
 }
 

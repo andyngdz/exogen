@@ -11,12 +11,10 @@ beforeEach(() => {
 })
 
 describe('useImageViewModeStore - initialization', () => {
-  it('starts in grid view', () => {
-    const { result } = renderHook(() =>
-      useImageViewModeStore((state) => state.viewMode)
+  it('starts in single view', () => {
+    expect(useImageViewModeStore.getInitialState().viewMode).toBe(
+      ImageViewMode.SLIDER
     )
-
-    expect(result.current).toBe(ImageViewMode.GRID)
   })
 
   it('holds only data in the store state', () => {

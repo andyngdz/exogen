@@ -47,7 +47,7 @@ export const GeneratorDock = () => {
         </TextField>
       )}
       <div className="flex items-end gap-4">
-        <div className="flex flex-1 flex-col items-start gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant="ghost"
