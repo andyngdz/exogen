@@ -1,0 +1,5 @@
+CACHE_FOLDER = './.cache'
+CACHE_LOCK_FOLDER = './.cache/.locks'
+GENERATED_IMAGES_FOLDER = './static/generated_images'
+GENERATED_IMAGES_STATIC_FOLDER = 'static/generated_images'
+STATIC_FOLDER = 'static'
