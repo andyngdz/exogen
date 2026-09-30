@@ -80,6 +80,18 @@ describe('useGeneratorPreviewer', () => {
     expect(result.current.imageStepEnds[1].image_base64).toBe('step-1')
   })
 
+  it('ignores step previews that arrive before this client initializes its slots', () => {
+    act(() => {
+      useGenerationStatusStore.getState().onSetIsGenerating(true)
+    })
+    const { result } = renderHook(() => useGeneratorPreviewer())
+
+    deliverStepEnd(stepEnd(2))
+
+    expect(result.current.imageStepEnds).toHaveLength(0)
+    expect(result.current.items).toHaveLength(0)
+  })
+
   it('ignores step previews from a generation another client started', () => {
     const { result } = renderHook(() => useGeneratorPreviewer())
 

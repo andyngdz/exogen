@@ -18,12 +18,13 @@ export const useGeneratorPreviewer = () => {
 
   const handleImageGenerationStepEnd = useCallback(
     (response: ImageGenerationStepEndResponse) => {
-      // The backend broadcasts step events to every client; only the one that started the generation has slots for them.
-      if (!isGenerating) return
+      // The backend broadcasts step events to every client without a generation id, and
+      // isGenerating turns on before onInit creates the slots, so accept only initialized slots.
+      if (!isGenerating || response.index >= items.length) return
 
       onUpdateImageStepEnd(response)
     },
-    [isGenerating, onUpdateImageStepEnd]
+    [isGenerating, items.length, onUpdateImageStepEnd]
   )
 
   useSocketEvent(
