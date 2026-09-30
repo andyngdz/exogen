@@ -48,11 +48,11 @@ A FastAPI-based backend server for local AI image generation, supporting Stable 
 
 ## Installation
 
-1. **Clone the repository**
+1. **Clone the repository** (the backend lives in `backend/` of the ExoGen repository)
 
    ```bash
-   git clone https://github.com/andyngdz/exogen_backend.git
-   cd exogen_backend
+   git clone https://github.com/andyngdz/exogen.git
+   cd exogen/backend
    ```
 
 2. **Install uv** (Python package manager)
