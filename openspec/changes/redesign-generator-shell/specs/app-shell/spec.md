@@ -100,7 +100,7 @@ The `/editor` screen SHALL render a 30px status bar showing backend state, the p
 
 ### Requirement: Hardware Memory Endpoint
 
-The backend SHALL expose `GET /hardware/memory` returning `device`, `used_bytes` and `total_bytes` for the active accelerator. This requirement is implemented and verified in `exogen_backend`.
+The backend SHALL expose `GET /hardware/memory` returning `device`, `used_bytes` and `total_bytes` for the active accelerator. It lives in `backend/app/features/hardware/`.
 
 #### Scenario: CUDA device
 

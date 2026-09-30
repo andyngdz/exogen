@@ -62,7 +62,7 @@ Overlays are split into controlled content plus per-surface triggers, so feature
 - VRAM in use from `useHardwareMemoryQuery` (`GET /hardware/memory`, `retry: false`). `refetchInterval` returns 5000, or `false` after a 404, so a backend without the endpoint is not polled again. A 404, an error, or `total_bytes === 0` hides the meter.
 - The active download from `useDownloadWatcherStore` (`model_id`, `step`): name, bar and percent while a step exists.
 
-Backend contract (implemented and verified in `exogen_backend/app/features/hardware/api.py`, separate pull request):
+Backend contract (`backend/app/features/hardware/api.py`, in this change):
 
 ```text
 GET /hardware/memory

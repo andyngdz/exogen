@@ -4,13 +4,13 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 - [x] Archive the checked-off `add-img2img-ui`, `add-generator-photoview` and `add-generation-phase-stepper` changes before unit 1, and cover their panel requirements with the `img2img-ui` delta.
 
-## 1. Backend Hardware Memory Endpoint [depends-on: -] [writes: ../exogen_backend/app/features/hardware/, ../exogen_backend/tests/app/features/hardware/] [parallel-safe: yes]
+## 1. Backend Hardware Memory Endpoint [depends-on: -] [writes: backend/app/features/hardware/, backend/app/schemas/hardware.py, backend/tests/app/features/hardware/] [parallel-safe: yes]
 
-- [ ] Add `GET /hardware/memory` returning `{ device, used_bytes, total_bytes }`:
+- [x] Add `GET /hardware/memory` returning `{ device, used_bytes, total_bytes }`:
   - CUDA: `torch.cuda.mem_get_info(torch.cuda.current_device())`.
   - MPS: `current_allocated_memory` and `recommended_max_memory`.
   - CPU: zeros.
-- [ ] Add pytest coverage for each device branch with torch mocked, and open the pull request in `exogen_backend`.
+- [x] Add pytest coverage for each device branch with torch mocked.
 
 ## 2. Hardware Memory Query [depends-on: -] [writes: src/services/api.ts, src/types/api.ts, src/cores/api-queries/] [parallel-safe: yes]
 

@@ -3,7 +3,12 @@
 from unittest.mock import patch
 
 from app.features.hardware.info import GPUInfo
-from app.schemas.hardware import GPUDriverInfo, GPUDriverStatusStates
+from app.schemas.hardware import (
+	AcceleratorMemoryDevice,
+	AcceleratorMemoryInfo,
+	GPUDriverInfo,
+	GPUDriverStatusStates,
+)
 
 
 class TestHardwareEndpoints:
@@ -44,3 +49,16 @@ class TestHardwareEndpoints:
 
 		assert result == mock_info
 		mock_recheck_gpu_info.assert_called_once()
+
+	@patch('app.features.hardware.service.hardware_service.get_memory_usage')
+	def test_memory_endpoint(self, mock_get_memory_usage):
+		"""Test GET /hardware/memory returns the service reading."""
+		from app.features.hardware.api import get_memory
+
+		mock_info = AcceleratorMemoryInfo(device=AcceleratorMemoryDevice.CUDA, used_bytes=1, total_bytes=2)
+		mock_get_memory_usage.return_value = mock_info
+
+		result = get_memory()
+
+		assert result == mock_info
+		mock_get_memory_usage.assert_called_once()

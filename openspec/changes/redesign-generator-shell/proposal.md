@@ -24,7 +24,7 @@ Rebuild the `/editor` screen on the approved 1b canvas-first design: an icon rai
 - Move the Styles and LoRA lists into inspector tabs and remove `GeneratorConfigStyleModal` and `ExtraModal`.
 - Restyle `GeneratorPhotoviewModal` as a full-screen viewer.
 - Add stage states for first run, model loading, generation failure and backend offline.
-- In `exogen_backend`, add `GET /hardware/memory` (separate pull request in that repository).
+- In `backend/`, add `GET /hardware/memory`.
 
 ## Non-Goals
 
@@ -36,7 +36,7 @@ Rebuild the `/editor` screen on the approved 1b canvas-first design: an icon rai
 
 - Affected code: `src/app/editor/`, `src/app/app-layout.tsx`, `src/features/editors/`, `src/features/generators/`, `src/features/generator-*`, `src/features/extra*`, `src/features/generator-photoview/`, `src/features/histories/` (column toggle only), `src/features/settings/`, `src/features/backend-logs/`, `src/features/model-search/`, `src/features/model-selectors/`, `src/features/model-load-progress/`, `src/features/app-footer/`, `src/cores/sockets/`, `src/services/api.ts`, `src/types/api.ts`.
 - New feature folders: `src/features/app-shell/`, `src/features/generator-inspector/`, `src/features/generator-dock/`, `src/features/generator-stage/`.
-- Backend: `exogen_backend/app/features/hardware/` gains one read-only route.
+- Backend: `backend/app/features/hardware/` gains one read-only route.
 - New OpenSpec capabilities: `app-shell`, `generator-workspace`; modified: `lora-integration`, `model-load-progress`.
 - Archives `add-img2img-ui`, `add-generator-photoview` and `add-generation-phase-stepper`, and modifies the `img2img-ui` capability they created.
 
