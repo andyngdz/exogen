@@ -3,6 +3,7 @@ import { useDownloadImages } from '@/features/generator-previewers/states'
 import {
   useGeneratorModeStore,
   useImage2ImageConfigStore,
+  useLastRunStore,
   useUseImageGenerationStore
 } from '@/features/generators'
 import { GeneratorMode } from '@/types'
@@ -10,6 +11,8 @@ import { toast } from '@heroui/react'
 import { useCallback, useState } from 'react'
 
 import { dataUrlService } from '@/services/data-url'
+
+import { photoviewService } from '@/features/generator-photoview/services/photoview'
 
 import { useGeneratorPhotoviewStore } from './useGeneratorPhotoviewStore'
 
@@ -26,6 +29,8 @@ export const useGeneratorPhotoviewModalModel = () => {
     (state) => state.setInitImageBase64
   )
   const setMode = useGeneratorModeStore((state) => state.setMode)
+  const prompt = useLastRunStore((state) => state.prompt)
+  const seed = useLastRunStore((state) => state.seed)
   const [isUsingAsInput, setIsUsingAsInput] = useState(false)
 
   const safeIndex = Math.min(Math.max(0, currentIndex), items.length - 1)
@@ -59,6 +64,9 @@ export const useGeneratorPhotoviewModalModel = () => {
     isOpen,
     closePhotoview,
     safeIndex,
+    total: items.length,
+    prompt,
+    seedLabel: photoviewService.toSeedLabel(seed),
     isUsingAsInput,
     onDownload,
     onUseAsInput

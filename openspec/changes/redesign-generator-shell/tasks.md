@@ -59,11 +59,11 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 7. Full-Screen Viewer [depends-on: 6] [writes: src/features/generator-photoview/] [parallel-safe: yes]
 
-- [ ] Restyle `GeneratorPhotoviewModal` as the 3c full-window viewer:
+- [x] Restyle `GeneratorPhotoviewModal` as the 3c full-window viewer:
   - A header with the prompt and seed from `useLastRunStore`, where -1 shows as "Random".
   - "Use as input", "Download" and close.
   - Arrow keys, a thumbnail strip, and Escape to close.
-- [ ] Update the photoview tests for the header, navigation, actions and close.
+- [x] Update the photoview tests for the header, navigation, actions and close.
 
 ## 8. App Shell [depends-on: 2, 3, 4] [writes: src/features/app-shell/presentations/, src/app/editor/, src/app/app-layout.tsx, src/features/editors/, src/features/model-search/presentations/ModelSearchOpenIconButton.tsx, src/features/model-load-progress/states/] [parallel-safe: yes]
 

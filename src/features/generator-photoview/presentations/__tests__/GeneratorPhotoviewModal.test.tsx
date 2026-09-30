@@ -21,7 +21,10 @@ vi.mock('@/features/generator-previewers/states', () => ({
 vi.mock('@/features/generators', () => ({
   useUseImageGenerationStore: vi.fn(),
   useImage2ImageConfigStore: vi.fn(),
-  useGeneratorModeStore: vi.fn()
+  useGeneratorModeStore: vi.fn(),
+  useLastRunStore: vi.fn((selector: (state: object) => unknown) =>
+    selector({ prompt: 'a lighthouse at dusk', seed: -1 })
+  )
 }))
 
 vi.mock('@/services/data-url', () => ({
@@ -80,6 +83,18 @@ describe('GeneratorPhotoviewModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('shows the submitted prompt and seed in the header', () => {
+    vi.mocked(useDownloadImages).mockReturnValue({ onDownloadImage: vi.fn() })
+    mockStores()
+    useGeneratorPhotoviewStore.setState({ isOpen: true, currentIndex: 0 })
+
+    render(<GeneratorPhotoviewModal />)
+
+    expect(screen.getByText('Image 1 of 1')).toBeInTheDocument()
+    expect(screen.getByText('a lighthouse at dusk')).toBeInTheDocument()
+    expect(screen.getByText('Seed Random')).toBeInTheDocument()
+  })
+
   it('should download and use image as input', async () => {
     const onDownloadImage = vi.fn()
     vi.mocked(useDownloadImages).mockReturnValue({ onDownloadImage })
@@ -105,9 +120,7 @@ describe('GeneratorPhotoviewModal', () => {
       'http://localhost:8000/images/out.png'
     )
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /use current image as input/i })
-    )
+    fireEvent.click(screen.getByRole('button', { name: /use as input/i }))
 
     await waitFor(() => {
       expect(dataUrlService.fetchUrlToDataUrl).toHaveBeenCalledWith(
@@ -141,9 +154,7 @@ describe('GeneratorPhotoviewModal', () => {
 
     render(<GeneratorPhotoviewModal />)
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /use current image as input/i })
-    )
+    fireEvent.click(screen.getByRole('button', { name: /use as input/i }))
 
     await waitFor(() => {
       expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Use as input', {
@@ -164,9 +175,7 @@ describe('GeneratorPhotoviewModal', () => {
     mockStores()
     render(<GeneratorPhotoviewModal />)
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /use current image as input/i })
-    )
+    fireEvent.click(screen.getByRole('button', { name: /use as input/i }))
 
     await waitFor(() => {
       expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Use as input', {
