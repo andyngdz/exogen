@@ -48,10 +48,10 @@ At startup the app SHALL copy the bundled backend into `userData/exogen_backend`
 - **AND** the new bundle's files are copied
 - **AND** the version marker is written after the copy finishes
 
-#### Scenario: Code missing despite a matching marker
+#### Scenario: Code changed despite a matching marker
 
-- **WHEN** `.exogen-backend-version` equals the app version but `main.py` is missing
-- **THEN** the sync runs again
+- **WHEN** `.exogen-backend-version` equals the app version but a bundled file is missing or differs, for example after an older app ran `git reset --hard` to its release branch
+- **THEN** the sync runs again and restores the bundled code
 
 #### Scenario: Git is not installed
 

@@ -114,6 +114,21 @@ describe('syncBackend', () => {
     })
   })
 
+  it('restores bundled code after an older app reset it but left the marker', async () => {
+    await syncBackend({ sourcePath, backendPath, version: '1.2.3', emit })
+    // An older, cloning app runs `git reset --hard`, which rewrites tracked
+    // code but leaves the untracked version marker in place.
+    await writeFile(path.join(backendPath, 'main.py'), 'release main')
+    await writeFile(path.join(backendPath, 'app', 'api.py'), 'release api')
+
+    await syncBackend({ sourcePath, backendPath, version: '1.2.3', emit })
+
+    expect(await readFile(path.join(backendPath, 'main.py'))).toBe('new main')
+    expect(await readFile(path.join(backendPath, 'app', 'api.py'))).toBe(
+      'new api'
+    )
+  })
+
   it('syncs again when the marker matches but the code is missing', async () => {
     await syncBackend({ sourcePath, backendPath, version: '1.2.3', emit })
     await fs.rm(path.join(backendPath, 'main.py'))

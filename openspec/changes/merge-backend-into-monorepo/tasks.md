@@ -14,7 +14,7 @@ Dependency levels: unit 1 is level 0; units 2, 3 and 4 are level 1; unit 5 is le
   - The protected set, including `.git` and SQLite sidecars.
   - Copy exclusions that cover the protected set.
   - The version marker, written last.
-  - The `main.py` check.
+  - The bundle content check behind the marker.
   - The dev always-sync path.
 - [x] Move the Git check into an `ensureGit` step before the sync, and wire `syncBackend` into `startBackend` with `backendSourcePath` and `appVersion` from `electron/main.ts`.
 - [x] Remove `clone-backend.ts`, `git.ts`, `BACKEND_REPO_URL`, `BACKEND_BRANCH` and their tests.

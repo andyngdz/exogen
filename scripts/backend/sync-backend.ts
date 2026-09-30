@@ -9,7 +9,6 @@ const STATIC_DIRNAME = 'static'
 const GENERATED_IMAGES_DIRNAME = 'generated_images'
 
 const DATABASE_FILENAME = 'exogen_backend.db'
-const MAIN_FILENAME = 'main.py'
 
 // User data the backend writes next to its code (paths are relative to its
 // working directory), so a sync must never delete these entries. `.git` stays
@@ -78,10 +77,52 @@ const readSyncedVersion = async (backendPath: string) => {
   return content.trim()
 }
 
-/** Returns true when the directory holds this version's code, so the sync can be skipped. */
-const isSyncedTo = async (backendPath: string, version: string) => {
-  if (!(await pathExists(path.join(backendPath, MAIN_FILENAME)))) return false
-  return (await readSyncedVersion(backendPath)) === version
+/** Lists the files a sync copies from the bundle, relative to its root. */
+const listBundleFiles = async (sourcePath: string) => {
+  const entries = await fs.readdir(sourcePath, {
+    recursive: true,
+    withFileTypes: true
+  })
+
+  return entries
+    .filter((entry) => entry.isFile())
+    .map((entry) => path.join(entry.parentPath, entry.name))
+    .filter((filePath) => !isExcludedFromCopy(sourcePath, filePath))
+    .map((filePath) => path.relative(sourcePath, filePath))
+}
+
+const hasSameContent = async (sourceFile: string, targetFile: string) => {
+  if (!(await pathExists(targetFile))) return false
+
+  const [sourceContent, targetContent] = await Promise.all([
+    fs.readFile(sourceFile),
+    fs.readFile(targetFile)
+  ])
+  return sourceContent.equals(targetContent)
+}
+
+/**
+ * Returns true when the directory already holds this version's bundled code.
+ * The marker alone is not enough: an older app that still pulls with Git can
+ * reset the code to its release branch and leave the untracked marker behind.
+ */
+const isSyncedTo = async (
+  sourcePath: string,
+  backendPath: string,
+  version: string
+) => {
+  if ((await readSyncedVersion(backendPath)) !== version) return false
+
+  const bundleFiles = await listBundleFiles(sourcePath)
+  const matches = await Promise.all(
+    bundleFiles.map((relativePath) =>
+      hasSameContent(
+        path.join(sourcePath, relativePath),
+        path.join(backendPath, relativePath)
+      )
+    )
+  )
+  return matches.every(Boolean)
 }
 
 /** Lists every code path in the backend directory, leaving user data out. */
@@ -140,7 +181,7 @@ const syncBackend = async ({
     throw new Error(`Bundled backend not found at ${sourcePath}`)
   }
 
-  if (version && (await isSyncedTo(backendPath, version))) {
+  if (version && (await isSyncedTo(sourcePath, backendPath, version))) {
     emit({ level: BackendStatusLevel.Info, message: 'Backend is up to date.' })
     return { backendPath }
   }

@@ -60,7 +60,7 @@ The packaged app reads it from `path.join(process.resourcesPath, 'backend')`. In
 `scripts/backend/sync-backend.ts` exports `syncBackend({ sourcePath, backendPath, version, emit })`:
 
 1. Refuse any `backendPath` whose basename is not `exogen_backend`, since the next steps delete inside it.
-2. When `version` is set, `main.py` exists and `backendPath/.exogen-backend-version` equals `version`, emit "Backend is up to date." and return. The dev app passes no `version`, which always syncs, so edits in `backend/` apply on restart.
+2. When `version` is set, `backendPath/.exogen-backend-version` equals `version`, and every file the bundle would copy already exists in `backendPath` with identical content, emit "Backend is up to date." and return. The content check (553 files, about 20 ms) catches an older Git-based app that reset the code with `git reset --hard` but left the untracked marker behind. The dev app passes no `version`, which always syncs, so edits in `backend/` apply on restart.
 3. Create `backendPath` when missing.
 4. Delete every entry directly under `backendPath` except the protected set, and inside `static/` delete everything except `generated_images/`.
    - Protected: `.venv`, `.cache`, `.git`, `exogen_backend.db*` and any `*.db` (the SQLite file and its sidecars), `*.log` and `logs.txt`.
@@ -106,7 +106,7 @@ The user archives `andyngdz/exogen_backend` on GitHub after this change lands. I
 - Unit tests for `syncBackend`, against a temp directory:
   - Every protected path, including `.git` and the SQLite journal, survives with its content.
   - Stale code files are removed.
-  - The version marker skips a second sync, is written last, and is ignored when `main.py` is missing.
+  - The version marker skips a second sync, is written last, and is ignored when bundled code is missing or was reset by an older app.
   - The dev mode always syncs and writes no marker.
   - Dev copies skip `.venv`, `.cache`, the database, its journal and log files.
   - A user's `logs.txt` is not overwritten by a dev source.
