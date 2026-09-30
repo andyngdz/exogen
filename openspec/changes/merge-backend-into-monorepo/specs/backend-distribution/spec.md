@@ -22,12 +22,12 @@ The packaged app SHALL contain the backend source under `resources/backend`, wit
 #### Scenario: Bundle contents
 
 - **WHEN** the app is built with electron-builder
-- **THEN** `resources/backend` contains `main.py`, `app/`, `alembic/`, `alembic.ini`, `pyproject.toml`, `uv.lock` and `static/styles/`
+- **THEN** `resources/backend` contains `main.py`, `app/`, `alembic/`, `alembic.ini`, `pyproject.toml`, `uv.lock`, `.python-version` and `static/styles/`
 - **AND** it contains no `.venv`, `.cache`, `tests`, `__pycache__`, `*.db` or `static/generated_images`
 
-### Requirement: Backend Sync Without Git
+### Requirement: Backend Sync Instead Of Clone
 
-At startup the app SHALL copy the bundled backend into `userData/exogen_backend` instead of cloning a repository, and SHALL NOT require Git.
+At startup the app SHALL copy the bundled backend into `userData/exogen_backend` instead of cloning a repository.
 
 #### Scenario: First start on a new machine
 
@@ -48,10 +48,15 @@ At startup the app SHALL copy the bundled backend into `userData/exogen_backend`
 - **AND** the new bundle's files are copied
 - **AND** the version marker is written after the copy finishes
 
+#### Scenario: Code missing despite a matching marker
+
+- **WHEN** `.exogen-backend-version` equals the app version but `main.py` is missing
+- **THEN** the sync runs again
+
 #### Scenario: Git is not installed
 
 - **WHEN** the app starts on a machine without Git
-- **THEN** the backend setup does not check for Git and completes
+- **THEN** setup stops before the sync with the Git install hint, because `uv sync` fetches a Git-sourced dependency
 
 ### Requirement: User Data Survives Sync
 
@@ -59,15 +64,16 @@ The sync SHALL never modify or delete the models, virtual environment, database 
 
 #### Scenario: Upgrade from a cloning app version
 
-- **WHEN** `userData/exogen_backend` is a git clone from an older app, with `.git`, `.venv`, `.cache`, `exogen_backend.db` and files in `static/generated_images`
-- **THEN** after the sync, `.git` is gone
-- **AND** `.venv`, `.cache`, `exogen_backend.db` and `static/generated_images` keep their exact contents
+- **WHEN** `userData/exogen_backend` is a git clone from an older app, with `.git`, `.venv`, `.cache`, `exogen_backend.db`, `exogen_backend.db-journal` and files in `static/generated_images`
+- **THEN** after the sync, all of them keep their exact contents
+- **AND** code files from the clone that the bundle lacks are gone
 - **AND** the backend serves the history stored in `exogen_backend.db`
 
 #### Scenario: Development sync
 
-- **WHEN** the unpackaged app syncs from `<repo>/backend` that contains the developer's own `.venv` and `.cache`
-- **THEN** those directories are not copied into `userData/exogen_backend`
+- **WHEN** the unpackaged app syncs from `<repo>/backend` that contains the developer's own `.venv`, `.cache`, database, journal and logs
+- **THEN** none of them is copied into `userData/exogen_backend`
+- **AND** no version marker is written
 
 ### Requirement: Backend Continuous Integration
 
