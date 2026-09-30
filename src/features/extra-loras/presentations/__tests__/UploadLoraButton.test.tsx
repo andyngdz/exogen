@@ -17,11 +17,12 @@ vi.mock('@heroui/react', async (importOriginal) => ({
 const mockSelectFile = vi.fn()
 
 describe('UploadLoraButton', () => {
-  const mockMutateAsync = vi.fn()
+  const mockMutate = vi.fn()
 
   beforeEach(() => {
     vi.clearAllMocks()
     mockSelectFile.mockReset()
+    mockMutate.mockReset()
 
     const electronAPI = globalThis.window?.electronAPI
     if (!electronAPI) {
@@ -30,7 +31,7 @@ describe('UploadLoraButton', () => {
 
     electronAPI.selectFile = mockSelectFile
     vi.mocked(useUploadLoraMutation).mockReturnValue({
-      mutateAsync: mockMutateAsync,
+      mutate: mockMutate,
       isPending: false
     } as unknown as ReturnType<typeof useUploadLoraMutation>)
   })
@@ -45,7 +46,6 @@ describe('UploadLoraButton', () => {
 
   it('calls selectFile when button is clicked', async () => {
     mockSelectFile.mockResolvedValue('/path/to/lora.safetensors')
-    mockMutateAsync.mockResolvedValue({})
 
     render(<UploadLoraButton />)
     const button = screen.getByRole('button', { name: 'Upload LoRA' })
@@ -64,14 +64,13 @@ describe('UploadLoraButton', () => {
   it('uploads file when file is selected', async () => {
     const filePath = '/path/to/lora.safetensors'
     mockSelectFile.mockResolvedValue(filePath)
-    mockMutateAsync.mockResolvedValue({})
 
     render(<UploadLoraButton />)
     const button = screen.getByRole('button', { name: 'Upload LoRA' })
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalledWith(filePath)
+      expect(mockMutate).toHaveBeenCalledWith(filePath, expect.any(Object))
     })
   })
 
@@ -86,12 +85,15 @@ describe('UploadLoraButton', () => {
       expect(mockSelectFile).toHaveBeenCalled()
     })
 
-    expect(mockMutateAsync).not.toHaveBeenCalled()
+    expect(mockMutate).not.toHaveBeenCalled()
   })
 
   it('shows success toast on successful upload', async () => {
     mockSelectFile.mockResolvedValue('/path/to/lora.safetensors')
-    mockMutateAsync.mockResolvedValue({})
+    mockMutate.mockImplementation(
+      (_filePath: string, options: { onSuccess: VoidFunction }) =>
+        options.onSuccess()
+    )
 
     render(<UploadLoraButton />)
     const button = screen.getByRole('button', { name: 'Upload LoRA' })
@@ -104,40 +106,9 @@ describe('UploadLoraButton', () => {
     })
   })
 
-  it('shows error toast on upload failure with error message', async () => {
-    const errorMessage = 'Network error'
-    mockSelectFile.mockResolvedValue('/path/to/lora.safetensors')
-    mockMutateAsync.mockRejectedValue(new Error(errorMessage))
-
-    render(<UploadLoraButton />)
-    const button = screen.getByRole('button', { name: 'Upload LoRA' })
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Upload failed', {
-        description: errorMessage
-      })
-    })
-  })
-
-  it('shows generic error toast on upload failure without error message', async () => {
-    mockSelectFile.mockResolvedValue('/path/to/lora.safetensors')
-    mockMutateAsync.mockRejectedValue('Unknown error')
-
-    render(<UploadLoraButton />)
-    const button = screen.getByRole('button', { name: 'Upload LoRA' })
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Upload failed', {
-        description: 'Failed to upload LoRA model.'
-      })
-    })
-  })
-
   it('marks the button pending while the upload runs', () => {
     vi.mocked(useUploadLoraMutation).mockReturnValue({
-      mutateAsync: mockMutateAsync,
+      mutate: mockMutate,
       isPending: true
     } as unknown as ReturnType<typeof useUploadLoraMutation>)
 

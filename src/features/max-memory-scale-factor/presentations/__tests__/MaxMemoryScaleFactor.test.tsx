@@ -9,7 +9,7 @@ const mockRouter = {
 }
 
 const mockMutation = {
-  mutateAsync: vi.fn()
+  mutate: vi.fn()
 }
 
 // Mock dependencies
@@ -92,7 +92,10 @@ vi.mock('@/cores/presentations/memory-scale-factor', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockMutation.mutateAsync.mockResolvedValue(undefined)
+  mockMutation.mutate.mockImplementation(
+    (_values: unknown, options: { onSuccess: VoidFunction }) =>
+      options.onSuccess()
+  )
 })
 
 describe('MaxMemoryScaleFactor', () => {
@@ -118,10 +121,10 @@ describe('MaxMemoryScaleFactor', () => {
     await user.click(screen.getByTestId('next-button'))
 
     await waitFor(() => {
-      expect(mockMutation.mutateAsync).toHaveBeenCalledWith({
-        gpuScaleFactor: 0.5,
-        ramScaleFactor: 0.5
-      })
+      expect(mockMutation.mutate).toHaveBeenCalledWith(
+        { gpuScaleFactor: 0.5, ramScaleFactor: 0.5 },
+        expect.any(Object)
+      )
     })
 
     expect(mockRouter.push).toHaveBeenCalledWith('/model-recommendations')
@@ -136,13 +139,26 @@ describe('MaxMemoryScaleFactor', () => {
     await user.click(screen.getByTestId('next-button'))
 
     await waitFor(() => {
-      expect(mockMutation.mutateAsync).toHaveBeenCalledWith({
-        gpuScaleFactor: 0.7,
-        ramScaleFactor: 0.4
-      })
+      expect(mockMutation.mutate).toHaveBeenCalledWith(
+        { gpuScaleFactor: 0.7, ramScaleFactor: 0.4 },
+        expect.any(Object)
+      )
     })
 
     expect(mockHandlers.onGpuChange).toHaveBeenCalledWith(0.7)
     expect(mockHandlers.onRamChange).toHaveBeenCalledWith(0.4)
+  })
+
+  it('stays on this step when saving the limits fails', async () => {
+    mockMutation.mutate.mockImplementation(() => {})
+    const user = userEvent.setup()
+    render(<MaxMemoryScaleFactor />)
+
+    await user.click(screen.getByTestId('next-button'))
+
+    await waitFor(() => {
+      expect(mockMutation.mutate).toHaveBeenCalled()
+    })
+    expect(mockRouter.push).not.toHaveBeenCalled()
   })
 })

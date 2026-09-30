@@ -40,7 +40,7 @@ describe('useGeneralSettings', () => {
 
     expect(useSettingsStore.getState().values.safety_check_enabled).toBe(false)
     expect(result.current.isSafetyCheckEnabled).toBe(false)
-    expect(mockMutate).toHaveBeenCalledWith(false)
+    expect(mockMutate).toHaveBeenCalledWith(false, expect.any(Object))
   })
 
   it('syncs each toggle to the backend', () => {
@@ -53,8 +53,23 @@ describe('useGeneralSettings', () => {
       result.current.onSafetyCheckChange(true)
     })
 
-    expect(mockMutate).toHaveBeenNthCalledWith(1, false)
-    expect(mockMutate).toHaveBeenNthCalledWith(2, true)
+    expect(mockMutate).toHaveBeenNthCalledWith(1, false, expect.any(Object))
+    expect(mockMutate).toHaveBeenNthCalledWith(2, true, expect.any(Object))
     expect(useSettingsStore.getState().values.safety_check_enabled).toBe(true)
+  })
+
+  it('puts the switch back when the backend rejects the change', () => {
+    mockMutate.mockImplementation(
+      (_isEnabled: boolean, options: { onError: VoidFunction }) =>
+        options.onError()
+    )
+    const { result } = renderHook(() => useGeneralSettings())
+
+    act(() => {
+      result.current.onSafetyCheckChange(false)
+    })
+
+    expect(useSettingsStore.getState().values.safety_check_enabled).toBe(true)
+    expect(result.current.isSafetyCheckEnabled).toBe(true)
   })
 })

@@ -2,21 +2,11 @@ import {
   GenerateBlockInput,
   GenerateBlockReason
 } from '@/features/generators/types'
+import { apiErrorService } from '@/services/errors'
 import { ImageGenerationStepEndResponse } from '@/types'
-import { isAxiosError } from 'axios'
-import {
-  filter,
-  isArray,
-  isObject,
-  isString,
-  map,
-  maxBy
-} from 'es-toolkit/compat'
+import { maxBy } from 'es-toolkit/compat'
 
 const FALLBACK_MESSAGE = 'The backend did not say why.'
-
-const hasMessage = (entry: unknown): entry is { msg: string } =>
-  isObject(entry) && 'msg' in entry && isString(entry.msg)
 
 export class GenerationRunService {
   /**
@@ -24,17 +14,7 @@ export class GenerationRunService {
    * `{ msg }` for FastAPI validation errors (422).
    */
   toFailureMessage(error: unknown): string {
-    if (isAxiosError(error)) {
-      const detail: unknown = error.response?.data?.detail
-      if (isString(detail)) return detail
-      if (isArray(detail)) {
-        return map(filter(detail, hasMessage), (entry) => entry.msg).join('; ')
-      }
-    }
-
-    if (error instanceof Error && error.message) return error.message
-
-    return FALLBACK_MESSAGE
+    return apiErrorService.toMessage(error, FALLBACK_MESSAGE)
   }
 
   /** Highest step any image reached; undefined when no step event arrived. */
