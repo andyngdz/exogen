@@ -43,6 +43,7 @@ ExoGen is a privacy-focused desktop application that lets you generate AI images
 Before you begin, ensure you have the following installed:
 
 - **Python 3.11+** - Required for the AI backend ([Download](https://www.python.org/downloads/))
+- **Git** - Required while installing backend dependencies, which fetch one package from GitHub ([Download](https://git-scm.com/downloads))
 - **CUDA** - Required for Nvidia GPU acceleration ([Download](https://developer.nvidia.com/cuda-downloads))
 
 ### System Requirements
@@ -63,8 +64,8 @@ Before you begin, ensure you have the following installed:
 
 The application will automatically:
 
-1. Set up the Python backend
-2. Install required Python dependencies
+1. Copy its bundled Python backend into the app data folder, keeping downloaded models, history and generated images
+2. Install required Python dependencies with uv
 3. Open the application window
 
 ## Development
@@ -82,15 +83,15 @@ The application will automatically:
 
 ### Development Workflow
 
+The Python backend lives in `backend/` and runs as its own process. `pnpm run desktop` copies `backend/` into the app data folder on every start and runs it there. To work on the backend itself, run it from `backend/` and start the frontend without it:
+
 ```bash
-# Clone the backend repository
-git clone https://github.com/andyngdz/exogen_backend.git
+# Start the backend (in backend/)
+cd backend
+uv sync
+uv run uvicorn main:app --host 127.0.0.1 --port 8000
 
-# Start the backend (in the exogen_backend directory)
-cd exogen_backend
-# Follow the backend README for setup instructions
-
-# Start frontend development (in the exogen directory)
+# Start frontend development (in the repository root)
 pnpm run desktop:local
 
 # Run tests

@@ -1,16 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cloneBackend } from '../clone-backend'
 import { ensurePython311 } from '../ensure-python'
 import { installDependencies } from '../install-dependencies'
 import { installUv } from '../install-uv'
 import { runBackend } from '../run-backend'
 import { setupVenv } from '../setup-venv'
+import { syncBackend } from '../sync-backend'
 import { startBackend, type StartBackendOptions } from '../start-backend'
 import { BackendStatusLevel } from '@types'
 import { createDefaultStatusEmitter, normalizeError } from '../utils'
 
 // Mock all the backend modules
-vi.mock('../clone-backend')
+vi.mock('../sync-backend')
+vi.mock('../ensure-git')
 vi.mock('../ensure-python')
 vi.mock('../install-dependencies')
 vi.mock('../install-uv')
@@ -20,7 +21,9 @@ vi.mock('../utils')
 
 describe('startBackend', () => {
   const mockOptions: StartBackendOptions = {
-    userDataPath: '/test/user/data'
+    userDataPath: '/test/user/data',
+    backendSourcePath: '/test/resources/backend',
+    appVersion: '1.2.3'
   }
 
   const mockEmit = vi.fn()
@@ -32,7 +35,7 @@ describe('startBackend', () => {
 
     // Setup default successful mocks
     vi.mocked(createDefaultStatusEmitter).mockReturnValue(mockEmit)
-    vi.mocked(cloneBackend).mockResolvedValue({ backendPath: mockBackendPath })
+    vi.mocked(syncBackend).mockResolvedValue({ backendPath: mockBackendPath })
     vi.mocked(setupVenv).mockResolvedValue({
       venvPath: mockVenvPath,
       backendPath: mockBackendPath
@@ -63,8 +66,10 @@ describe('startBackend', () => {
     // Verify all steps are called in the correct order
     expect(vi.mocked(ensurePython311)).toHaveBeenCalledWith({ emit: mockEmit })
     expect(vi.mocked(installUv)).toHaveBeenCalledWith({ emit: mockEmit })
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalledWith({
-      userDataPath: mockOptions.userDataPath,
+    expect(vi.mocked(syncBackend)).toHaveBeenCalledWith({
+      sourcePath: mockOptions.backendSourcePath,
+      backendPath: '/test/user/data/exogen_backend',
+      version: mockOptions.appVersion,
       emit: mockEmit
     })
     expect(vi.mocked(setupVenv)).toHaveBeenCalledWith({
@@ -106,7 +111,7 @@ describe('startBackend', () => {
 
     // Verify subsequent steps are not called
     expect(vi.mocked(installUv)).not.toHaveBeenCalled()
-    expect(vi.mocked(cloneBackend)).not.toHaveBeenCalled()
+    expect(vi.mocked(syncBackend)).not.toHaveBeenCalled()
   })
 
   it('should handle error during uv installation step', async () => {
@@ -124,19 +129,19 @@ describe('startBackend', () => {
     })
 
     // Verify subsequent steps are not called
-    expect(vi.mocked(cloneBackend)).not.toHaveBeenCalled()
+    expect(vi.mocked(syncBackend)).not.toHaveBeenCalled()
   })
 
   it('should handle error during backend cloning step', async () => {
     const testError = new Error('Backend cloning failed')
-    vi.mocked(cloneBackend).mockRejectedValue(testError)
+    vi.mocked(syncBackend).mockRejectedValue(testError)
     vi.mocked(normalizeError).mockReturnValue(testError)
 
     await startBackend(mockOptions)
 
     expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalled()
+    expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(mockEmit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Error,
       message: 'Backend setup failed: Backend cloning failed'
@@ -173,7 +178,7 @@ describe('startBackend', () => {
     // Verify all steps up to installDependencies are called
     expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalled()
+    expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(vi.mocked(setupVenv)).toHaveBeenCalled()
     expect(vi.mocked(installDependencies)).toHaveBeenCalled()
     expect(mockEmit).toHaveBeenCalledWith({
@@ -195,7 +200,7 @@ describe('startBackend', () => {
     // Verify all steps up to runBackend are called
     expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalled()
+    expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(vi.mocked(setupVenv)).toHaveBeenCalled()
     expect(vi.mocked(installDependencies)).toHaveBeenCalled()
     expect(vi.mocked(runBackend)).toHaveBeenCalled()
@@ -232,8 +237,10 @@ describe('startBackend', () => {
     const expectedEmitArg = { emit: mockEmit }
     expect(vi.mocked(ensurePython311)).toHaveBeenCalledWith(expectedEmitArg)
     expect(vi.mocked(installUv)).toHaveBeenCalledWith(expectedEmitArg)
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalledWith({
-      userDataPath: mockOptions.userDataPath,
+    expect(vi.mocked(syncBackend)).toHaveBeenCalledWith({
+      sourcePath: mockOptions.backendSourcePath,
+      backendPath: '/test/user/data/exogen_backend',
+      version: mockOptions.appVersion,
       ...expectedEmitArg
     })
     expect(vi.mocked(setupVenv)).toHaveBeenCalledWith({
@@ -245,13 +252,16 @@ describe('startBackend', () => {
   it('should pass correct userDataPath to relevant steps', async () => {
     const customUserDataPath = '/custom/user/data/path'
     const customOptions: StartBackendOptions = {
-      userDataPath: customUserDataPath
+      userDataPath: customUserDataPath,
+      backendSourcePath: '/custom/repo/backend'
     }
 
     await startBackend(customOptions)
 
-    expect(vi.mocked(cloneBackend)).toHaveBeenCalledWith({
-      userDataPath: customUserDataPath,
+    expect(vi.mocked(syncBackend)).toHaveBeenCalledWith({
+      sourcePath: '/custom/repo/backend',
+      backendPath: '/custom/user/data/path/exogen_backend',
+      version: undefined,
       emit: mockEmit
     })
     expect(vi.mocked(setupVenv)).toHaveBeenCalledWith({
@@ -264,7 +274,7 @@ describe('startBackend', () => {
     const customBackendPath = '/custom/backend/path'
     const customVenvPath = '/custom/venv/path'
 
-    vi.mocked(cloneBackend).mockResolvedValue({
+    vi.mocked(syncBackend).mockResolvedValue({
       backendPath: customBackendPath
     })
     vi.mocked(setupVenv).mockResolvedValue({

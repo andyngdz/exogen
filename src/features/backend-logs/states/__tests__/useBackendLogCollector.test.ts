@@ -30,7 +30,7 @@ describe('useBackendLogCollector', () => {
 
     globalThis.window.electronAPI = {
       downloadImage: vi.fn(),
-      selectFile: vi.fn().mockResolvedValue(null),
+      selectFile: vi.fn().mockResolvedValue(undefined),
       onBackendSetupStatus: vi.fn(),
       app: {
         getVersion: vi.fn().mockResolvedValue('0.0.0')

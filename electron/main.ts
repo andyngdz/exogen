@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import serve from 'electron-serve'
 import fixPath from 'fix-path'
 import path from 'node:path'
-import { BACKEND_DIRNAME, startBackend, stopBackend } from '../scripts/backend'
+import { BACKEND_DIRNAME, startBackend, stopBackend } from '@scripts/backend'
 import { setupBackendPortHandler } from './backend-port'
 import { isLogStreaming, startLogStreaming } from './log-streamer'
 import {
@@ -67,6 +67,8 @@ const onCreateWindow = async () => {
     await appServe(win)
   } else {
     console.log('Development mode: waiting for Next.js server at', DEV_URL)
+    // Rule Ignore: TS023
+    // Reason: wait-on is a devDependency that only the unpackaged dev app loads; the packaged app never reaches this branch.
     const { default: waitOn } = await import('wait-on')
 
     try {
@@ -105,7 +107,7 @@ const onSelectFile = () => {
     })
 
     if (result.canceled || result.filePaths.length === 0) {
-      return null
+      return
     }
 
     return result.filePaths[0]
@@ -167,6 +169,10 @@ const onAppReady = async () => {
     console.log('Starting Python backend...')
     startBackend({
       userDataPath: app.getPath('userData'),
+      backendSourcePath: IS_PRODUCTION
+        ? path.join(process.resourcesPath, 'backend')
+        : path.join(app.getAppPath(), 'backend'),
+      ...(IS_PRODUCTION && { appVersion: app.getVersion() }),
       externalEmit: broadcastBackendStatus
     })
   }

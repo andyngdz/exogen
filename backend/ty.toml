@@ -1,0 +1,8 @@
+# ty configuration for exogen-backend
+# https://docs.astral.sh/ty/reference/configuration/
+
+[environment]
+# Project root directory
+root = ["."]
+# Custom type stubs directory
+extra-paths = ["typings"]

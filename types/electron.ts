@@ -6,7 +6,7 @@ import { UpdateCheckResult } from './update'
 
 export interface ElectronAPI {
   downloadImage: (url: string) => Promise<void>
-  selectFile: (filters?: Electron.FileFilter[]) => Promise<string | null>
+  selectFile: (filters?: Electron.FileFilter[]) => Promise<string | undefined>
   onBackendSetupStatus: (listener: BackendStatusEmitter) => () => void
   app: {
     getVersion: () => Promise<string>
