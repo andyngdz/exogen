@@ -19,7 +19,7 @@ Move `andyngdz/exogen_backend` into this repository as `backend/` with its full 
 - Drop the backend's own Node tooling (`package.json`, `pnpm-lock.yaml`, `.releaserc.json`, `.husky/`) and move its CI into this repository's `.github/`.
 - Bundle `backend/` into the app's resources with electron-builder, excluding environments, caches, tests and user data.
 - Replace `cloneBackend` with `syncBackend`: copy the bundled code into the existing `userData/exogen_backend` directory when the app version changes, never touching the models, virtual environment, database or generated images stored there. Git stays required, because `uv sync` fetches `basicsr` from a Git source; the check moves into its own `ensureGit` step.
-- Add a backend CI workflow (uv, ruff, ty, pytest with coverage, SonarCloud project `andyngdz_exogen_backend`) and backend lint-staged checks, and keep `backend/` out of the frontend's TypeScript and Prettier runs.
+- Add a backend CI workflow (uv, ruff, ty, pytest with coverage) and backend lint-staged checks, and keep `backend/` out of the frontend's TypeScript and Prettier runs.
 
 ## Non-Goals
 

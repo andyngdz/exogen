@@ -1,4 +1,10 @@
-## ADDED Requirements
+# backend-distribution Specification
+
+## Purpose
+
+TBD - created by archiving change merge-backend-into-monorepo. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Backend Source In This Repository
 
@@ -83,7 +89,6 @@ Changes under `backend/` SHALL run the backend checks in this repository's CI.
 
 - **WHEN** a pull request changes a file under `backend/`
 - **THEN** CI runs ruff format check, ruff check, ty check and pytest with coverage in `backend/`
-- **AND** reports to the SonarCloud project `andyngdz_exogen_backend`
 
 #### Scenario: Backend-only change skips the frontend workflow
 

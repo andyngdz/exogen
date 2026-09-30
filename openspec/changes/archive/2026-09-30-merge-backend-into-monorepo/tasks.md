@@ -33,7 +33,7 @@ Dependency levels: unit 1 is level 0; units 2, 3 and 4 are level 1; unit 5 is le
 
 ## 4. CI And Tooling [depends-on: 1] [writes: .github/workflows/backend.yml, .github/workflows/build.yml, lint-staged.config.mjs, tsconfig.json, .prettierignore] [parallel-safe: yes]
 
-- [x] Add `backend.yml`: uv, ruff format check, ruff check, ty, pytest with coverage, SonarCloud with `projectBaseDir: backend`.
+- [x] Add `backend.yml`: uv, ruff format check, ruff check, ty, pytest with coverage. (SonarCloud was dropped from the repository after merge.)
 - [x] Exclude `backend/**` from `build.yml` path filters, as the last entry.
 - [x] Add backend Python checks to lint-staged.
 - [x] Exclude `backend` from `tsconfig.json` and Prettier.

@@ -4,9 +4,5 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestArgs": ["tests"],
   "python.testing.cwd": "${workspaceFolder}",
-  "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",
-  "sonarlint.connectedMode.project": {
-    "connectionId": "andyngdz",
-    "projectKey": "andyngdz_exogen_backend"
-  }
+  "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest"
 }

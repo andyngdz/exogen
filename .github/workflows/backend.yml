@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 defaults:
   run:
@@ -54,37 +53,4 @@ jobs:
         run: uv run ty check
 
       - name: Run tests with coverage
-        run: uv run pytest -q --cov=app --cov-report=xml:coverage.xml --cov-report=term
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: backend/coverage.xml
-          retention-days: 7
-
-  sonarqube:
-    name: SonarQube Analysis
-    needs: [quality-and-tests]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code (Full History)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-coverage
-          path: backend
-        continue-on-error: true
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
-        with:
-          projectBaseDir: backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: uv run pytest -q --cov=app --cov-report=term

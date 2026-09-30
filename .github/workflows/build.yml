@@ -74,16 +74,7 @@ jobs:
         run: pnpm run ci:lint
         continue-on-error: true # Allow workflow to continue even if this step fails
 
-      # Step 7: Upload ESLint report artifact (only if lint step ran)
-      - name: Upload ESLint Results
-        if: steps.lint.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: eslint-report.json # Name of the artifact
-          path: eslint-report.json # Path to the file to upload
-          retention-days: 7 # Keep artifact for 7 days
-
-      # Step 8: Report results as a PR comment
+      # Step 7: Report results as a PR comment
       - name: Report Results
         # Always run this step to report status, even if previous steps failed
         if: always() && github.event_name == 'pull_request'
@@ -246,41 +237,3 @@ jobs:
             if (testStatus === "❌") {
               core.setFailed("Tests failed");
             }
-  sonarqube:
-    name: SonarQube Analysis
-    # Run after linting and testing complete, even if they failed (to analyze available reports)
-    needs: [lint-and-format, test]
-    # 'if: always()' ensures this job runs even if dependencies fail
-    # This allows SonarQube to analyze partial results (e.g., lint passes, tests fail)
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      # Step 1: Checkout code with full history for SonarQube analysis
-      - name: Checkout Code (Full History)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetches all history for accurate SCM analysis
-
-      # Step 2: Download ESLint report artifact (if available)
-      - name: Download ESLint Report
-        uses: actions/download-artifact@v4
-        with:
-          name: eslint-report.json
-          path: . # Download to the current directory
-        # Continue even if the artifact doesn't exist (e.g., lint job failed early)
-        continue-on-error: true
-
-      # Step 3: Download Coverage report artifact (if available)
-      - name: Download Coverage Report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage # Download to the 'coverage' directory
-        # Continue even if the artifact doesn't exist (e.g., test job failed early)
-        continue-on-error: true
-
-      # Step 4: Run SonarQube Scan
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master # Use master for latest updates or pin to a specific version
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
