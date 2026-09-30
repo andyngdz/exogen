@@ -3,7 +3,7 @@
   "description": "A desktop application for generating AI images locally using Stable Diffusion models",
   "version": "1.19.2-beta.2",
   "private": true,
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@12.8.1",
   "author": {
     "name": "Andy D. Nguyen",
     "email": "info@andyng.dev"
