@@ -14,10 +14,10 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 2. Hardware Memory Query [depends-on: -] [writes: src/services/api.ts, src/types/api.ts, src/cores/api-queries/] [parallel-safe: yes]
 
-- [ ] Add `HardwareMemoryResponse`, `api.getHardwareMemory()` and `useHardwareMemoryQuery`:
+- [x] Add `HardwareMemoryResponse`, `api.getHardwareMemory()` and `useHardwareMemoryQuery`:
   - `retry: false`.
   - `refetchInterval` of 5000, or `false` after a 404.
-- [ ] Test that a 404 and a zero `total_bytes` both resolve to "no VRAM data" for callers, and that a 404 stops polling.
+- [x] Test that a 404 stops polling and other failures keep polling. (The zero `total_bytes` case is tested with the status bar in unit 8.)
 
 ## 3. Socket Connection State [depends-on: -] [writes: src/cores/sockets/] [parallel-safe: yes]
 
