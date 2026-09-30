@@ -24,8 +24,13 @@ describe('stageViewService', () => {
     ],
     [
       'model loading before a failure',
-      { isModelLoading: true, hasFailure: true },
+      { isModelLoading: true, hasFailure: true, hasOutput: false },
       StageView.MODEL_LOADING
+    ],
+    [
+      'model loading over the last results when there are any',
+      { isModelLoading: true, hasFailure: true },
+      StageView.MODEL_LOADING_OVER_RESULTS
     ],
     [
       'a failure before a missing model',

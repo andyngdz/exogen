@@ -22,5 +22,13 @@ export const GENERATION_ERROR_ACTIONS = {
         )
       }
     }),
+  /**
+   * Stores a failure from before the generation request, such as creating the
+   * history entry. No step belongs to it: the step ends still hold the last run.
+   */
+  recordStartFailure: (error: unknown) =>
+    useGenerationErrorStore.setState({
+      failure: { message: generationRunService.toFailureMessage(error) }
+    }),
   clear: () => useGenerationErrorStore.setState({ failure: undefined })
 }

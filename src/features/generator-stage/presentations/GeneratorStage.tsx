@@ -8,6 +8,7 @@ import { FC } from 'react'
 import { GeneratorStageFailed } from './panels/GeneratorStageFailed'
 import { GeneratorStageFirstRun } from './panels/GeneratorStageFirstRun'
 import { GeneratorStageModelLoading } from './panels/GeneratorStageModelLoading'
+import { GeneratorStageModelLoadingOverResults } from './panels/GeneratorStageModelLoadingOverResults'
 import { GeneratorStageNoModel } from './panels/GeneratorStageNoModel'
 import { GeneratorStageOffline } from './panels/GeneratorStageOffline'
 import { GeneratorStageResults } from './results/GeneratorStageResults'
@@ -15,6 +16,7 @@ import { GeneratorStageResults } from './results/GeneratorStageResults'
 const STAGE_VIEWS: Record<StageView, FC> = {
   [StageView.OFFLINE]: GeneratorStageOffline,
   [StageView.MODEL_LOADING]: GeneratorStageModelLoading,
+  [StageView.MODEL_LOADING_OVER_RESULTS]: GeneratorStageModelLoadingOverResults,
   [StageView.FAILED]: GeneratorStageFailed,
   [StageView.NO_MODEL]: GeneratorStageNoModel,
   [StageView.FIRST_RUN]: GeneratorStageFirstRun,

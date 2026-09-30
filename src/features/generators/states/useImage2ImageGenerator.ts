@@ -85,7 +85,7 @@ export const useImage2ImageGenerator = () => {
       // The generation mutation records its own failure in onError; a failed
       // addHistory only raised a toast, so the stage records it here.
       if (!useGenerationErrorStore.getState().failure) {
-        GENERATION_ERROR_ACTIONS.recordFailure(error)
+        GENERATION_ERROR_ACTIONS.recordStartFailure(error)
       }
     } finally {
       onSetIsGenerating(false)

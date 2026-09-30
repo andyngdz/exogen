@@ -14,7 +14,12 @@ import {
   Sampler,
   StyleSection
 } from '@/types'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Query,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 
 const HARDWARE_MEMORY_POLL_MS = 5000
@@ -38,9 +43,15 @@ const useHardwareQuery = () => {
 const isNotFoundError = (error: unknown) =>
   isAxiosError(error) && error.response?.status === 404
 
+/** False once the backend answered 404, which means it predates the endpoint. */
+const isHardwareMemorySupported = (
+  query: Query<HardwareMemoryResponse, ApiError>
+) => !isNotFoundError(query.state.error)
+
 /**
  * Polls memory in use on the accelerator. A backend without the endpoint
- * answers 404, and polling stops for the rest of the session.
+ * answers 404; after that nothing refetches it, not the interval, a window
+ * focus or a remount, for the rest of the session.
  */
 const useHardwareMemoryQuery = () => {
   return useQuery<HardwareMemoryResponse, ApiError>({
@@ -48,7 +59,9 @@ const useHardwareMemoryQuery = () => {
     queryFn: () => api.getHardwareMemory(),
     retry: false,
     refetchInterval: (query) =>
-      isNotFoundError(query.state.error) ? false : HARDWARE_MEMORY_POLL_MS
+      isHardwareMemorySupported(query) ? HARDWARE_MEMORY_POLL_MS : false,
+    refetchOnWindowFocus: isHardwareMemorySupported,
+    refetchOnMount: isHardwareMemorySupported
   })
 }
 
