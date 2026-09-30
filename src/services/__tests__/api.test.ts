@@ -689,17 +689,4 @@ describe('API Service', () => {
       expect(result).toEqual(mockResponse)
     })
   })
-
-  describe('deleteLora', () => {
-    it('deletes a LoRA by id', async () => {
-      const loraId = 3
-      const mockResponse = { id: loraId, message: 'LoRA deleted successfully' }
-      vi.spyOn(client, 'delete').mockResolvedValueOnce({ data: mockResponse })
-
-      const result = await api.deleteLora(loraId)
-
-      expect(client.delete).toHaveBeenCalledWith(`/loras/${loraId}`)
-      expect(result).toEqual(mockResponse)
-    })
-  })
 })

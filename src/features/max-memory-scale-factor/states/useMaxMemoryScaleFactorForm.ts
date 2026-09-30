@@ -6,7 +6,7 @@ import { SubmitHandler, useForm, useWatch } from 'react-hook-form'
 
 export const useMaxMemoryScaleFactorForm = () => {
   const router = useRouter()
-  const { mutateAsync: setMaxMemory } = useMaxMemoryMutation()
+  const { mutate: setMaxMemory } = useMaxMemoryMutation()
   const { handleSubmit, setValue, control } = useForm<MaxMemoryFormProps>({
     defaultValues: MAX_MEMORY_FORM_DEFAULTS
   })
@@ -22,13 +22,15 @@ export const useMaxMemoryScaleFactorForm = () => {
     defaultValue: MAX_MEMORY_FORM_DEFAULTS.ramScaleFactor
   })
 
-  const onSubmit: SubmitHandler<MaxMemoryFormProps> = async (values) => {
-    await setMaxMemory({
-      gpuScaleFactor: values.gpuScaleFactor,
-      ramScaleFactor: values.ramScaleFactor
-    })
-
-    router.push('/model-recommendations')
+  // Stay on this step when saving fails; the mutation shows why.
+  const onSubmit: SubmitHandler<MaxMemoryFormProps> = (values) => {
+    setMaxMemory(
+      {
+        gpuScaleFactor: values.gpuScaleFactor,
+        ramScaleFactor: values.ramScaleFactor
+      },
+      { onSuccess: () => router.push('/model-recommendations') }
+    )
   }
 
   const onGpuChange = (scaleFactor: number) => {

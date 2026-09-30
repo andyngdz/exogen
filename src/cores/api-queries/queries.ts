@@ -1,4 +1,6 @@
 import { api } from '@/services/api'
+import { apiErrorService } from '@/services/errors'
+import { toast } from '@heroui/react'
 import {
   ApiError,
   BackendConfig,
@@ -7,7 +9,6 @@ import {
   HealthResponse,
   HistoryItem,
   LoRA,
-  LoRADeleteResponse,
   MaxMemoryParams,
   ModelDownloaded,
   ModelRecommendationResponse,
@@ -116,16 +117,14 @@ const useUploadLoraMutation = () => {
     mutationFn: (file_path: string) => api.uploadLora(file_path),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loras'] })
-    }
-  })
-}
-
-const useDeleteLoraMutation = () => {
-  const queryClient = useQueryClient()
-  return useMutation<LoRADeleteResponse, ApiError, number>({
-    mutationFn: (id: number) => api.deleteLora(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['loras'] })
+    },
+    onError: (error) => {
+      toast.danger('Upload failed', {
+        description: apiErrorService.toMessage(
+          error,
+          'Check that the file is a LoRA model and try again.'
+        )
+      })
     }
   })
 }
@@ -144,6 +143,14 @@ const useSafetyCheckMutation = () => {
     mutationFn: (enabled: boolean) => api.setSafetyCheckEnabled(enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config'] })
+    },
+    onError: (error) => {
+      toast.danger('Safety check not changed', {
+        description: apiErrorService.toMessage(
+          error,
+          'The backend did not save the setting. Try again.'
+        )
+      })
     }
   })
 }
@@ -158,13 +165,20 @@ const useMaxMemoryMutation = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config'] })
+    },
+    onError: (error) => {
+      toast.danger('Memory limits not saved', {
+        description: apiErrorService.toMessage(
+          error,
+          'The backend kept the previous limits. Try again.'
+        )
+      })
     }
   })
 }
 
 export {
   useBackendConfigQuery,
-  useDeleteLoraMutation,
   useDownloadedModelsQuery,
   useHardwareMemoryQuery,
   useHardwareQuery,

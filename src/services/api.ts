@@ -12,7 +12,6 @@ import type {
   ImageGenerationResponse,
   LoadModelRequest,
   LoRA,
-  LoRADeleteResponse,
   LoRAListResponse,
   MaxMemoryRequest,
   ModelDetailsResponse,
@@ -178,12 +177,6 @@ class API {
 
   async uploadLora(file_path: string) {
     const { data } = await client.post<LoRA>('/loras/upload', { file_path })
-
-    return data
-  }
-
-  async deleteLora(id: number) {
-    const { data } = await client.delete<LoRADeleteResponse>(`/loras/${id}`)
 
     return data
   }

@@ -9,7 +9,8 @@ export const useGeneralSettings = () => {
 
   const onSafetyCheckChange: ValueChanged<boolean> = (isEnabled) => {
     setValues({ ...values, safety_check_enabled: isEnabled })
-    setSafetyCheck(isEnabled)
+    // Put the switch back if the backend did not take the change.
+    setSafetyCheck(isEnabled, { onError: () => setValues(values) })
   }
 
   return {
