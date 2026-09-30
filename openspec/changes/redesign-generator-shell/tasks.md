@@ -79,12 +79,12 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 9. Inspector Tabs [depends-on: 5] [writes: src/features/generator-inspector/presentations/] [parallel-safe: yes]
 
-- [ ] Build `GeneratorInspector` with four tabs:
+- [x] Build `GeneratorInspector` with four tabs:
   - Basic, from unit 5.
   - Hires: the hires switch in the header, `GeneratorConfigHiresFix`, and the output size line.
   - LoRA: `LoraCard` and `LoraList`.
   - Styles: search, selected chips, the style sections, and the NSFW warning line.
-- [ ] Component tests for tab switching, the hires switch, adding a LoRA, and selecting a style without a modal.
+- [x] Component tests for tab switching, the hires switch, adding a LoRA, and selecting a style without a modal.
 
 ## 10. Prompt Dock And Stage [depends-on: 3, 6] [writes: src/features/generator-dock/, src/features/generator-stage/] [parallel-safe: yes]
 
