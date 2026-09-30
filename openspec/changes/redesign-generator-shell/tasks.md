@@ -32,17 +32,14 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 - [x] Extract `ModelSearchModal` (`isOpen`, `onOpenChange`) from `ModelSearchOpenIconButton`.
 - [x] Update their tests.
 
-## 5. Image Size Presets And Basic Controls [depends-on: -] [writes: src/features/generator-inspector/services/, src/features/generator-inspector/states/, src/features/generator-inspector/presentations/basic/] [parallel-safe: yes]
+## 5. Image Size Presets And Basic Controls [depends-on: -] [writes: src/features/generator-inspector/, src/cores/presentations/SliderController.tsx, src/cores/hooks/useSliderController.ts, src/features/generator-config-img2img/states/] [parallel-safe: yes]
 
-- [ ] Add `imageSizeService`: family base edges, preset sizes rounded to 64, and preset detection. Test every family and ratio, including SDXL 4:3 = 1152×896 and 16:9 = 1344×768.
-- [ ] Add `useImageSizePreset`:
-  - `isCustomChosen` state.
-  - Last known family, ignoring UNKNOWN.
-  - Recompute on a family change unless Custom shows.
-  - Tests for swap, typing, and a reload through UNKNOWN.
-- [ ] Build the Basic tab:
+- [x] Add `imageSizeService`: family base edges, preset sizes rounded to 64, and preset detection. Test every family and ratio, including SDXL 4:3 = 1152×896 and 16:9 = 1344×768.
+- [x] Keep the last known family and `isCustomChosen` in the state-only `useImageSizeStore`, so they survive tab switches; add `useImageSizeFamilySync` (mounted by the inspector root) to recompute a preset size when the family changes, ignoring UNKNOWN; add `useImageSizePreset` for the Basic tab.
+  - Tests for swap, typing, a reload through UNKNOWN, and a Custom size across a family change.
+- [x] Build the Basic tab:
   - Size presets, with Custom width, height (step 8, minimum 64) and swap.
-  - Images per run slider 1 to 8; steps slider 1 to 100 with the 16/24/32 presets; CFG slider 1 to 30, step 0.5.
+  - Images per run slider 1 to 8; steps slider 1 to 100 with the 16/24/32 presets; CFG slider 1 to 30, step 0.5, through a shared `SliderController`.
   - The existing sampler, CLIP skip, seed and `GeneratorConfigImg2Img` components, with img2img first in image mode.
 
 ## 6. Generator Run State And Submission [depends-on: 3] [writes: src/features/generators/states/, src/features/generators/services/] [parallel-safe: yes]
