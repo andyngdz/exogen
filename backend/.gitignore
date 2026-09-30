@@ -70,3 +70,5 @@ node_modules/
 package-lock.json
 # Temporary version file
 .VERSION
+# setuptools metadata written by uv sync
+*.egg-info/
