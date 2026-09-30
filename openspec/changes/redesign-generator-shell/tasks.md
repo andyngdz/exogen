@@ -42,16 +42,16 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
   - Images per run slider 1 to 8; steps slider 1 to 100 with the 16/24/32 presets; CFG slider 1 to 30, step 0.5, through a shared `SliderController`.
   - The existing sampler, CLIP skip, seed and `GeneratorConfigImg2Img` components, with img2img first in image mode.
 
-## 6. Generator Run State And Submission [depends-on: 3] [writes: src/features/generators/states/, src/features/generators/services/] [parallel-safe: yes]
+## 6. Generator Run State And Submission [depends-on: 3] [writes: src/features/generators/, src/features/generator-modes/states/] [parallel-safe: yes]
 
-- [ ] Add `generatorConfigService.clampFormValues` (`number_of_images` 1 to 8, `steps` 1 to 100, `cfg_scale` 1 to 30), and apply it in `useGeneratorForm` before every `reset` and on store hydration. Test the initial load and history reuse through `useUseConfig`.
-- [ ] Add the state-only `useGenerationErrorStore`.
+- [x] Add `generatorConfigService.clampFormValues` (`number_of_images` 1 to 8, `steps` 1 to 100, `cfg_scale` 1 to 30), and apply it in `useGeneratorForm` before every `reset` and on store hydration. Test the initial load and history reuse through `useUseConfig`.
+- [x] Add the state-only `useGenerationErrorStore`.
   - Write it from both generator hooks on a mutation error and on an `addHistory` failure.
   - Take `detail` as a string, or join the `msg` fields when it is an array.
   - Take `step` as the highest `current_step`.
   - Clear it on run start and on mode change.
-  - Remove the generic toast.
-- [ ] Add the state-only `useLastRunStore` (`prompt`, `seed`), and `useGeneratorSubmit`.
+  - Remove the generic toast; the generation mutation records its failure in `onError` (FE059), and `onGenerate` records a failed `addHistory` that only raised a toast.
+- [x] Add the state-only `useLastRunStore` (`prompt`, `seed`), and `useGeneratorSubmit`.
   - Dispatch by mode.
   - Return disabled reasons in order: backend offline, model loading, no model, no input image.
   - Snapshot the last run at submit.

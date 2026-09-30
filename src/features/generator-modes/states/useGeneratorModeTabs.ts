@@ -1,4 +1,5 @@
 import {
+  GENERATION_ERROR_ACTIONS,
   useGeneratorModeStore,
   useImage2ImageConfigStore
 } from '@/features/generators'
@@ -21,6 +22,7 @@ export const useGeneratorModeTabs = () => {
     if (!nextMode) return
 
     setMode(nextMode)
+    GENERATION_ERROR_ACTIONS.clear()
 
     if (nextMode === GeneratorMode.TEXT_2_IMAGE) {
       clearInitImageBase64()
