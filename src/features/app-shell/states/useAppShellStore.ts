@@ -9,13 +9,11 @@ import { create } from 'zustand'
 export interface AppShellState {
   activeView: AppView
   isModelSearchOpen: boolean
-  isHistoryOpen: boolean
 }
 
 export const useAppShellStore = create<AppShellState>()(() => ({
   activeView: AppView.GENERATE,
-  isModelSearchOpen: false,
-  isHistoryOpen: false
+  isModelSearchOpen: false
 }))
 
 export const APP_SHELL_ACTIONS = {
@@ -25,9 +23,5 @@ export const APP_SHELL_ACTIONS = {
     useAppShellStore.setState({ activeView: AppView.SETTINGS })
   },
   setModelSearchOpen: (isModelSearchOpen: boolean) =>
-    useAppShellStore.setState({ isModelSearchOpen }),
-  toggleHistory: () =>
-    useAppShellStore.setState({
-      isHistoryOpen: !useAppShellStore.getState().isHistoryOpen
-    })
+    useAppShellStore.setState({ isModelSearchOpen })
 }

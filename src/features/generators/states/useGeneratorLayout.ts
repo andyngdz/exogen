@@ -1,5 +1,4 @@
 import { useGeneratorPhotoviewStore } from '@/features/generator-photoview/states/useGeneratorPhotoviewStore'
-import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
 import { isEmpty } from 'es-toolkit/compat'
 import { useEffect } from 'react'
 import { useMountedState } from 'react-use'
@@ -10,7 +9,6 @@ import { useUseImageGenerationStore } from './useImageGenerationResponseStores'
 export const useGeneratorLayout = () => {
   const isMounted = useMountedState()
   const { methods } = useGeneratorForm()
-  const isHistoryOpen = useAppShellStore((state) => state.isHistoryOpen)
   const isGenerating = useGenerationStatusStore((state) => state.isGenerating)
   const items = useUseImageGenerationStore((state) => state.items)
   const isPhotoviewOpen = useGeneratorPhotoviewStore((state) => state.isOpen)
@@ -29,7 +27,6 @@ export const useGeneratorLayout = () => {
   return {
     isMounted: isMounted(),
     methods,
-    isHistoryOpen,
     canMountPhotoview
   }
 }

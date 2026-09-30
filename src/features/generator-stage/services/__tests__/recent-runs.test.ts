@@ -1,4 +1,5 @@
 import { HistoryItem } from '@/types'
+import dayjs from 'dayjs'
 import { map } from 'es-toolkit/compat'
 import { describe, expect, it } from 'vitest'
 import { recentRunService } from '../recent-runs'
@@ -23,8 +24,15 @@ describe('recentRunService', () => {
     )
 
     expect(map(runs, 'prompt')).toEqual(['run 3', 'run 2'])
-    expect(runs[0].metaLabel).toBe('13:43 · 4 images · random seed')
-    expect(runs[1].metaLabel).toBe('13:42 · 1 image · seed 42')
+    // created_at is UTC without a suffix; the label shows it on the local clock.
+    const localTime = (createdAt: string) =>
+      dayjs(`${createdAt}Z`).format('HH:mm')
+    expect(runs[0].metaLabel).toBe(
+      `${localTime('2026-09-30T13:43:00')} · 4 images · random seed`
+    )
+    expect(runs[1].metaLabel).toBe(
+      `${localTime('2026-09-30T13:42:00')} · 1 image · seed 42`
+    )
     expect(runs[0].thumbnailUrl).toBe(
       'http://localhost:8000/static/generated_images/3-0.png'
     )

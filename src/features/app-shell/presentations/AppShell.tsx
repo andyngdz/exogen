@@ -3,6 +3,7 @@
 import { useAppShell } from '@/features/app-shell/states/useAppShell'
 import { AppView } from '@/features/app-shell/types'
 import { BackendLogView } from '@/features/backend-logs/presentations/BackendLogView'
+import { HistoryView } from '@/features/histories/presentations/HistoryView'
 import { ModelSearchModal } from '@/features/model-search'
 import { SettingsView } from '@/features/settings/presentations/SettingsView'
 import clsx from 'clsx'
@@ -11,6 +12,7 @@ import { AppRail } from './AppRail'
 import { AppStatusBar } from './AppStatusBar'
 
 const RAIL_VIEWS: Partial<Record<AppView, FC>> = {
+  [AppView.HISTORY]: HistoryView,
   [AppView.LOGS]: BackendLogView,
   [AppView.SETTINGS]: SettingsView
 }

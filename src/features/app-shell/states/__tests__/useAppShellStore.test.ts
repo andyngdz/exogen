@@ -11,11 +11,10 @@ describe('useAppShellStore', () => {
     useAppShellStore.setState(useAppShellStore.getInitialState())
   })
 
-  it('starts on Generate with model search closed and the history column hidden', () => {
+  it('starts on Generate with model search closed', () => {
     expect(useAppShellStore.getState()).toEqual({
       activeView: AppView.GENERATE,
-      isModelSearchOpen: false,
-      isHistoryOpen: false
+      isModelSearchOpen: false
     })
   })
 
@@ -37,13 +36,5 @@ describe('useAppShellStore', () => {
 
     APP_SHELL_ACTIONS.setModelSearchOpen(false)
     expect(useAppShellStore.getState().isModelSearchOpen).toBe(false)
-  })
-
-  it('toggles the history column', () => {
-    APP_SHELL_ACTIONS.toggleHistory()
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(true)
-
-    APP_SHELL_ACTIONS.toggleHistory()
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(false)
   })
 })

@@ -1,7 +1,3 @@
-import {
-  APP_SHELL_ACTIONS,
-  useAppShellStore
-} from '@/features/app-shell/states/useAppShellStore'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import {
   useGenerationStatusStore,
@@ -29,10 +25,6 @@ vi.mock('@/features/generator-dock', () => ({
 
 vi.mock('@/features/generator-inspector', () => ({
   GeneratorInspector: () => <div data-testid="inspector">Inspector</div>
-}))
-
-vi.mock('@/features/histories', () => ({
-  Histories: () => <div data-testid="histories">Histories</div>
 }))
 
 vi.mock('@/features/generator-photoview', () => ({
@@ -92,7 +84,6 @@ describe('Generator', () => {
       nsfw_content_detected: []
     })
     useGeneratorPhotoviewStore.setState({ isOpen: false, currentIndex: 0 })
-    useAppShellStore.setState({ isHistoryOpen: false })
   })
 
   afterEach(() => {
@@ -106,20 +97,6 @@ describe('Generator', () => {
     expect(screen.getByTestId('stage')).toBeInTheDocument()
     expect(screen.getByTestId('dock')).toBeInTheDocument()
     expect(screen.getByTestId('inspector')).toBeInTheDocument()
-  })
-
-  it('shows the history column only while it is toggled open', () => {
-    const { rerender } = render(<Generator />)
-    expect(screen.queryByTestId('histories')).not.toBeInTheDocument()
-
-    act(() => {
-      APP_SHELL_ACTIONS.toggleHistory()
-    })
-    rerender(<Generator />)
-
-    expect(
-      screen.getByRole('complementary', { name: 'History' })
-    ).toContainElement(screen.getByTestId('histories'))
   })
 
   it('uses useGeneratorForm hook', () => {

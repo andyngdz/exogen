@@ -5,14 +5,12 @@ import { GeneratorInspector } from '@/features/generator-inspector'
 import { GeneratorPhotoviewModal } from '@/features/generator-photoview'
 import { GeneratorStage } from '@/features/generator-stage'
 import { useGeneratorLayout } from '@/features/generators/states/useGeneratorLayout'
-import { Histories } from '@/features/histories'
 import { Form, ProgressBar } from '@heroui/react'
 import { FormProvider } from 'react-hook-form'
 import { GeneratorTopBar } from './GeneratorTopBar'
 
 export const Generator = () => {
-  const { isMounted, methods, isHistoryOpen, canMountPhotoview } =
-    useGeneratorLayout()
+  const { isMounted, methods, canMountPhotoview } = useGeneratorLayout()
 
   if (!isMounted)
     return (
@@ -40,14 +38,6 @@ export const Generator = () => {
           </div>
         </main>
         <GeneratorInspector />
-        {isHistoryOpen && (
-          <aside
-            aria-label="History"
-            className="w-75 shrink-0 border-l border-separator"
-          >
-            <Histories />
-          </aside>
-        )}
       </Form>
       {canMountPhotoview && <GeneratorPhotoviewModal />}
     </FormProvider>

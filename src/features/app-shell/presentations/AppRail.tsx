@@ -7,14 +7,7 @@ import NextImage from 'next/image'
 import { AppRailItem } from './AppRailItem'
 
 export const AppRail = () => {
-  const {
-    activeView,
-    isHistoryOpen,
-    onOpenView,
-    onOpenModels,
-    onToggleHistory,
-    onOpenSettings
-  } = useAppRail()
+  const { activeView, onOpenView, onOpenModels, onOpenSettings } = useAppRail()
 
   return (
     <nav
@@ -41,8 +34,8 @@ export const AppRail = () => {
         <AppRailItem
           label="History"
           icon={<History size={18} />}
-          isActive={isHistoryOpen}
-          onPress={onToggleHistory}
+          isActive={activeView === AppView.HISTORY}
+          onPress={() => onOpenView(AppView.HISTORY)}
         />
       </div>
       <div className="flex flex-col items-center gap-2">

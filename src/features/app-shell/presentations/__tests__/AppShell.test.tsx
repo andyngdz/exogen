@@ -26,6 +26,9 @@ vi.mock('@/features/model-search', () => ({
   ModelSearchModal: ({ isOpen }: { isOpen: boolean }) =>
     isOpen && <div>Model search modal</div>
 }))
+vi.mock('@/features/histories/presentations/HistoryView', () => ({
+  HistoryView: () => <div>History view</div>
+}))
 vi.mock('@/features/backend-logs/presentations/BackendLogView', () => ({
   BackendLogView: () => <div>Logs view</div>
 }))

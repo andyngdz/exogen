@@ -14,8 +14,7 @@ describe('AppRail', () => {
   beforeEach(() => {
     useAppShellStore.setState({
       activeView: AppView.GENERATE,
-      isModelSearchOpen: false,
-      isHistoryOpen: false
+      isModelSearchOpen: false
     })
   })
 
@@ -50,17 +49,14 @@ describe('AppRail', () => {
     expect(useAppShellStore.getState().activeView).toBe(AppView.GENERATE)
   })
 
-  it('toggles the history column and shows it as active while open', async () => {
+  it('opens History as a view and marks it current', async () => {
     const user = userEvent.setup()
     render(<AppRail />)
     const history = screen.getByRole('button', { name: 'History' })
 
     await user.click(history)
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(true)
-    expect(history).toHaveAttribute('aria-pressed', 'true')
 
-    await user.click(history)
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(false)
-    expect(history).toHaveAttribute('aria-pressed', 'false')
+    expect(useAppShellStore.getState().activeView).toBe(AppView.HISTORY)
+    expect(history).toHaveAttribute('aria-pressed', 'true')
   })
 })
