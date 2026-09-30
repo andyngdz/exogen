@@ -17,49 +17,45 @@ export const DeleteModelButton: FC<DeleteModelButtonProps> = ({ model_id }) => {
   }
 
   return (
-    <div>
+    <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
       <Button
         isIconOnly
         variant="ghost"
         className="text-danger"
         aria-label={`Delete ${model_id}`}
-        onPress={() => setIsOpen(true)}
         isDisabled={deleteModel.isPending}
         data-testid="delete-button"
       >
         <Trash2 size={16} />
       </Button>
-
-      <Modal>
-        <Modal.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
-          <Modal.Container>
-            <Modal.Dialog>
-              <Modal.CloseTrigger />
-              <Modal.Header>
-                <Modal.Heading>Delete model</Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <div>Are you sure you want to delete this model?</div>
-                <div className="text-danger font-medium break-all">
-                  {model_id}
-                </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="ghost" onPress={() => setIsOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="danger"
-                  isPending={deleteModel.isPending}
-                  onPress={onConfirm}
-                >
-                  Delete
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
-    </div>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Delete model</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <div>Are you sure you want to delete this model?</div>
+              <div className="text-danger font-medium break-all">
+                {model_id}
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="ghost" onPress={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                isPending={deleteModel.isPending}
+                onPress={onConfirm}
+              >
+                Delete
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
   )
 }

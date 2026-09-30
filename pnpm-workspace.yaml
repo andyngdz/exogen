@@ -1,8 +1,8 @@
-onlyBuiltDependencies:
-  - '@heroui/shared-utils'
-  - core-js
-  - electron
-  - electron-winstaller
-  - esbuild
-  - sharp
-  - unrs-resolver
+allowBuilds:
+  '@heroui/shared-utils': true
+  core-js: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true

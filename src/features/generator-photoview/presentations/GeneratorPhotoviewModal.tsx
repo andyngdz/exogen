@@ -17,52 +17,47 @@ export const GeneratorPhotoviewModal = () => {
   }
 
   return (
-    <Modal>
-      <Modal.Backdrop
-        isOpen={model.isOpen}
-        onOpenChange={onOpenChange}
-        variant="blur"
-      >
-        <Modal.Container size="lg" scroll="outside">
-          <Modal.Dialog
-            aria-label="Generator photo viewer"
-            className="max-w-5xl"
-          >
-            <Modal.CloseTrigger className="z-50" />
-            <Modal.Body>
-              <div className="relative">
-                <GeneratorPhotoviewCarousel initialIndex={model.safeIndex} />
-                <div
-                  className={clsx(
-                    'absolute top-4 left-4 right-14 z-50',
-                    'flex justify-end pointer-events-none'
-                  )}
-                >
-                  <ButtonGroup className="pointer-events-auto">
-                    <Button
-                      variant="tertiary"
-                      onPress={model.onDownload}
-                      aria-label="Download current image"
-                    >
-                      <Download size={16} />
-                      Download
-                    </Button>
-                    <Button
-                      variant="primary"
-                      isPending={model.isUsingAsInput}
-                      onPress={() => void onUseAsInput()}
-                      aria-label="Use current image as input"
-                    >
-                      <ImageUp size={16} />
-                      Use as input
-                    </Button>
-                  </ButtonGroup>
-                </div>
+    <Modal.Backdrop
+      isOpen={model.isOpen}
+      onOpenChange={onOpenChange}
+      variant="blur"
+    >
+      <Modal.Container size="lg" scroll="outside">
+        <Modal.Dialog aria-label="Generator photo viewer" className="max-w-5xl">
+          <Modal.CloseTrigger className="z-50" />
+          <Modal.Body>
+            <div className="relative">
+              <GeneratorPhotoviewCarousel initialIndex={model.safeIndex} />
+              <div
+                className={clsx(
+                  'absolute top-4 left-4 right-14 z-50',
+                  'flex justify-end pointer-events-none'
+                )}
+              >
+                <ButtonGroup className="pointer-events-auto">
+                  <Button
+                    variant="tertiary"
+                    onPress={model.onDownload}
+                    aria-label="Download current image"
+                  >
+                    <Download size={16} />
+                    Download
+                  </Button>
+                  <Button
+                    variant="primary"
+                    isPending={model.isUsingAsInput}
+                    onPress={() => void onUseAsInput()}
+                    aria-label="Use current image as input"
+                  >
+                    <ImageUp size={16} />
+                    Use as input
+                  </Button>
+                </ButtonGroup>
               </div>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+            </div>
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   )
 }
