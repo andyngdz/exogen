@@ -27,10 +27,10 @@ Dependency levels: level 0 is units 1 to 5, level 1 is units 6, 8 and 9, level 2
 
 ## 4. Controlled Overlays And Shell Store [depends-on: -] [writes: src/features/app-shell/states/, src/features/backend-logs/presentations/, src/features/model-search/presentations/] [parallel-safe: yes]
 
-- [ ] Add the state-only `useAppShellStore` (`isModelSearchOpen`, `isHistoryOpen`, `isLogsOpen`, not persisted) with `APP_SHELL_ACTIONS`.
-- [ ] Extract `BackendLogDrawer` (`isOpen`, `onOpenChange`) from `BackendLog`, and keep `BackendLog` as the onboarding footer's button plus the drawer.
-- [ ] Extract `ModelSearchModal` (`isOpen`, `onOpenChange`) from `ModelSearchOpenIconButton`.
-- [ ] Update their tests.
+- [x] Add the state-only `useAppShellStore` (`isModelSearchOpen`, `isHistoryOpen`, `isLogsOpen`, not persisted) with `APP_SHELL_ACTIONS`.
+- [x] Extract `BackendLogDrawer` (`isOpen`, `onOpenChange`) from `BackendLog`, and keep `BackendLog` as the onboarding footer's button plus the drawer.
+- [x] Extract `ModelSearchModal` (`isOpen`, `onOpenChange`) from `ModelSearchOpenIconButton`.
+- [x] Update their tests.
 
 ## 5. Image Size Presets And Basic Controls [depends-on: -] [writes: src/features/generator-inspector/services/, src/features/generator-inspector/states/, src/features/generator-inspector/presentations/basic/] [parallel-safe: yes]
 
