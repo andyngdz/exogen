@@ -16,8 +16,8 @@ export const SettingsNavTab: FC<SettingsNavTabProps> = ({
   icon: Icon
 }) => {
   return (
-    <Tabs.Tab id={id}>
-      <span className="flex w-full items-center gap-2">
+    <Tabs.Tab id={id} className="justify-start">
+      <span className="flex w-full items-center gap-2 whitespace-nowrap">
         <Icon size={16} />
         {label}
       </span>

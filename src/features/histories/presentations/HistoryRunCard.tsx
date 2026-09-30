@@ -3,7 +3,7 @@ import { historyViewService } from '@/features/histories/services/history-view'
 import { HistoryItem } from '@/types'
 import { Button } from '@heroui/react'
 import clsx from 'clsx'
-import { map, take } from 'es-toolkit/compat'
+import { isEmpty, map, take } from 'es-toolkit/compat'
 import NextImage from 'next/image'
 import { FC } from 'react'
 
@@ -34,6 +34,16 @@ export const HistoryRunCard: FC<HistoryRunCardProps> = ({
         { 'bg-surface ring-1 ring-accent': isSelected }
       )}
     >
+      {isEmpty(history.generated_images) && (
+        <span
+          className={clsx(
+            'flex aspect-square items-center justify-center',
+            'rounded-md bg-surface-secondary text-xs text-muted'
+          )}
+        >
+          No images
+        </span>
+      )}
       <span className="flex flex-wrap gap-1">
         {map(take(history.generated_images, 4), (image) => (
           <span
