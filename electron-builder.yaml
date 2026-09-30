@@ -33,6 +33,10 @@ extraResources:
       - '!*.egg-info/**'
       - '!openspec/**'
       - '!docs/**'
+      - '!.vscode/**'
+      - '!.opencode/**'
+      - '!.coverage'
+      - '!coverage.xml'
 publish:
   provider: 'github'
   owner: 'andyngdz'

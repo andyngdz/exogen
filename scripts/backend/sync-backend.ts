@@ -27,7 +27,11 @@ const EXCLUDED_NAMES = new Set([
   '__pycache__',
   'tests',
   'docs',
-  'openspec'
+  'openspec',
+  '.vscode',
+  '.opencode',
+  '.coverage',
+  'coverage.xml'
 ])
 
 export interface SyncBackendOptions {

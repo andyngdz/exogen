@@ -40,13 +40,13 @@ Dependency levels: unit 1 is level 0; units 2, 3 and 4 are level 1; unit 5 is le
 
 ## 5. Docs [depends-on: 2, 3, 4] [writes: README.md, docs/, AGENTS.md] [parallel-safe: no]
 
-- [ ] Update the README and docs for the repository layout, backend development (`cd backend && uv run uvicorn main:app`), and removing Git as a requirement.
-- [ ] Draft the pointer note for the old repository's README, for the user to apply before archiving.
+- [x] Update the README and docs for the repository layout, backend development (`cd backend && uv run uvicorn main:app`), and removing Git as a requirement.
+- [x] Draft the pointer note for the old repository's README, for the user to apply before archiving.
 
 ## 6. Verification [depends-on: 5] [writes: -] [parallel-safe: no]
 
-- [ ] Run `openspec validate merge-backend-into-monorepo --strict`.
-- [ ] Run `pnpm run lint`, `pnpm run type-check` and `pnpm test`; run `uv run ruff format --check`, `uv run ruff check`, `uv run ty check` and `uv run pytest` in `backend/`.
-- [ ] Run `pnpm run build`, and list `resources/backend` in the Linux output to confirm the included and excluded paths.
-- [ ] Start the packaged Linux app against a copy of an existing `userData/exogen_backend` clone. Confirm `GET /hardware/` answers, old history shows, and `.cache` is unchanged (file count and size before and after).
-- [ ] Open the pull request with a note that it must be merged with "Create a merge commit".
+- [x] Run `openspec validate merge-backend-into-monorepo --strict`.
+- [x] Run `pnpm run lint`, `pnpm run type-check` and `pnpm test`; run `uv run ruff format --check`, `uv run ruff check`, `uv run ty check` and `uv run pytest` in `backend/`.
+- [x] Run `pnpm run build`, and list `resources/backend` in the Linux output to confirm the included and excluded paths.
+- [x] Start the packaged Linux app against a copy of an existing `userData/exogen_backend` clone. Confirm `GET /hardware/` answers, old history shows, and `.cache` is unchanged (file count and size before and after).
+- [x] Open the pull request with a note that it must be merged with "Create a merge commit".
