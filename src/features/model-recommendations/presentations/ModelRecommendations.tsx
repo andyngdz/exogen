@@ -1,41 +1,89 @@
 'use client'
 
-import { useModelRecommendation } from '@/features/model-recommendations/states/useModelRecommendation'
-import { SetupLayout } from '@/features/setup-layout'
-import { Button } from '@heroui/react'
-import { ModelRecommendationsList } from './ModelRecommendationsList'
+import { useModelStep } from '@/features/model-recommendations/states/useModelStep'
+import { OnboardingLayout } from '@/features/setup-layout/presentations/OnboardingLayout'
+import { OnboardingStep, OnboardingWidth } from '@/features/setup-layout/types'
+import {
+  Button,
+  RadioGroup,
+  Spinner,
+  ToggleButton,
+  ToggleButtonGroup
+} from '@heroui/react'
+import { map } from 'es-toolkit/compat'
+import { ChevronLeft } from 'lucide-react'
+import { ModelStepCard } from './ModelStepCard'
+import { ModelStepDownloadButton } from './ModelStepDownloadButton'
 
+/** Onboarding step 3, per frame 2g: pick a recommended model and download it. */
 export const ModelRecommendations = () => {
-  const { onNext, onSkip, onBack, isDownloading, data } =
-    useModelRecommendation()
+  const step = useModelStep()
 
   return (
-    <SetupLayout
-      title="Model Recommendations"
-      description="Choose an AI model that fits your hardware capabilities and performance needs"
-      onNext={onNext}
-      onBack={onBack}
-      isNextDisabled={isDownloading}
-      isBackDisabled={isDownloading}
+    <OnboardingLayout
+      step={OnboardingStep.MODEL}
+      width={OnboardingWidth.WIDE}
+      title="Pick a starting model"
+      description="Choose an AI model that fits your hardware and the kind of images you want."
+      footer={
+        <>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              isDisabled={step.isDownloading}
+              onPress={step.onBack}
+            >
+              <ChevronLeft size={16} />
+              Back
+            </Button>
+            <Button
+              variant="ghost"
+              isDisabled={step.isDownloading}
+              onPress={step.onSkip}
+            >
+              Skip for now
+            </Button>
+          </div>
+          {step.model && <ModelStepDownloadButton model={step.model} />}
+        </>
+      }
     >
-      <div className="flex flex-col items-center gap-6">
-        {data && (
-          <ModelRecommendationsList
-            sections={data.sections}
-            defaultSection={data.default_section}
-          />
-        )}
-        {!isDownloading && (
-          <Button
-            onPress={onSkip}
-            variant="ghost"
-            className="text-accent"
-            size="sm"
-          >
-            Skip for now, I will download later
-          </Button>
-        )}
-      </div>
-    </SetupLayout>
+      {step.isLoading && <Spinner aria-label="Loading recommendations" />}
+      {step.hasManySections && step.sectionId && (
+        <ToggleButtonGroup
+          aria-label="Recommendation group"
+          size="sm"
+          selectionMode="single"
+          disallowEmptySelection
+          selectedKeys={[step.sectionId]}
+          onSelectionChange={step.onSectionChange}
+        >
+          {map(step.sectionOptions, (option) => (
+            <ToggleButton key={option.id} id={option.id}>
+              {option.name}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      )}
+      {step.model && (
+        <RadioGroup
+          aria-label="Model"
+          value={step.model.id}
+          onChange={step.onModelChange}
+          isDisabled={step.isDownloading}
+          orientation="horizontal"
+        >
+          {map(step.models, (model) => (
+            <ModelStepCard key={model.id} model={model} />
+          ))}
+        </RadioGroup>
+      )}
+      {step.hasNoModels && (
+        <p className="text-sm text-muted">No models in this group yet.</p>
+      )}
+      <p className="text-xs text-muted">
+        You can add more models from Hugging Face at any time in Models.
+      </p>
+    </OnboardingLayout>
   )
 }

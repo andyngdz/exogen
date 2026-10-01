@@ -75,7 +75,8 @@ const createElectronAPIMock = () =>
       getPort: vi.fn().mockResolvedValue(8000),
       isLogStreaming: vi.fn().mockResolvedValue(false),
       onLog: vi.fn().mockReturnValue(noop),
-      openBackendFolder: vi.fn().mockResolvedValue('')
+      openBackendFolder: vi.fn().mockResolvedValue(''),
+      retrySetup: vi.fn().mockResolvedValue(undefined)
     },
     updater: {
       checkForUpdates: vi

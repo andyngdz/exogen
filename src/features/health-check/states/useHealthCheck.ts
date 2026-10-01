@@ -8,8 +8,8 @@ import { useEffect } from 'react'
 
 /**
  * Hook that encapsulates health check logic and routing behavior.
- * Waits for both backend health check AND config query to complete
- * before making routing decisions.
+ * A configured device skips onboarding straight to the editor once the
+ * backend and config are ready; first-run setup waits for Continue.
  */
 export const useHealthCheck = () => {
   const router = useRouter()
@@ -18,17 +18,16 @@ export const useHealthCheck = () => {
   const { isHasDevice, isLoading } = useConfig()
   const isHealthy = !!data
 
-  useEffect(() => {
-    if (!isHealthy || isLoading) return
+  const nextRoute = isHasDevice ? '/editor' : '/gpu-detection'
 
-    if (isHasDevice) {
-      router.push('/editor')
-    } else {
-      router.push('/gpu-detection')
-    }
+  useEffect(() => {
+    if (!isHealthy || isLoading || !isHasDevice) return
+
+    router.push('/editor')
   }, [isHealthy, router, isLoading, isHasDevice])
 
   return {
-    isHealthy
+    isHealthy,
+    onContinue: () => router.push(nextRoute)
   }
 }

@@ -54,7 +54,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeListener('backend:log', subscription)
       }
     },
-    openBackendFolder: () => ipcRenderer.invoke('backend:open-folder')
+    openBackendFolder: () => ipcRenderer.invoke('backend:open-folder'),
+    retrySetup: () => ipcRenderer.invoke('backend-setup:retry')
   },
   updater: {
     checkForUpdates: (): Promise<UpdateCheckResult> =>

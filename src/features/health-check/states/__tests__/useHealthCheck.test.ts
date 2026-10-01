@@ -128,14 +128,16 @@ describe('useHealthCheck', () => {
     })
   })
 
-  it('redirects to /gpu-detection when healthy, config loaded, and no device configured', async () => {
+  it('stays on the Backend step on first run until Continue is pressed', async () => {
     await setupMocks({ isHealthy: true, isLoading: false, isHasDevice: false })
 
-    renderHook(() => useHealthCheck())
+    const { result } = renderHook(() => useHealthCheck())
 
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/gpu-detection')
-    })
+    expect(mockPush).not.toHaveBeenCalled()
+
+    result.current.onContinue()
+
+    expect(mockPush).toHaveBeenCalledWith('/gpu-detection')
   })
 
   it('does not redirect when backend is not initialized', async () => {

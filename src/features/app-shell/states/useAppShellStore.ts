@@ -1,7 +1,7 @@
 import { AppView } from '@/features/app-shell/types'
 import {
-  SettingsTab,
-  useSettingsStore
+  SETTINGS_ACTIONS,
+  SettingsTab
 } from '@/features/settings/states/useSettingsStore'
 import { create } from 'zustand'
 
@@ -17,7 +17,7 @@ export const useAppShellStore = create<AppShellState>()(() => ({
 export const APP_SHELL_ACTIONS = {
   setView: (activeView: AppView) => useAppShellStore.setState({ activeView }),
   openSettings: (tab = SettingsTab.GENERAL) => {
-    useSettingsStore.getState().setSelectedTab(tab)
+    SETTINGS_ACTIONS.setSelectedTab(tab)
     useAppShellStore.setState({ activeView: AppView.SETTINGS })
   }
 }
