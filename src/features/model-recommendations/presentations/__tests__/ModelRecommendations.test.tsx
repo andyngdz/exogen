@@ -1,260 +1,123 @@
-import { createQueryClientWrapper } from '@/cores/test-utils'
+import { useModelRecommendationsQuery } from '@/cores/api-queries'
 import { useDownloadWatcherStore } from '@/features/download-watcher'
-import type { UseDownloadWatcherStore } from '@/features/download-watcher'
-import {
-  ModelRecommendationResponse,
-  ModelRecommendationSection
-} from '@/types/api'
+import { api } from '@/services'
+import { ModelRecommendationResponse } from '@/types/api'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ModelRecommendations } from '../ModelRecommendations'
 
-// Mock the dependencies
+const replace = vi.fn()
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    back: vi.fn(),
-    replace: vi.fn()
-  })
+  useRouter: () => ({ back: vi.fn(), replace })
 }))
-
-// Mock the ModelRecommendationsList component
-vi.mock('../ModelRecommendationsList', () => ({
-  ModelRecommendationsList: ({
-    sections,
-    defaultSection
-  }: {
-    sections: ModelRecommendationSection[]
-    defaultSection: string
-  }) => (
-    <div
-      data-testid="mock-recommendations-list"
-      data-sections-length={sections.length}
-      data-default-section={defaultSection}
-    >
-      Model Recommendations List
-    </div>
-  )
+vi.mock('@/cores/api-queries', () => ({
+  useModelRecommendationsQuery: vi.fn()
 }))
-
-// Mock the SetupLayout component
-vi.mock('@/features/setup-layout/presentations/SetupLayout', () => ({
-  SetupLayout: ({
+vi.mock('@/services', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/services')>()),
+  api: { downloadModel: vi.fn() }
+}))
+vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+  OnboardingLayout: ({
     title,
-    description,
-    onNext,
-    onBack,
-    isNextDisabled,
-    isBackDisabled,
-    children
+    children,
+    footer
   }: {
     title: string
-    description: string
-    onNext: () => void
-    onBack: () => void
-    isNextDisabled: boolean
-    isBackDisabled: boolean
-    children: React.ReactNode
+    children: ReactNode
+    footer: ReactNode
   }) => (
-    <div
-      data-testid="mock-setup-layout"
-      data-title={title}
-      data-description={description}
-      data-is-next-disabled={isNextDisabled ? 'true' : 'false'}
-      data-is-back-disabled={isBackDisabled ? 'true' : 'false'}
-    >
-      <button data-testid="mock-next-button" onClick={onNext}>
-        Next
-      </button>
-      <button data-testid="mock-back-button" onClick={onBack}>
-        Back
-      </button>
-      <div data-testid="mock-layout-content">{children}</div>
+    <div>
+      <h1>{title}</h1>
+      {children}
+      {footer}
     </div>
   )
 }))
 
-// Mock the useModelRecommendation hook
-const mockOnNext = vi.fn()
-const mockOnSkip = vi.fn()
+const model = (id: string, name: string, isRecommended = false) => ({
+  id,
+  name,
+  description: `${name} description`,
+  memory_requirement_gb: 8,
+  model_size: '6.9 GB',
+  tags: ['SDXL'],
+  is_recommended: isRecommended
+})
 
-// Create a mock function that we can access in our tests
-const mockUseModelRecommendation = vi.fn()
-
-// Mock the modules
-vi.mock('../states/useModelRecommendation', () => ({
-  useModelRecommendation: mockUseModelRecommendation
-}))
-
-// Mock the download watcher store
-vi.mock('@/features/download-watcher', () => ({
-  useDownloadWatcherStore: vi.fn()
-}))
-
-// Mock React Query
-vi.mock('@/services/queries', () => ({
-  useModelRecommendationsQuery: vi.fn().mockReturnValue({
-    data: null,
-    isLoading: false,
-    error: null
-  })
-}))
-
-// Mock HeroUI Button
-vi.mock('@heroui/react', () => ({
-  Button: ({
-    children,
-    onPress,
-    ...props
-  }: {
-    children: React.ReactNode
-    onPress: VoidFunction
-  }) => (
-    <button onClick={onPress} {...props}>
-      {children}
-    </button>
-  )
-}))
+const data: ModelRecommendationResponse = {
+  default_section: 'mid',
+  default_selected_id: 'juggernaut',
+  sections: [
+    {
+      id: 'low',
+      name: '4 GB VRAM',
+      description: '',
+      is_recommended: false,
+      models: [model('sd15', 'Stable Diffusion 1.5')]
+    },
+    {
+      id: 'mid',
+      name: '8 GB VRAM',
+      description: '',
+      is_recommended: true,
+      models: [
+        model('juggernaut', 'Juggernaut XL v9', true),
+        model('turbo', 'SDXL Turbo')
+      ]
+    }
+  ]
+}
 
 describe('ModelRecommendations', () => {
-  // Mock data that will be returned by useModelRecommendation
-  const mockData: ModelRecommendationResponse = {
-    sections: [
-      {
-        id: 'section1',
-        name: 'Section 1',
-        description: 'Description 1',
-        models: [],
-        is_recommended: false
-      },
-      {
-        id: 'section2',
-        name: 'Section 2',
-        description: 'Description 2',
-        models: [],
-        is_recommended: true
-      }
-    ],
-    default_section: 'section2',
-    default_selected_id: 'model1'
-  }
-
-  let downloadWatcherState: UseDownloadWatcherStore
-
-  const setDownloadWatcherState = (downloadingId: string | null) => {
-    downloadWatcherState = {
-      model_id: downloadingId ?? undefined,
-      step: undefined,
-      onUpdateStep: vi.fn(),
-      onSetModelId: vi.fn(),
-      onResetStep: vi.fn(),
-      onResetModelId: vi.fn()
-    }
-
-    vi.mocked(useDownloadWatcherStore).mockImplementation(((
-      selector?: (state: UseDownloadWatcherStore) => unknown
-    ) => {
-      return selector ? selector(downloadWatcherState) : downloadWatcherState
-    }) as typeof useDownloadWatcherStore)
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
-
-    // Set up the mock return value
-    mockUseModelRecommendation.mockReturnValue({
-      onNext: mockOnNext,
-      onSkip: mockOnSkip,
-      data: mockData
-    })
-
-    setDownloadWatcherState(null)
+    useDownloadWatcherStore.setState({ model_id: undefined })
+    vi.mocked(useModelRecommendationsQuery).mockReturnValue({
+      data
+    } as unknown as ReturnType<typeof useModelRecommendationsQuery>)
   })
 
-  it('renders SetupLayout with correct props', () => {
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
+  it('opens on the default group with the backend pick selected', () => {
+    render(<ModelRecommendations />)
 
-    const setupLayout = screen.getByTestId('mock-setup-layout')
-    expect(setupLayout).toBeInTheDocument()
-    expect(setupLayout).toHaveAttribute('data-title', 'Model Recommendations')
-    expect(setupLayout).toHaveAttribute(
-      'data-description',
-      'Choose an AI model that fits your hardware capabilities and performance needs'
+    expect(screen.getByRole('radio', { name: '8 GB VRAM' })).toBeChecked()
+    expect(
+      screen.getByRole('radio', { name: /Juggernaut XL v9/ })
+    ).toBeChecked()
+    expect(
+      screen.getByRole('button', { name: /Download Juggernaut XL v9/ })
+    ).toBeInTheDocument()
+  })
+
+  it('downloads the picked model', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.downloadModel).mockResolvedValue(undefined)
+    render(<ModelRecommendations />)
+
+    await user.click(screen.getByRole('radio', { name: /SDXL Turbo/ }))
+    await user.click(
+      screen.getByRole('button', { name: /Download SDXL Turbo/ })
     )
-    expect(setupLayout).toHaveAttribute('data-is-next-disabled', 'false')
-    expect(setupLayout).toHaveAttribute('data-is-back-disabled', 'false')
+
+    expect(api.downloadModel).toHaveBeenCalledWith('turbo')
   })
 
-  it('renders without crashing when data is available', () => {
-    mockUseModelRecommendation.mockReturnValueOnce({
-      onNext: mockOnNext,
-      onSkip: mockOnSkip,
-      data: mockData
-    })
+  it('switches groups and can skip to the editor', async () => {
+    const user = userEvent.setup()
+    render(<ModelRecommendations />)
 
-    const { container } = render(<ModelRecommendations />, {
-      wrapper: createQueryClientWrapper()
-    })
-
-    expect(container).toBeInTheDocument()
-  })
-
-  it('does not render ModelRecommendationsList when data is not available', () => {
-    mockUseModelRecommendation.mockReturnValue({
-      onNext: mockOnNext,
-      onSkip: mockOnSkip,
-      data: null
-    })
-
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
+    await user.click(screen.getByRole('radio', { name: '4 GB VRAM' }))
 
     expect(
-      screen.queryByTestId('mock-recommendations-list')
-    ).not.toBeInTheDocument()
-  })
+      screen.getByRole('radio', { name: /Stable Diffusion 1.5/ })
+    ).toBeChecked()
 
-  it('passes onNext handler to SetupLayout', () => {
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
+    await user.click(screen.getByRole('button', { name: 'Skip for now' }))
 
-    expect(screen.getByTestId('mock-next-button')).toBeInTheDocument()
-  })
-
-  it('disables navigation while a model is downloading', () => {
-    setDownloadWatcherState('downloading-model')
-
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
-
-    const setupLayout = screen.getByTestId('mock-setup-layout')
-    expect(setupLayout).toHaveAttribute('data-is-next-disabled', 'true')
-    expect(setupLayout).toHaveAttribute('data-is-back-disabled', 'true')
-  })
-
-  it('enables navigation when no model is downloading', () => {
-    setDownloadWatcherState(null)
-
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
-
-    const setupLayout = screen.getByTestId('mock-setup-layout')
-    expect(setupLayout).toHaveAttribute('data-is-next-disabled', 'false')
-    expect(setupLayout).toHaveAttribute('data-is-back-disabled', 'false')
-  })
-
-  it('renders skip button when not downloading', () => {
-    setDownloadWatcherState(null)
-
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
-
-    const skipButton = screen.getByRole('button', { name: /skip for now/i })
-    expect(skipButton).toBeInTheDocument()
-    expect(skipButton).toHaveTextContent('Skip for now, I will download later')
-  })
-
-  it('does not render skip button when downloading', () => {
-    setDownloadWatcherState('downloading-model')
-
-    render(<ModelRecommendations />, { wrapper: createQueryClientWrapper() })
-
-    expect(
-      screen.queryByRole('button', { name: /skip for now/i })
-    ).not.toBeInTheDocument()
+    expect(replace).toHaveBeenCalledWith('/editor')
   })
 })
