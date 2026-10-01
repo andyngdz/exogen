@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useUpdaterStore } from '@/features/settings/states/useUpdaterStore'
 import { UpdateSettings } from '../UpdateSettings'
 
 // Helper to create a delayed promise
@@ -14,6 +15,7 @@ vi.mock('@heroui/react', async (importOriginal) => ({
 describe('UpdateSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useUpdaterStore.setState(useUpdaterStore.getInitialState(), true)
     vi.mocked(window.electronAPI.updater.checkForUpdates).mockResolvedValue({
       updateAvailable: false
     })
@@ -68,7 +70,7 @@ describe('UpdateSettings', () => {
     })
 
     expect(button).toBeInTheDocument()
-    expect(button).toHaveClass('button--primary')
+    expect(button).toHaveClass('button--tertiary')
 
     // Wait for async effect to complete
     await waitFor(() => {
@@ -202,6 +204,67 @@ describe('UpdateSettings', () => {
       expect(window.electronAPI.updater.checkForUpdates).toHaveBeenCalledTimes(
         2
       )
+    )
+  })
+
+  describe('downloaded update', () => {
+    beforeEach(() => {
+      useUpdaterStore.setState({ downloadedVersion: '1.20.0' })
+    })
+
+    it('shows the ready card with the downloaded version', async () => {
+      render(<UpdateSettings />)
+
+      expect(
+        screen.getByText('ExoGen 1.20.0 is ready to install')
+      ).toBeInTheDocument()
+      await waitFor(() =>
+        expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
+      )
+    })
+
+    it('installs when Install and restart is pressed', async () => {
+      render(<UpdateSettings />)
+
+      await act(async () => {
+        fireEvent.click(
+          screen.getByRole('button', { name: /Install and restart/ })
+        )
+      })
+
+      expect(window.electronAPI.updater.installUpdate).toHaveBeenCalledTimes(1)
+    })
+
+    it('hides the card after Later', async () => {
+      render(<UpdateSettings />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Later' }))
+      })
+
+      expect(
+        screen.queryByText('ExoGen 1.20.0 is ready to install')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows when the last check ran', async () => {
+    useUpdaterStore.setState({ lastCheckedAt: Date.now() - 2 * 60 * 1000 })
+
+    render(<UpdateSettings />)
+
+    expect(screen.getByText('Last checked 2 minutes ago')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
+    )
+  })
+
+  it('shows no ready card without a downloaded update', async () => {
+    render(<UpdateSettings />)
+
+    expect(screen.queryByText(/ready to install/)).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
     )
   })
 })

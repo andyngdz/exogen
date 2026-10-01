@@ -82,7 +82,8 @@ const createElectronAPIMock = () =>
       checkForUpdates: vi
         .fn()
         .mockResolvedValue({ updateAvailable: false, version: undefined }),
-      installUpdate: vi.fn().mockResolvedValue(undefined)
+      installUpdate: vi.fn().mockResolvedValue(undefined),
+      onState: vi.fn().mockReturnValue(noop)
     }
   }) satisfies ElectronAPI
 

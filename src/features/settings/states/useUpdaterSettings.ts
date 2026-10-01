@@ -1,11 +1,20 @@
 'use client'
 
+import { dateFormatter } from '@/services/date-formatter'
 import { toast } from '@heroui/react'
 import { useCallback, useEffect, useState } from 'react'
+import {
+  UPDATER_ACTIONS,
+  useHasPendingUpdate,
+  useUpdaterStore
+} from './useUpdaterStore'
 
 export const useUpdaterSettings = () => {
   const [version, setVersion] = useState('Development Build')
   const [isChecking, setIsChecking] = useState(false)
+  const downloadedVersion = useUpdaterStore((state) => state.downloadedVersion)
+  const hasPendingUpdate = useHasPendingUpdate()
+  const lastCheckedAt = useUpdaterStore((state) => state.lastCheckedAt)
 
   const onGetVersion = useCallback(async () => {
     const api = globalThis.window.electronAPI
@@ -27,7 +36,6 @@ export const useUpdaterSettings = () => {
           description: `Current version: ${version}`
         })
       }
-      // If update is available, auto-download will handle it and native dialog will show
     } catch (error) {
       console.error('Failed to check for updates', error)
       toast.danger('Failed to check for updates', {
@@ -42,9 +50,20 @@ export const useUpdaterSettings = () => {
     void onGetVersion()
   }, [onGetVersion])
 
+  const onInstall = useCallback(async () => {
+    await globalThis.window.electronAPI.updater.installUpdate()
+  }, [])
+
   return {
+    downloadedVersion,
+    hasPendingUpdate,
     isChecking,
+    ...(lastCheckedAt && {
+      lastCheckedLabel: `Last checked ${dateFormatter.relativeFromTimestamp(lastCheckedAt)}`
+    }),
     onCheck,
+    onInstall,
+    onLater: UPDATER_ACTIONS.dismiss,
     version
   }
 }

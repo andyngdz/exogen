@@ -2,6 +2,7 @@
 
 import { SettingsTab } from '@/features/settings/states/useSettingsStore'
 import { useSettingsTabs } from '@/features/settings/states/useSettingsTabs'
+import { useHasPendingUpdate } from '@/features/settings/states/useUpdaterStore'
 import { Tabs } from '@heroui/react'
 import clsx from 'clsx'
 import {
@@ -11,6 +12,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react'
 import { SettingsNavTab } from './SettingsNavTab'
+import { UpdatePendingDot } from './UpdatePendingDot'
 import {
   GeneralSettings,
   MemorySettings,
@@ -21,6 +23,7 @@ import {
 /** Settings as a full rail view: section nav on the left, the section on the right. */
 export const SettingsView = () => {
   const { selectedTab, onSelectionChange } = useSettingsTabs()
+  const hasPendingUpdate = useHasPendingUpdate()
 
   return (
     <Tabs
@@ -59,6 +62,7 @@ export const SettingsView = () => {
               id={SettingsTab.UPDATES}
               label="Updates"
               icon={RefreshCw}
+              indicator={hasPendingUpdate && <UpdatePendingDot />}
             />
           </Tabs.List>
         </Tabs.ListContainer>

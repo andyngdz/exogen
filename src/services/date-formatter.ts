@@ -1,4 +1,7 @@
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 
 class DateFormatter {
   time(value: string) {
@@ -11,6 +14,11 @@ class DateFormatter {
 
   timeWithSecondsFromTimestamp(value: number) {
     return dayjs(value).format('HH:mm:ss')
+  }
+
+  /** "2 minutes ago" style, relative to now. */
+  relativeFromTimestamp(value: number) {
+    return dayjs(value).fromNow()
   }
 
   date(value: string) {

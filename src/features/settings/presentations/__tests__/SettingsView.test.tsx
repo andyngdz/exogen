@@ -2,6 +2,7 @@ import {
   SettingsTab,
   useSettingsStore
 } from '@/features/settings/states/useSettingsStore'
+import { useUpdaterStore } from '@/features/settings/states/useUpdaterStore'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -29,5 +30,14 @@ describe('SettingsView', () => {
 
     expect(screen.getByText('Models section')).toBeInTheDocument()
     expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MODELS)
+  })
+
+  it('flags the Updates section while a downloaded update waits', () => {
+    useUpdaterStore.setState({ downloadedVersion: '1.20.0' })
+    render(<SettingsView />)
+
+    expect(screen.getByRole('tab', { name: /Updates/ })).toHaveTextContent(
+      'Update ready'
+    )
   })
 })

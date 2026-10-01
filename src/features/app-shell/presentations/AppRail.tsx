@@ -1,13 +1,14 @@
 import ExoGenLogo from '@/assets/logo.png'
 import { useAppRail } from '@/features/app-shell/states/useAppRail'
 import { AppView } from '@/features/app-shell/types'
+import { UpdatePendingDot } from '@/features/settings/presentations/UpdatePendingDot'
 import { Box, History, Settings, Sparkles, SquareTerminal } from 'lucide-react'
 import clsx from 'clsx'
 import NextImage from 'next/image'
 import { AppRailItem } from './AppRailItem'
 
 export const AppRail = () => {
-  const { activeView, onOpenView } = useAppRail()
+  const { activeView, hasPendingUpdate, onOpenView } = useAppRail()
 
   return (
     <nav
@@ -50,6 +51,7 @@ export const AppRail = () => {
           label="Settings"
           icon={<Settings size={18} />}
           isActive={activeView === AppView.SETTINGS}
+          indicator={hasPendingUpdate && <UpdatePendingDot />}
           onPress={() => onOpenView(AppView.SETTINGS)}
         />
       </div>
