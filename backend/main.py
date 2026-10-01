@@ -27,7 +27,8 @@ from app.features.models import models
 from app.features.resizes import resizes
 from app.features.styles import styles
 from app.features.users import users
-from app.services import logger_service, platform_service, storage_service
+from app.services import logger_service, parent_watch_service, platform_service, storage_service
+from app.services.parent_watch import PARENT_PID_ENV
 from app.socket import socket_service
 from config import STATIC_FOLDER
 
@@ -47,8 +48,13 @@ async def lifespan(app: FastAPI):
 	db = SessionLocal()
 	await model_manager.unload_model_async()
 
+	parent_pid = parent_watch_service.parse_parent_pid(os.environ.get(PARENT_PID_ENV))
+	parent_watch = parent_watch_service.start(parent_pid) if parent_pid else None
+
 	yield
 
+	if parent_watch:
+		parent_watch.cancel()
 	model_manager.loader_service.shutdown()
 	db.close()
 

@@ -3,6 +3,7 @@ from .image import image_service
 from .logger import logger_service
 from .memory import MemoryService
 from .models import model_service
+from .parent_watch import parent_watch_service
 from .platform import platform_service
 from .storage import storage_service
 from .styles import styles_service
@@ -16,4 +17,5 @@ __all__ = [
 	'image_service',
 	'storage_service',
 	'model_service',
+	'parent_watch_service',
 ]
