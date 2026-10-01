@@ -63,6 +63,15 @@ describe('image size presets', () => {
     expect(result.current.selectedPreset).toBe(ImageSizePreset.LANDSCAPE)
   })
 
+  it('shows the saved preset on launch while the model is still loading', () => {
+    IMAGE_SIZE_ACTIONS.setFamily(ModelFamily.SDXL)
+
+    const { result } = renderSizeHooks(1024, 1024)
+
+    expect(result.current.selectedPreset).toBe(ImageSizePreset.SQUARE)
+    expect(size()).toEqual({ width: 1024, height: 1024 })
+  })
+
   it('shows Custom for a stored size that matches no preset, without changing it', () => {
     const { result } = renderSizeHooks(1000, 700)
     loadFamily(ModelFamily.SDXL)
