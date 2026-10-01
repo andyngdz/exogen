@@ -185,3 +185,36 @@ class TestLifespan:
 		# Verify cleanup after yield
 		mock_model_manager.loader_service.shutdown.assert_called_once()
 		mock_db.close.assert_called_once()
+
+	@pytest.mark.asyncio
+	@patch.dict('os.environ', {'EXOGEN_PARENT_PID': '4242'})
+	@patch('main.parent_watch_service')
+	@patch('main.model_manager')
+	@patch('main.socket_service')
+	@patch('main.database_service')
+	@patch('main.platform_service')
+	@patch('main.storage_service')
+	@patch('main.logger_service')
+	@patch('main.SessionLocal')
+	async def test_lifespan_watches_the_app_process(
+		self,
+		mock_session_local,
+		mock_logger_service,
+		mock_storage_service,
+		mock_platform_service,
+		mock_database_service,
+		mock_socket_service,
+		mock_model_manager,
+		mock_parent_watch_service,
+	):
+		"""Test that lifespan watches the app PID and stops watching on shutdown."""
+		mock_model_manager.unload_model_async = AsyncMock()
+		mock_parent_watch_service.parse_parent_pid.return_value = 4242
+		watch_task = MagicMock()
+		mock_parent_watch_service.start.return_value = watch_task
+
+		async with lifespan(MagicMock()):
+			mock_parent_watch_service.parse_parent_pid.assert_called_once_with('4242')
+			mock_parent_watch_service.start.assert_called_once_with(4242)
+
+		watch_task.cancel.assert_called_once()
