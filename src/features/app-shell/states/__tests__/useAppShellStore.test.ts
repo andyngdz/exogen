@@ -1,40 +1,31 @@
+import { AppView } from '@/features/app-shell/types'
+import {
+  SettingsTab,
+  useSettingsStore
+} from '@/features/settings/states/useSettingsStore'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { APP_SHELL_ACTIONS, useAppShellStore } from '../useAppShellStore'
 
 describe('useAppShellStore', () => {
   beforeEach(() => {
-    useAppShellStore.setState({
-      isModelSearchOpen: false,
-      isHistoryOpen: false,
-      isLogsOpen: false
+    useAppShellStore.setState(useAppShellStore.getInitialState())
+  })
+
+  it('starts on Generate', () => {
+    expect(useAppShellStore.getState()).toEqual({
+      activeView: AppView.GENERATE
     })
   })
 
-  it('starts with every overlay closed and the history column hidden', () => {
-    expect(useAppShellStore.getState()).toMatchObject({
-      isModelSearchOpen: false,
-      isHistoryOpen: false,
-      isLogsOpen: false
-    })
+  it('switches views', () => {
+    APP_SHELL_ACTIONS.setView(AppView.LOGS)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
   })
 
-  it('opens and closes model search and logs', () => {
-    APP_SHELL_ACTIONS.setModelSearchOpen(true)
-    APP_SHELL_ACTIONS.setLogsOpen(true)
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+  it('opens Settings on a given section', () => {
+    APP_SHELL_ACTIONS.openSettings(SettingsTab.MEMORY)
 
-    APP_SHELL_ACTIONS.setModelSearchOpen(false)
-    APP_SHELL_ACTIONS.setLogsOpen(false)
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(false)
-    expect(useAppShellStore.getState().isLogsOpen).toBe(false)
-  })
-
-  it('toggles the history column', () => {
-    APP_SHELL_ACTIONS.toggleHistory()
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(true)
-
-    APP_SHELL_ACTIONS.toggleHistory()
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(false)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
+    expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MEMORY)
   })
 })

@@ -1,1 +1,1 @@
-export * from './presentations/Histories'
+export * from './presentations/HistoryView'

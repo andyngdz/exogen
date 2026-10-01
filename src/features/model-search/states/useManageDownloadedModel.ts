@@ -1,13 +1,9 @@
-import {
-  SettingsTab,
-  useSettingsStore
-} from '@/features/settings/states/useSettingsStore'
+import { APP_SHELL_ACTIONS } from '@/features/app-shell/states/useAppShellStore'
+import { SettingsTab } from '@/features/settings/states/useSettingsStore'
 
 export const useManageDownloadedModel = () => {
-  const openModal = useSettingsStore((state) => state.openModal)
-
   const onManageModel = () => {
-    openModal(SettingsTab.MODELS)
+    APP_SHELL_ACTIONS.openSettings(SettingsTab.MODELS)
   }
 
   return { onManageModel }

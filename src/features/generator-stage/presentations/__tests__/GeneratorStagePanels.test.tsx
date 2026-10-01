@@ -1,5 +1,6 @@
 import { reconnectSocket } from '@/cores/sockets'
 import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
+import { AppView } from '@/features/app-shell/types'
 import {
   useGenerationErrorStore,
   useGeneratorSubmit,
@@ -33,9 +34,8 @@ describe('stage panels', () => {
       isGenerating: false,
       disabledReason: undefined
     })
-    useAppShellStore.setState({ isLogsOpen: false })
     useLastRunStore.setState({ steps: undefined })
-    useSettingsStore.setState({ isModalOpen: false })
+    useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
 
   it('shows the failure with its step and offers the recovery actions', async () => {
@@ -57,13 +57,11 @@ describe('stage panels', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByRole('button', { name: 'Memory settings' }))
-    expect(useSettingsStore.getState()).toMatchObject({
-      isModalOpen: true,
-      selectedTab: SettingsTab.MEMORY
-    })
+    expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
+    expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MEMORY)
 
     await user.click(screen.getByRole('button', { name: 'Logs' }))
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
   })
 
   it('counts the step against the steps the run was submitted with', () => {
@@ -95,6 +93,6 @@ describe('stage panels', () => {
     expect(reconnectSocket).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByRole('button', { name: 'Open logs' }))
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
   })
 })

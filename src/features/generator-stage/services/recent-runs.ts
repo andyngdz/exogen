@@ -1,5 +1,5 @@
 import { RecentRun } from '@/features/generator-stage/types'
-import { dateFormatter } from '@/services/date-formatter'
+import { historyViewService } from '@/features/histories/services/history-view'
 import { HistoryItem } from '@/types'
 import { first, map, orderBy, take } from 'es-toolkit/compat'
 
@@ -22,7 +22,7 @@ export class RecentRunService {
         history,
         ...(image && { thumbnailUrl: `${baseURL}/${image.path}` }),
         metaLabel: [
-          dateFormatter.time(history.created_at),
+          historyViewService.toLocalTime(history.created_at).format('HH:mm'),
           count === 1 ? '1 image' : `${count} images`,
           this.toSeedLabel(history.config.seed)
         ].join(' · '),

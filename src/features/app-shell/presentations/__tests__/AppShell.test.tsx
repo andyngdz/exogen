@@ -1,4 +1,8 @@
-import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
+import {
+  APP_SHELL_ACTIONS,
+  useAppShellStore
+} from '@/features/app-shell/states/useAppShellStore'
+import { AppView } from '@/features/app-shell/types'
 import {
   SettingsTab,
   useSettingsStore
@@ -15,23 +19,22 @@ vi.mock('@/cores/sockets', () => ({ useSocketConnectionWatcher: vi.fn() }))
 vi.mock('@/features/model-load-progress/states', () => ({
   useModelLoadProgress: vi.fn()
 }))
-vi.mock('@/features/settings/presentations/SettingsModal', () => ({
-  SettingsModal: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Settings modal</div>
+vi.mock('@/features/settings/presentations/SettingsView', () => ({
+  SettingsView: () => <div>Settings view</div>
 }))
-vi.mock('@/features/model-search', () => ({
-  ModelSearchModal: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Model search modal</div>
+vi.mock('@/features/model-search/presentations/ModelsView', () => ({
+  ModelsView: () => <div>Models view</div>
 }))
-vi.mock('@/features/backend-logs', () => ({
-  BackendLogDrawer: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Log drawer</div>
+vi.mock('@/features/histories/presentations/HistoryView', () => ({
+  HistoryView: () => <div>History view</div>
+}))
+vi.mock('@/features/backend-logs/presentations/BackendLogView', () => ({
+  BackendLogView: () => <div>Logs view</div>
 }))
 
 describe('AppShell', () => {
   beforeEach(() => {
-    useSettingsStore.setState({ isModalOpen: false })
-    useAppShellStore.setState({ isModelSearchOpen: false, isLogsOpen: false })
+    useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
 
   it('renders the page between the rail and the status bar', () => {
@@ -46,25 +49,40 @@ describe('AppShell', () => {
     expect(screen.getByText('Status')).toBeInTheDocument()
   })
 
-  it('opens settings when another feature calls openModal', () => {
-    render(<AppShell>page</AppShell>)
+  it('shows Settings over a hidden, still mounted generator', () => {
+    render(
+      <AppShell>
+        <main>Editor</main>
+      </AppShell>
+    )
 
     act(() => {
-      useSettingsStore.getState().openModal(SettingsTab.MODELS)
+      APP_SHELL_ACTIONS.openSettings(SettingsTab.MODELS)
     })
 
-    expect(screen.getByText('Settings modal')).toBeInTheDocument()
+    expect(screen.getByText('Settings view')).toBeInTheDocument()
+    expect(screen.getByText('Editor').parentElement).toHaveClass('hidden')
     expect(useSettingsStore.getState().selectedTab).toBe(SettingsTab.MODELS)
+
+    act(() => {
+      APP_SHELL_ACTIONS.setView(AppView.GENERATE)
+    })
+
+    expect(screen.queryByText('Settings view')).not.toBeInTheDocument()
+    expect(screen.getByText('Editor').parentElement).not.toHaveClass('hidden')
   })
 
-  it('opens model search and logs from the shell store', () => {
+  it.each([
+    [AppView.MODELS, 'Models view'],
+    [AppView.HISTORY, 'History view'],
+    [AppView.LOGS, 'Logs view']
+  ])('shows the %s view', (view, text) => {
     render(<AppShell>page</AppShell>)
 
     act(() => {
-      useAppShellStore.setState({ isModelSearchOpen: true, isLogsOpen: true })
+      APP_SHELL_ACTIONS.setView(view)
     })
 
-    expect(screen.getByText('Model search modal')).toBeInTheDocument()
-    expect(screen.getByText('Log drawer')).toBeInTheDocument()
+    expect(screen.getByText(text)).toBeInTheDocument()
   })
 })

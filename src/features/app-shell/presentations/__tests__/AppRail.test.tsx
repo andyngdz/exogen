@@ -1,5 +1,5 @@
 import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
-import { useSettingsStore } from '@/features/settings/states/useSettingsStore'
+import { AppView } from '@/features/app-shell/types'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -12,12 +12,7 @@ vi.mock('next/image', async () => {
 
 describe('AppRail', () => {
   beforeEach(() => {
-    useAppShellStore.setState({
-      isModelSearchOpen: false,
-      isHistoryOpen: false,
-      isLogsOpen: false
-    })
-    useSettingsStore.setState({ isModalOpen: false })
+    useAppShellStore.setState({ activeView: AppView.GENERATE })
   })
 
   it('marks Generate as the current view', () => {
@@ -29,30 +24,36 @@ describe('AppRail', () => {
     )
   })
 
-  it('opens model search, logs and settings', async () => {
+  it('opens the Models, Logs and Settings views', async () => {
     const user = userEvent.setup()
     render(<AppRail />)
 
     await user.click(screen.getByRole('button', { name: 'Models' }))
-    await user.click(screen.getByRole('button', { name: 'Backend logs' }))
-    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(useAppShellStore.getState().activeView).toBe(AppView.MODELS)
 
-    expect(useAppShellStore.getState().isModelSearchOpen).toBe(true)
-    expect(useAppShellStore.getState().isLogsOpen).toBe(true)
-    expect(useSettingsStore.getState().isModalOpen).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'Backend logs' }))
+    expect(useAppShellStore.getState().activeView).toBe(AppView.LOGS)
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(useAppShellStore.getState().activeView).toBe(AppView.SETTINGS)
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Generate' }))
+
+    expect(useAppShellStore.getState().activeView).toBe(AppView.GENERATE)
   })
 
-  it('toggles the history column and shows it as active while open', async () => {
+  it('opens History as a view and marks it current', async () => {
     const user = userEvent.setup()
     render(<AppRail />)
     const history = screen.getByRole('button', { name: 'History' })
 
     await user.click(history)
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(true)
-    expect(history).toHaveAttribute('aria-pressed', 'true')
 
-    await user.click(history)
-    expect(useAppShellStore.getState().isHistoryOpen).toBe(false)
-    expect(history).toHaveAttribute('aria-pressed', 'false')
+    expect(useAppShellStore.getState().activeView).toBe(AppView.HISTORY)
+    expect(history).toHaveAttribute('aria-pressed', 'true')
   })
 })
