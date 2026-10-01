@@ -28,6 +28,8 @@ export const useModelSelectors = () => {
     if (isEmpty(selectedModelId)) return
 
     const result = await api.loadModel({ model_id: selectedModelId })
+    if (!result) return
+
     setLoadedModelFamily(result.family)
   }, [selectedModelId, setLoadedModelFamily])
 

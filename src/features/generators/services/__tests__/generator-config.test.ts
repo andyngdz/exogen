@@ -23,4 +23,15 @@ describe('generatorConfigService.clampFormValues', () => {
       FORM_DEFAULT_VALUES
     )
   })
+
+  it('falls back to the default size when a saved size is broken', () => {
+    const savedValues = JSON.parse(
+      JSON.stringify({ ...FORM_DEFAULT_VALUES, width: NaN, height: NaN })
+    )
+
+    expect(generatorConfigService.clampFormValues(savedValues)).toMatchObject({
+      width: FORM_DEFAULT_VALUES.width,
+      height: FORM_DEFAULT_VALUES.height
+    })
+  })
 })
