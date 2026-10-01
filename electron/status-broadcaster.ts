@@ -26,6 +26,11 @@ const addBackendStatusToHistory = (payload: BackendStatusPayload) => {
 
 const getBackendStatusHistory = () => backendStatusHistory
 
+/** Forgets the previous setup run, so a retry replays only its own steps. */
+const clearBackendStatusHistory = () => {
+  backendStatusHistory.splice(0)
+}
+
 const broadcastBackendStatus: BackendStatusEmitter = (payload) => {
   addBackendStatusToHistory(payload)
 
@@ -46,5 +51,6 @@ const broadcastBackendStatus: BackendStatusEmitter = (payload) => {
 export {
   addBackendStatusToHistory,
   broadcastBackendStatus,
+  clearBackendStatusHistory,
   getBackendStatusHistory
 }

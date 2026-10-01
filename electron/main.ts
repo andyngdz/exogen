@@ -7,6 +7,7 @@ import { setupBackendPortHandler } from './backend-port'
 import { isLogStreaming, startLogStreaming } from './log-streamer'
 import {
   broadcastBackendStatus,
+  clearBackendStatusHistory,
   getBackendStatusHistory
 } from './status-broadcaster'
 import { checkForUpdates, installUpdate, setMainWindow } from './updater'
@@ -131,6 +132,31 @@ const onBackendStatusHistory = () => {
   ipcMain.handle('backend-setup:get-history', () => getBackendStatusHistory())
 }
 
+let backendSetup: Promise<void> | undefined
+
+/** Runs backend setup once at a time; a second call while it runs joins the first. */
+const runBackendSetup = () => {
+  backendSetup ??= startBackend({
+    userDataPath: app.getPath('userData'),
+    backendSourcePath: IS_PRODUCTION
+      ? path.join(process.resourcesPath, 'backend')
+      : path.join(app.getAppPath(), 'backend'),
+    ...(IS_PRODUCTION && { appVersion: app.getVersion() }),
+    externalEmit: broadcastBackendStatus
+  }).finally(() => {
+    backendSetup = undefined
+  })
+
+  return backendSetup
+}
+
+const onBackendSetupRetry = () => {
+  ipcMain.handle('backend-setup:retry', () => {
+    clearBackendStatusHistory()
+    void runBackendSetup()
+  })
+}
+
 const onAppInfo = () => {
   ipcMain.handle('app:get-version', () => app.getVersion())
 }
@@ -159,6 +185,7 @@ const onAppReady = async () => {
   onLogStreaming()
   onOpenBackendFolder()
   onBackendStatusHistory()
+  onBackendSetupRetry()
   onAppInfo()
   setupBackendPortHandler()
   onAutoUpdate()
@@ -167,14 +194,7 @@ const onAppReady = async () => {
     console.log('Skipping backend startup (SKIP_BACKEND=true)')
   } else {
     console.log('Starting Python backend...')
-    startBackend({
-      userDataPath: app.getPath('userData'),
-      backendSourcePath: IS_PRODUCTION
-        ? path.join(process.resourcesPath, 'backend')
-        : path.join(app.getAppPath(), 'backend'),
-      ...(IS_PRODUCTION && { appVersion: app.getVersion() }),
-      externalEmit: broadcastBackendStatus
-    })
+    void runBackendSetup()
   }
 }
 

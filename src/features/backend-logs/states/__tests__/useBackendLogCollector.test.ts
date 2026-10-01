@@ -39,7 +39,8 @@ describe('useBackendLogCollector', () => {
         getPort: vi.fn().mockResolvedValue(8000),
         isLogStreaming: mockIsLogStreaming.mockResolvedValue(false),
         onLog: mockOnLog.mockReturnValue(noop),
-        openBackendFolder: vi.fn().mockResolvedValue('')
+        openBackendFolder: vi.fn().mockResolvedValue(''),
+        retrySetup: vi.fn().mockResolvedValue(undefined)
       },
       updater: {
         checkForUpdates: vi.fn().mockResolvedValue(undefined),

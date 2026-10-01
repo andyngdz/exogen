@@ -18,17 +18,16 @@ export const useHealthCheck = () => {
   const { isHasDevice, isLoading } = useConfig()
   const isHealthy = !!data
 
+  const nextRoute = isHasDevice ? '/editor' : '/gpu-detection'
+
   useEffect(() => {
     if (!isHealthy || isLoading) return
 
-    if (isHasDevice) {
-      router.push('/editor')
-    } else {
-      router.push('/gpu-detection')
-    }
-  }, [isHealthy, router, isLoading, isHasDevice])
+    router.push(nextRoute)
+  }, [isHealthy, router, isLoading, nextRoute])
 
   return {
-    isHealthy
+    isHealthy,
+    onContinue: () => router.push(nextRoute)
   }
 }
