@@ -1,6 +1,6 @@
 import { DEFAULT_BACKEND_URL } from '@/cores/constants'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
-import axios from 'axios'
+import axios, { HttpStatusCode } from 'axios'
 import type {
   BackendConfig,
   HardwareMemoryResponse,
@@ -74,11 +74,17 @@ class API {
     return data
   }
 
-  async loadModel(request: LoadModelRequest) {
-    const { data } = await client.post<LoadModelResponse>(
+  /** Loads a model; undefined when another request already owns this load. */
+  async loadModel(
+    request: LoadModelRequest
+  ): Promise<LoadModelResponse | undefined> {
+    const { data, status } = await client.post<LoadModelResponse>(
       '/models/load',
       request
     )
+
+    // A duplicate or cancelled load answers 204 with an empty body.
+    if (status === HttpStatusCode.NoContent) return
 
     return data
   }

@@ -135,4 +135,19 @@ describe('useModelSelectors', () => {
       model_id: 'codellama'
     })
   })
+
+  it('keeps the family unknown when the backend skips a duplicate load', async () => {
+    const mockedApi = vi.mocked(await import('@/services/api')).api
+    vi.mocked(mockedApi.loadModel).mockResolvedValueOnce(undefined)
+    selectModel('llama-3')
+
+    renderHook(() => useModelSelectors())
+
+    await waitFor(() => {
+      expect(mockedApi.loadModel).toHaveBeenCalledTimes(1)
+    })
+    expect(useModelSelectorStore.getState().loaded_model_family).toBe(
+      ModelFamily.UNKNOWN
+    )
+  })
 })
