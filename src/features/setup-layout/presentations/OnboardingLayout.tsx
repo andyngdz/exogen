@@ -48,7 +48,7 @@ export const OnboardingLayout: FC<OnboardingLayoutProps> = ({
         <OnboardingStepper step={step} isFailed={isStepFailed} />
         <div className="w-50" />
       </header>
-      <main
+      <div
         className={clsx(
           'flex min-h-0 flex-1 justify-center',
           'overflow-y-auto px-6 pt-8'
@@ -63,7 +63,7 @@ export const OnboardingLayout: FC<OnboardingLayoutProps> = ({
           </div>
           {children}
         </div>
-      </main>
+      </div>
       <div className="flex h-18 shrink-0 items-center justify-center px-6">
         <div
           className={clsx(
