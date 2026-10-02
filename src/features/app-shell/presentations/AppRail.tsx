@@ -9,6 +9,8 @@ import { AppRailItem } from './AppRailItem'
 
 export const AppRail = () => {
   const { activeView, hasPendingUpdate, onOpenView } = useAppRail()
+  // aria-label overrides the dot's screen-reader text, so the name carries it.
+  const settingsLabel = hasPendingUpdate ? 'Settings, update ready' : 'Settings'
 
   return (
     <nav
@@ -48,7 +50,7 @@ export const AppRail = () => {
           onPress={() => onOpenView(AppView.LOGS)}
         />
         <AppRailItem
-          label="Settings"
+          label={settingsLabel}
           icon={<Settings size={18} />}
           isActive={activeView === AppView.SETTINGS}
           indicator={hasPendingUpdate && <UpdatePendingDot />}

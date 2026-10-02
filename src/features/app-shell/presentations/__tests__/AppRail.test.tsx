@@ -24,7 +24,9 @@ describe('AppRail', () => {
     useUpdaterStore.setState({ downloadedVersion: '1.20.0' })
     const { rerender } = render(<AppRail />)
 
-    const settings = screen.getByRole('button', { name: 'Settings' })
+    const settings = screen.getByRole('button', {
+      name: 'Settings, update ready'
+    })
     expect(settings).toHaveTextContent('Update ready')
 
     UPDATER_ACTIONS.dismiss()
