@@ -39,7 +39,7 @@ export const AppStatusBar = () => {
               aria-label={`Downloading ${download.modelId}`}
               value={download.percent}
               size="sm"
-              className="w-16"
+              className="grid w-16 gap-0"
             >
               <ProgressBar.Track>
                 <ProgressBar.Fill />
@@ -55,7 +55,7 @@ export const AppStatusBar = () => {
               aria-label="VRAM in use"
               value={vramUsage.percent}
               size="sm"
-              className="w-16"
+              className="grid w-16 gap-0"
             >
               <ProgressBar.Track>
                 <ProgressBar.Fill />
