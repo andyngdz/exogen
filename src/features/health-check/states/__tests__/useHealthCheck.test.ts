@@ -1,3 +1,4 @@
+import { createQueryClientWrapper } from '@/cores/test-utils'
 import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useHealthCheck } from '../useHealthCheck'
@@ -85,7 +86,9 @@ describe('useHealthCheck', () => {
   it('returns isHealthy based on health query data', async () => {
     await setupMocks({ isHealthy: true, isLoading: false })
 
-    const { result } = renderHook(() => useHealthCheck())
+    const { result } = renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     expect(result.current.isHealthy).toBe(true)
   })
@@ -93,7 +96,9 @@ describe('useHealthCheck', () => {
   it('returns isHealthy false when health query has no data', async () => {
     await setupMocks({ isHealthy: false })
 
-    const { result } = renderHook(() => useHealthCheck())
+    const { result } = renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     expect(result.current.isHealthy).toBe(false)
   })
@@ -101,7 +106,9 @@ describe('useHealthCheck', () => {
   it('does not redirect when backend is not healthy', async () => {
     await setupMocks({ isHealthy: false, isLoading: false, isHasDevice: true })
 
-    renderHook(() => useHealthCheck())
+    renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     await waitFor(() => {
       expect(mockPush).not.toHaveBeenCalled()
@@ -111,7 +118,9 @@ describe('useHealthCheck', () => {
   it('does not redirect while config is loading', async () => {
     await setupMocks({ isHealthy: true, isLoading: true, isHasDevice: true })
 
-    renderHook(() => useHealthCheck())
+    renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     await waitFor(() => {
       expect(mockPush).not.toHaveBeenCalled()
@@ -121,7 +130,9 @@ describe('useHealthCheck', () => {
   it('redirects to /editor when healthy, config loaded, and device configured', async () => {
     await setupMocks({ isHealthy: true, isLoading: false, isHasDevice: true })
 
-    renderHook(() => useHealthCheck())
+    renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/editor')
@@ -131,7 +142,9 @@ describe('useHealthCheck', () => {
   it('stays on the Backend step on first run until Continue is pressed', async () => {
     await setupMocks({ isHealthy: true, isLoading: false, isHasDevice: false })
 
-    const { result } = renderHook(() => useHealthCheck())
+    const { result } = renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     expect(mockPush).not.toHaveBeenCalled()
 
@@ -148,7 +161,9 @@ describe('useHealthCheck', () => {
       isHasDevice: true
     })
 
-    renderHook(() => useHealthCheck())
+    renderHook(() => useHealthCheck(), {
+      wrapper: createQueryClientWrapper()
+    })
 
     await waitFor(() => {
       expect(mockPush).not.toHaveBeenCalled()
