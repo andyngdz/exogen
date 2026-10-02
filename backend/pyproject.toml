@@ -145,7 +145,7 @@ dependencies = [
     "urllib3-secure-extra==0.1.0",
     "uvicorn==0.35.0",
     "wcwidth==0.2.13",
-    "webob==1.8.9",
+    "webob==1.8.11",
     "widgetsnbextension==4.0.14",
     "wsproto==1.2.0",
     "yarg==0.1.10",
