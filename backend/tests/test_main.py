@@ -24,6 +24,26 @@ class TestHealthCheck:
 		assert 'Exogen Backend is running!' in data['message']
 
 
+class TestStaticFiles:
+	"""Tests for the /static mount."""
+
+	def test_static_varies_on_origin_without_origin(self):
+		"""An <img> request has no Origin, so its cached copy must not serve a CORS fetch."""
+		response = client.get('/static/empty.png')
+
+		assert response.status_code == status.HTTP_200_OK
+		assert 'Origin' in response.headers['vary']
+		assert 'access-control-allow-origin' not in response.headers
+
+	def test_static_varies_on_origin_with_origin(self):
+		"""A CORS fetch gets the allow-origin header and the same Vary."""
+		response = client.get('/static/empty.png', headers={'Origin': 'http://localhost:3000'})
+
+		assert response.status_code == status.HTTP_200_OK
+		assert 'Origin' in response.headers['vary']
+		assert 'access-control-allow-origin' in response.headers
+
+
 class TestFavicon:
 	"""Tests for favicon endpoint."""
 

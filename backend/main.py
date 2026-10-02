@@ -12,6 +12,8 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import Response
+from starlette.types import Scope
 
 from app.cores.model_manager import model_manager
 from app.database import database_service
@@ -59,13 +61,26 @@ async def lifespan(app: FastAPI):
 	db.close()
 
 
+class OriginVaryingStaticFiles(StaticFiles):
+	"""Static files whose responses declare that they depend on the Origin request header."""
+
+	async def get_response(self, path: str, scope: Scope) -> Response:
+		"""Return the static file response with Origin added to Vary."""
+		response = await super().get_response(path, scope)
+		# CORSMiddleware only sends Access-Control-Allow-Origin when the request has an Origin. An <img>
+		# request has none, so without Vary the browser reuses that cached copy for a CORS fetch and the
+		# fetch fails ("Use as input" -> "Failed to fetch").
+		response.headers.add_vary_header('Origin')
+		return response
+
+
 fastapi_app = FastAPI(
 	description='Backend for Local AI operations.',
 	title='Exogen Backend',
 	version='0.1.0',
 	lifespan=lifespan,
 )
-fastapi_app.mount('/static', StaticFiles(directory='static'), name='static')
+fastapi_app.mount('/static', OriginVaryingStaticFiles(directory='static'), name='static')
 fastapi_app.mount('/socket.io', app=socket_service.sio_app)
 fastapi_app.include_router(users)
 fastapi_app.include_router(models)
