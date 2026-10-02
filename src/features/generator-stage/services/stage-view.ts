@@ -11,7 +11,9 @@ export class StageViewService {
     }
     if (input.hasFailure) return StageView.FAILED
     if (!input.hasModel) return StageView.NO_MODEL
-    if (!input.hasOutput) return StageView.FIRST_RUN
+    // Image to image needs the input slot before its first run, and only the
+    // results view has one.
+    if (!input.hasOutput && !input.isImageMode) return StageView.FIRST_RUN
     return StageView.RESULTS
   }
 }

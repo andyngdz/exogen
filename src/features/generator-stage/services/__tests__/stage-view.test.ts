@@ -7,7 +7,8 @@ const ready: StageViewInput = {
   isModelLoading: false,
   hasFailure: false,
   hasModel: true,
-  hasOutput: true
+  hasOutput: true,
+  isImageMode: false
 }
 
 describe('stageViewService', () => {
@@ -43,6 +44,11 @@ describe('stageViewService', () => {
       StageView.NO_MODEL
     ],
     ['the first run with no output', { hasOutput: false }, StageView.FIRST_RUN],
+    [
+      'results with no output in image to image, for the input slot',
+      { hasOutput: false, isImageMode: true },
+      StageView.RESULTS
+    ],
     ['results otherwise', {}, StageView.RESULTS]
   ])('shows %s', (_label, overrides, view) => {
     expect(stageViewService.toView({ ...ready, ...overrides })).toBe(view)
