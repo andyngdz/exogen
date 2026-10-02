@@ -28,7 +28,6 @@ export const SettingsView = () => {
   return (
     <Tabs
       orientation="vertical"
-      variant="secondary"
       selectedKey={selectedTab}
       onSelectionChange={onSelectionChange}
       className="w-full"
@@ -41,7 +40,7 @@ export const SettingsView = () => {
         )}
       >
         <h1 className="px-4 text-base font-semibold">Settings</h1>
-        <Tabs.ListContainer>
+        <Tabs.ListContainer className="bg-transparent">
           <Tabs.List aria-label="Settings sections" className="w-full">
             <SettingsNavTab
               id={SettingsTab.GENERAL}
