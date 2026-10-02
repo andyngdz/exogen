@@ -10,7 +10,7 @@ import {
   clearBackendStatusHistory,
   getBackendStatusHistory
 } from './status-broadcaster'
-import { checkForUpdates, installUpdate, setMainWindow } from './updater'
+import { checkForUpdates, getUpdaterState, installUpdate } from './updater'
 
 // This is required to get the correct path in the packaged app
 fixPath()
@@ -56,9 +56,7 @@ const onCreateWindow = async () => {
   win.once('ready-to-show', () => {
     win.show()
 
-    // Set main window for updater and check for updates
     if (IS_PRODUCTION) {
-      setMainWindow(win)
       // Check for updates 5 seconds after window is ready
       setTimeout(() => checkForUpdates(), 5000)
     }
@@ -163,6 +161,7 @@ const onAppInfo = () => {
 
 const onAutoUpdate = () => {
   ipcMain.handle('updater:check', () => checkForUpdates())
+  ipcMain.handle('updater:get-state', () => getUpdaterState())
 
   ipcMain.handle('updater:install', () => {
     installUpdate()

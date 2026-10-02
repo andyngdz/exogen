@@ -2,7 +2,7 @@
 
 import { BackendStatusEmitter } from './backend'
 import { LogEntry } from './logging'
-import { UpdateCheckResult } from './update'
+import { UpdateCheckResult, UpdaterState } from './update'
 
 export interface ElectronAPI {
   downloadImage: (url: string) => Promise<void>
@@ -21,6 +21,7 @@ export interface ElectronAPI {
   updater: {
     checkForUpdates: () => Promise<UpdateCheckResult>
     installUpdate: () => Promise<void>
+    onState: (listener: (state: UpdaterState) => void) => () => void
   }
 }
 

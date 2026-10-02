@@ -47,7 +47,8 @@ describe('useBackendLogCollector', () => {
         downloadUpdate: vi.fn().mockResolvedValue(undefined),
         installUpdate: vi.fn().mockResolvedValue(undefined),
         getUpdateInfo: vi.fn().mockResolvedValue({ updateAvailable: false }),
-        onUpdateStatus: vi.fn().mockReturnValue(noop)
+        onUpdateStatus: vi.fn().mockReturnValue(noop),
+        onState: vi.fn().mockReturnValue(noop)
       }
     } as ElectronAPI
   })

@@ -1,5 +1,9 @@
 import { useAppShellStore } from '@/features/app-shell/states/useAppShellStore'
 import { AppView } from '@/features/app-shell/types'
+import {
+  UPDATER_ACTIONS,
+  useUpdaterStore
+} from '@/features/settings/states/useUpdaterStore'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -13,6 +17,24 @@ vi.mock('next/image', async () => {
 describe('AppRail', () => {
   beforeEach(() => {
     useAppShellStore.setState({ activeView: AppView.GENERATE })
+    useUpdaterStore.setState(useUpdaterStore.getInitialState(), true)
+  })
+
+  it('flags Settings while a downloaded update waits, until Later', () => {
+    useUpdaterStore.setState({ downloadedVersion: '1.20.0' })
+    const { rerender } = render(<AppRail />)
+
+    const settings = screen.getByRole('button', {
+      name: 'Settings, update ready'
+    })
+    expect(settings).toHaveTextContent('Update ready')
+
+    UPDATER_ACTIONS.dismiss()
+    rerender(<AppRail />)
+
+    expect(
+      screen.getByRole('button', { name: 'Settings' })
+    ).not.toHaveTextContent('Update ready')
   })
 
   it('marks Generate as the current view', () => {

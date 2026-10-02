@@ -2,7 +2,8 @@ import type {
   BackendStatusEmitter,
   BackendStatusPayload,
   LogEntry,
-  UpdateCheckResult
+  UpdateCheckResult,
+  UpdaterState
 } from '@types'
 import { contextBridge, ipcRenderer } from 'electron'
 
@@ -60,6 +61,28 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updater: {
     checkForUpdates: (): Promise<UpdateCheckResult> =>
       ipcRenderer.invoke('updater:check'),
-    installUpdate: () => ipcRenderer.invoke('updater:install')
+    installUpdate: () => ipcRenderer.invoke('updater:install'),
+    onState: (listener: (state: UpdaterState) => void) => {
+      const channel = 'updater:state'
+      ipcRenderer
+        .invoke('updater:get-state')
+        .then(listener)
+        .catch(() => {
+          // ignore state fetch errors
+        })
+
+      const subscription = (
+        _event: Electron.IpcRendererEvent,
+        state: UpdaterState
+      ) => {
+        listener(state)
+      }
+
+      ipcRenderer.on(channel, subscription)
+
+      return () => {
+        ipcRenderer.removeListener(channel, subscription)
+      }
+    }
   }
 })
