@@ -39,4 +39,4 @@ The system SHALL allow users to manually check for updates from settings and sho
 #### Scenario: Last check time
 
 - **WHEN** the app has checked for updates at least once this session
-- **THEN** Settings > Updates shows "Last checked" with the relative time
+- **THEN** Settings > Updates shows "Last checked at" with the time of that check

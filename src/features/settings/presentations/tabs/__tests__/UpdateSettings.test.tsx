@@ -249,11 +249,12 @@ describe('UpdateSettings', () => {
   })
 
   it('shows when the last check ran', async () => {
-    useUpdaterStore.setState({ lastCheckedAt: Date.now() - 2 * 60 * 1000 })
+    const lastCheckedAt = new Date(2026, 9, 2, 21, 58).getTime()
+    useUpdaterStore.setState({ lastCheckedAt })
 
     render(<UpdateSettings />)
 
-    expect(screen.getByText('Last checked 2 minutes ago')).toBeInTheDocument()
+    expect(screen.getByText('Last checked at 21:58')).toBeInTheDocument()
     await waitFor(() =>
       expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
     )

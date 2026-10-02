@@ -59,7 +59,7 @@ export const useUpdaterSettings = () => {
     hasPendingUpdate,
     isChecking,
     ...(lastCheckedAt && {
-      lastCheckedLabel: `Last checked ${dateFormatter.relativeFromTimestamp(lastCheckedAt)}`
+      lastCheckedLabel: `Last checked at ${dateFormatter.timeFromTimestamp(lastCheckedAt)}`
     }),
     onCheck,
     onInstall,
