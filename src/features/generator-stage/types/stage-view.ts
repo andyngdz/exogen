@@ -14,4 +14,5 @@ export interface StageViewInput {
   hasFailure: boolean
   hasModel: boolean
   hasOutput: boolean
+  isImageMode: boolean
 }

@@ -6,10 +6,12 @@ import {
 import { stageViewService } from '@/features/generator-stage/services/stage-view'
 import {
   useGenerationErrorStore,
+  useGeneratorModeStore,
   useUseImageGenerationStore
 } from '@/features/generators/states'
 import { useModelLoadStatus } from '@/features/model-load-progress/states'
 import { useModelSelectorStore } from '@/features/model-selectors/states'
+import { GeneratorMode } from '@/types'
 import { isEmpty } from 'es-toolkit/compat'
 
 export const useGeneratorStage = () => {
@@ -21,13 +23,15 @@ export const useGeneratorStage = () => {
   )
   const items = useUseImageGenerationStore((state) => state.items)
   const { data: histories } = useHistoriesQuery()
+  const mode = useGeneratorModeStore((state) => state.mode)
 
   const view = stageViewService.toView({
     isBackendOffline: connectionStatus === SocketConnectionStatus.DISCONNECTED,
     isModelLoading,
     hasFailure: Boolean(failure),
     hasModel: !isEmpty(selectedModelId),
-    hasOutput: !isEmpty(items) || !isEmpty(histories)
+    hasOutput: !isEmpty(items) || !isEmpty(histories),
+    isImageMode: mode === GeneratorMode.IMAGE_2_IMAGE
   })
 
   return { view }
