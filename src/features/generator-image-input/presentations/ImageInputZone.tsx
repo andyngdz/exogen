@@ -5,40 +5,45 @@ import { useImageFilePicker } from '@/features/generator-image-input/states/useI
 import { useImagePaste } from '@/features/generator-image-input/states/useImagePaste'
 import { ValueChanged } from '@/types'
 import { Button } from '@heroui/react'
-import { useEffect } from 'react'
+import clsx from 'clsx'
+import { ReactNode } from 'react'
 import { DropZone, FileTrigger } from 'react-aria-components'
 import { ImageInputBody } from './ImageInputBody'
 
 interface ImageInputZoneProps {
+  aspectRatio?: number
   hasImage: boolean
   initImageBase64?: string
   isLoading: boolean
   onFile: ValueChanged<File, Promise<void>>
-  onDragActiveChange: ValueChanged<boolean>
+  children?: ReactNode
 }
 
+/** The input tile itself: one surface that takes a click, a drop or a paste. */
 export const ImageInputZone = ({
+  aspectRatio,
   hasImage,
   initImageBase64,
   isLoading,
   onFile,
-  onDragActiveChange
+  children
 }: ImageInputZoneProps) => {
   const { onFilesSelect } = useImageFilePicker({ onFile })
   const { isDragActive, onDropEnter, onDropExit, onDrop } = useImageDropzone({
     onFile
   })
 
-  useEffect(() => {
-    onDragActiveChange(isDragActive)
-  }, [isDragActive, onDragActiveChange])
-
   useImagePaste({ onFile })
 
   return (
     <DropZone
       aria-label="Drop an input image"
-      className="h-full w-full"
+      className={clsx(
+        'relative h-full w-full',
+        'overflow-hidden rounded-2xl bg-surface',
+        { 'ring-2 ring-accent': isDragActive }
+      )}
+      style={{ aspectRatio }}
       onDropEnter={onDropEnter}
       onDropExit={onDropExit}
       onDrop={onDrop}
@@ -49,7 +54,7 @@ export const ImageInputZone = ({
       >
         <Button
           aria-label={hasImage ? 'Change input image' : 'Upload input image'}
-          className="h-full w-full min-h-0 p-0"
+          className="h-full w-full min-h-0 rounded-none p-0"
           variant="ghost"
           isDisabled={isLoading}
         >
@@ -59,6 +64,9 @@ export const ImageInputZone = ({
           />
         </Button>
       </FileTrigger>
+      {children && (
+        <div className="absolute top-3 right-3 z-10">{children}</div>
+      )}
     </DropZone>
   )
 }
