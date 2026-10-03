@@ -1,7 +1,6 @@
 import { BackendStatusEmitter, BackendStatusLevel } from '@types'
 import * as path from 'node:path'
 import { BACKEND_DIRNAME } from './constants'
-import { ensureGit } from './ensure-git'
 import { installDependencies } from './install-dependencies'
 import { installUv } from './install-uv'
 import { runBackend } from './run-backend'
@@ -30,10 +29,7 @@ const startBackend = async ({
     // Step 1: Install uv; uv sync downloads the pinned Python when the system has none
     await installUv({ emit })
 
-    // Step 2: Ensure Git is installed; uv sync fetches a Git-sourced dependency
-    await ensureGit({ emit })
-
-    // Step 3: Sync the bundled backend into the user data directory
+    // Step 2: Sync the bundled backend into the user data directory
     const { backendPath } = await syncBackend({
       sourcePath: backendSourcePath,
       backendPath: path.join(userDataPath, BACKEND_DIRNAME),
@@ -41,13 +37,13 @@ const startBackend = async ({
       emit
     })
 
-    // Step 4: Check the backend directory; uv sync creates the virtual environment
+    // Step 3: Check the backend directory; uv sync creates the virtual environment
     await setupVenv({ userDataPath, emit })
 
-    // Step 5: Install dependencies using uv sync
+    // Step 4: Install dependencies using uv sync
     await installDependencies({ backendPath, emit })
 
-    // Step 6: Run the ExoGen Backend with uv run uvicorn
+    // Step 5: Run the ExoGen Backend with uv run uvicorn
     await runBackend({ backendPath, emit })
   } catch (error) {
     const normalizedError = normalizeError(error, 'Unknown error')

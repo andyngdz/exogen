@@ -10,7 +10,6 @@ import { createDefaultStatusEmitter, normalizeError } from '../utils'
 
 // Mock all the backend modules
 vi.mock('../sync-backend')
-vi.mock('../ensure-git')
 vi.mock('../install-dependencies')
 vi.mock('../install-uv')
 vi.mock('../run-backend')
