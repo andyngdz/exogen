@@ -16,8 +16,7 @@ export const useUseConfig = (history: HistoryItem) => {
   const onUseConfig = () => {
     const { config } = history
     onSetValues(config)
-    // The switch lives outside the form; a run made without hires fix has
-    // hires_fix: null, which would leave the switch on over an empty upscaler.
+    // Sync the hires fix switch with the restored run
     setIsHiresFixEnabled(Boolean(config.hires_fix))
     onRestore(history.generated_images)
     // The viewer reads prompt and seed from the last run, so the restored
