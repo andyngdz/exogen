@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ensurePython311 } from '../ensure-python'
 import { installDependencies } from '../install-dependencies'
 import { installUv } from '../install-uv'
 import { runBackend } from '../run-backend'
@@ -12,7 +11,6 @@ import { createDefaultStatusEmitter, normalizeError } from '../utils'
 // Mock all the backend modules
 vi.mock('../sync-backend')
 vi.mock('../ensure-git')
-vi.mock('../ensure-python')
 vi.mock('../install-dependencies')
 vi.mock('../install-uv')
 vi.mock('../run-backend')
@@ -40,12 +38,6 @@ describe('startBackend', () => {
       venvPath: mockVenvPath,
       backendPath: mockBackendPath
     })
-    vi.mocked(ensurePython311).mockResolvedValue({
-      command: 'python3.11',
-      args: [],
-      version: '3.11.0',
-      minor: 11
-    })
     vi.mocked(installUv).mockResolvedValue({
       version: '1.0.0'
     })
@@ -64,7 +56,6 @@ describe('startBackend', () => {
     await startBackend(mockOptions)
 
     // Verify all steps are called in the correct order
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalledWith({ emit: mockEmit })
     expect(vi.mocked(installUv)).toHaveBeenCalledWith({ emit: mockEmit })
     expect(vi.mocked(syncBackend)).toHaveBeenCalledWith({
       sourcePath: mockOptions.backendSourcePath,
@@ -93,27 +84,6 @@ describe('startBackend', () => {
     )
   })
 
-  it('should handle error during Python installation step', async () => {
-    const testError = new Error('Python installation failed')
-    vi.mocked(ensurePython311).mockRejectedValue(testError)
-    vi.mocked(normalizeError).mockReturnValue(testError)
-
-    await startBackend(mockOptions)
-
-    expect(vi.mocked(normalizeError)).toHaveBeenCalledWith(
-      testError,
-      'Unknown error'
-    )
-    expect(mockEmit).toHaveBeenCalledWith({
-      level: BackendStatusLevel.Error,
-      message: 'Backend setup failed: Python installation failed'
-    })
-
-    // Verify subsequent steps are not called
-    expect(vi.mocked(installUv)).not.toHaveBeenCalled()
-    expect(vi.mocked(syncBackend)).not.toHaveBeenCalled()
-  })
-
   it('should handle error during uv installation step', async () => {
     const testError = new Error('UV installation failed')
     vi.mocked(installUv).mockRejectedValue(testError)
@@ -121,7 +91,6 @@ describe('startBackend', () => {
 
     await startBackend(mockOptions)
 
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
     expect(mockEmit).toHaveBeenCalledWith({
       level: BackendStatusLevel.Error,
@@ -139,7 +108,6 @@ describe('startBackend', () => {
 
     await startBackend(mockOptions)
 
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
     expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(mockEmit).toHaveBeenCalledWith({
@@ -176,7 +144,6 @@ describe('startBackend', () => {
     await startBackend(mockOptions)
 
     // Verify all steps up to installDependencies are called
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
     expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(vi.mocked(setupVenv)).toHaveBeenCalled()
@@ -198,7 +165,6 @@ describe('startBackend', () => {
     await startBackend(mockOptions)
 
     // Verify all steps up to runBackend are called
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalled()
     expect(vi.mocked(installUv)).toHaveBeenCalled()
     expect(vi.mocked(syncBackend)).toHaveBeenCalled()
     expect(vi.mocked(setupVenv)).toHaveBeenCalled()
@@ -213,7 +179,7 @@ describe('startBackend', () => {
   it('should handle non-Error objects thrown as exceptions', async () => {
     const testError = 'String error message'
     const normalizedError = new Error('Unknown error')
-    vi.mocked(ensurePython311).mockRejectedValue(testError)
+    vi.mocked(installUv).mockRejectedValue(testError)
     vi.mocked(normalizeError).mockReturnValue(normalizedError)
 
     await startBackend(mockOptions)
@@ -235,7 +201,6 @@ describe('startBackend', () => {
 
     // Verify the same emit function is passed to all steps
     const expectedEmitArg = { emit: mockEmit }
-    expect(vi.mocked(ensurePython311)).toHaveBeenCalledWith(expectedEmitArg)
     expect(vi.mocked(installUv)).toHaveBeenCalledWith(expectedEmitArg)
     expect(vi.mocked(syncBackend)).toHaveBeenCalledWith({
       sourcePath: mockOptions.backendSourcePath,

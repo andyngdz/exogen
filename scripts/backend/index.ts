@@ -1,7 +1,6 @@
 export * from '@types'
 export * from './constants'
 export * from './ensure-git'
-export * from './ensure-python'
 export * from './install-dependencies'
 export * from './install-uv'
 export * from './run-backend'

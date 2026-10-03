@@ -1,10 +1,9 @@
-import { BackendStatusEmitter, BackendStatusLevel } from '@types'
+import { BackendStatusLevel, BackendStatusPayload } from '@types'
 import { existsSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import { createServer } from 'node:net'
 
 const isWindows = process.platform === 'win32'
-const isMac = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
 
 const pathKeyName = () => {
@@ -75,7 +74,7 @@ const normalizeError = (error: unknown, defaultMessage: string): Error => {
  * Creates a default status emitter that logs to console
  * @returns BackendStatusEmitter function
  */
-const createDefaultStatusEmitter = (): BackendStatusEmitter => (payload) => {
+const createDefaultStatusEmitter = () => (payload: BackendStatusPayload) => {
   const prefix =
     payload.level === BackendStatusLevel.Error
       ? '[Backend Setup][Error]'
@@ -133,7 +132,6 @@ export {
   ensurePathIncludes,
   findAvailablePort,
   isLinux,
-  isMac,
   isPortAvailable,
   isWindows,
   normalizeError,
