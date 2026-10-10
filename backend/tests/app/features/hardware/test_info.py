@@ -1,5 +1,7 @@
 """Unit tests for GPUInfo class messages."""
 
+from urllib.parse import urlparse
+
 from app.features.hardware.info import GPUInfo
 
 
@@ -37,9 +39,9 @@ class TestNvidiaMessages:
 	def test_nvidia_recommendation_link(self):
 		"""Test NVIDIA recommendation link."""
 		link = GPUInfo.nvidia_recommendation_link()
-		assert isinstance(link, str)
-		assert link.startswith('https://')
-		assert 'nvidia.com' in link
+		parsed_link = urlparse(link)
+		assert parsed_link.scheme == 'https'
+		assert parsed_link.hostname == 'www.nvidia.com'
 
 	def test_nvidia_troubleshooting_steps(self):
 		"""Test NVIDIA troubleshooting steps."""
