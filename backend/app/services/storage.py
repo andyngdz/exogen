@@ -6,6 +6,18 @@ from config import CACHE_FOLDER, CACHE_LOCK_FOLDER, GENERATED_IMAGES_FOLDER
 logger = logger_service.get_logger(__name__, category='Service')
 
 
+def resolve_within(base_dir: str, relative_path: str) -> str:
+	"""Return relative_path joined under base_dir, or raise ValueError if it escapes base_dir."""
+	base_normalized = os.path.normpath(base_dir)
+	resolved = os.path.normpath(os.path.join(base_normalized, relative_path))
+
+	# normpath folds `..` but keeps the path relative, since model and LoRA paths are stored in the DB.
+	if not resolved.startswith(base_normalized + os.sep):
+		raise ValueError(f'Path escapes {base_dir}: {relative_path}')
+
+	return resolved
+
+
 class StorageService:
 	"""
 	A service for managing storage paths for models and other resources.
@@ -29,17 +41,13 @@ class StorageService:
 		"""Get the directory path for a model based on its ID."""
 		name_serialized = id.replace('/', '--')
 
-		model_dir = os.path.join(CACHE_FOLDER, f'models--{name_serialized}')
-
-		return model_dir
+		return resolve_within(CACHE_FOLDER, f'models--{name_serialized}')
 
 	def get_model_lock_dir(self, id: str) -> str:
 		"""Get the full path for a model lock file based on its ID."""
 		name_serialized = id.replace('/', '--')
 
-		lock_dir = os.path.join(CACHE_LOCK_FOLDER, f'models--{name_serialized}')
-
-		return lock_dir
+		return resolve_within(CACHE_LOCK_FOLDER, f'models--{name_serialized}')
 
 	def get_loras_dir(self) -> str:
 		"""Get the directory path for LoRA files."""
@@ -47,7 +55,7 @@ class StorageService:
 
 	def get_lora_file_path(self, filename: str) -> str:
 		"""Get the full path for a LoRA file."""
-		return os.path.join(self.get_loras_dir(), filename)
+		return resolve_within(self.get_loras_dir(), filename)
 
 	def get_realesrgan_model_path(self, filename: str) -> str:
 		"""Get the full path for a Real-ESRGAN model file."""

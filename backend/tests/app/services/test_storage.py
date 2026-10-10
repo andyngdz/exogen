@@ -3,7 +3,9 @@
 import os
 from unittest.mock import patch
 
-from app.services.storage import StorageService, storage_service
+import pytest
+
+from app.services.storage import StorageService, resolve_within, storage_service
 
 
 class TestStorageService:
@@ -33,7 +35,7 @@ class TestStorageService:
 
 		# Should replace / with --
 		assert 'models--CompVis--stable-diffusion-v1-4' in result
-		assert service.cache_dir in result
+		assert result.startswith(os.path.normpath(service.cache_dir) + os.sep)
 
 	def test_get_model_dir_handles_slashes(self):
 		"""Test that get_model_dir correctly handles slashes in model IDs."""
@@ -55,7 +57,7 @@ class TestStorageService:
 
 		# Should replace / with --
 		assert 'models--stabilityai--stable-diffusion-xl-base-1.0' in result
-		assert service.cache_lock_dir in result
+		assert result.startswith(os.path.normpath(service.cache_lock_dir) + os.sep)
 
 	def test_get_model_lock_dir_handles_slashes(self):
 		"""Test that get_model_lock_dir correctly handles slashes."""
@@ -119,3 +121,22 @@ class TestStorageService:
 			# LoRAs directory should be created
 			loras_dir = tmp_path / 'loras'
 			assert loras_dir.exists()
+
+
+class TestResolveWithin:
+	"""Test resolve_within keeps paths inside their base directory."""
+
+	def test_returns_relative_path_under_base(self):
+		assert resolve_within('./.cache', 'loras/a.safetensors') == os.path.join('.cache', 'loras', 'a.safetensors')
+
+	def test_folds_parent_segments_that_stay_inside(self):
+		assert resolve_within('static', 'generated_images/../styles/a.png') == os.path.join('static', 'styles', 'a.png')
+
+	@pytest.mark.parametrize('escaping_path', ['../secret.png', 'generated_images/../../secret.png', '/etc/passwd', '.'])
+	def test_rejects_paths_outside_base(self, escaping_path):
+		with pytest.raises(ValueError):
+			resolve_within('static', escaping_path)
+
+	def test_get_lora_file_path_rejects_traversal(self):
+		with pytest.raises(ValueError):
+			StorageService().get_lora_file_path('../models--x/model.safetensors')

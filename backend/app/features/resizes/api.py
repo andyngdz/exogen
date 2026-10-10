@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse
 from PIL import Image
 
 from app.services import logger_service
+from app.services.storage import resolve_within
 from config import STATIC_FOLDER
 
 logger = logger_service.get_logger(__name__, category='API')
@@ -25,7 +26,10 @@ async def resized_image(
 	height: int = Query(..., ge=1, description='Height to resize the image to'),
 ):
 	"""Serves images from the 'static' folder with resizing based on query parameters."""
-	image_path = os.path.join(STATIC_FOLDER, file_path)
+	try:
+		image_path = resolve_within(STATIC_FOLDER, file_path)
+	except ValueError:
+		raise HTTPException(status_code=400, detail='Invalid image path') from None
 
 	if not os.path.exists(image_path):
 		raise HTTPException(status_code=404, detail='Image not found')
