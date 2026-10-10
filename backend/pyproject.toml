@@ -45,7 +45,7 @@ dependencies = [
     "h11==0.16.0",
     "h2==4.3.0",
     "hf-xet==1.2.0",
-    "hpack==4.1.0",
+    "hpack==4.2.0",
     "htmlparser==0.0.2",
     "httpcore==1.0.9",
     "httpx==0.27.2",
