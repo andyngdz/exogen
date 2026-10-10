@@ -141,7 +141,7 @@ dependencies = [
     "ty>=0.0.1a28",
     "typing-extensions==4.15.0",
     "typing-inspection==0.4.1",
-    "urllib3==2.6.3",
+    "urllib3==2.8.0",
     "urllib3-secure-extra==0.1.0",
     "uvicorn==0.35.0",
     "wcwidth==0.2.13",
