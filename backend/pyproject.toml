@@ -12,7 +12,7 @@ dependencies = [
     "alabaster==1.0.0",
     "alembic==1.16.4",
     "annotated-types==0.7.0",
-    "anyio==4.10.0",
+    "anyio==4.14.2",
     "asttokens==3.0.0",
     "attr==0.3.2",
     "attrs==25.3.0",
