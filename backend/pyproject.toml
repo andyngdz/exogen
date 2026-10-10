@@ -81,7 +81,7 @@ dependencies = [
     "peft>=0.18.0",
     "pexpect==4.9.0",
     "pillow==11.3.0",
-    "pip==26.0",
+    "pip==26.2",
     "pipreqs==0.4.13",
     "pluggy==1.6.0",
     "prompt-toolkit==3.0.51",
