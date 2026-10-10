@@ -42,8 +42,6 @@ ExoGen is a privacy-focused desktop application that lets you generate AI images
 
 Before you begin, ensure you have the following installed:
 
-- **Python 3.11+** - Required for the AI backend ([Download](https://www.python.org/downloads/))
-- **Git** - Required while installing backend dependencies, which fetch one package from GitHub ([Download](https://git-scm.com/downloads))
 - **CUDA** - Required for Nvidia GPU acceleration ([Download](https://developer.nvidia.com/cuda-downloads))
 
 ### System Requirements

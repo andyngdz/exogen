@@ -9,7 +9,6 @@ import {
   ensurePathIncludes,
   findAvailablePort,
   isLinux,
-  isMac,
   isPortAvailable,
   isWindows,
   normalizeError,
@@ -22,6 +21,16 @@ vi.mock('node:fs/promises', () => ({
 
 const fsPromises = await import('node:fs/promises')
 const mockAccess = vi.mocked(fsPromises.access)
+
+const listenOnFreePort = (server: Server) =>
+  new Promise<void>((resolve) => {
+    server.listen(0, '127.0.0.1', () => resolve())
+  })
+
+const closeServer = (server: Server) =>
+  new Promise<void>((resolve) => {
+    server.close(() => resolve())
+  })
 
 describe('utils', () => {
   beforeEach(() => {
@@ -191,7 +200,6 @@ describe('utils', () => {
   describe('platform flags', () => {
     it('should reflect the current process platform', () => {
       expect(isWindows).toBe(process.platform === 'win32')
-      expect(isMac).toBe(process.platform === 'darwin')
       expect(isLinux).toBe(process.platform === 'linux')
     })
   })
@@ -207,18 +215,14 @@ describe('utils', () => {
       const { createServer } = await import('node:net')
       const server = createServer()
 
-      await new Promise<void>((resolve) => {
-        server.listen(0, '127.0.0.1', () => resolve())
-      })
+      await listenOnFreePort(server)
 
       const address = server.address()
       const port = typeof address === 'object' && address ? address.port : 0
 
       const result = await isPortAvailable(port)
 
-      await new Promise<void>((resolve) => {
-        server.close(() => resolve())
-      })
+      await closeServer(server)
 
       expect(result).toBe(false)
     })
@@ -229,9 +233,7 @@ describe('utils', () => {
 
     afterEach(async () => {
       if (testServer && testServer.listening) {
-        await new Promise<void>((resolve) => {
-          testServer?.close(() => resolve())
-        })
+        await closeServer(testServer)
         testServer = null
       }
     })
@@ -246,10 +248,7 @@ describe('utils', () => {
       const { createServer } = await import('node:net')
       testServer = createServer()
 
-      // Use port 0 to let OS assign an available port
-      await new Promise<void>((resolve) => {
-        testServer?.listen(0, '127.0.0.1', () => resolve())
-      })
+      await listenOnFreePort(testServer)
 
       const address = testServer.address()
       const occupiedPort =

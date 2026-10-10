@@ -196,8 +196,8 @@ explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu124" }
-# Use basicsr from GitHub with torchvision 0.17+ fix (commit 8d56e3a)
-basicsr = { git = "https://github.com/XPixelGroup/BasicSR", rev = "8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a" }
+# basicsr from a GitHub archive with the torchvision 0.17+ fix (commit 8d56e3a); an archive URL lets uv sync run on machines without Git
+basicsr = { url = "https://github.com/XPixelGroup/BasicSR/archive/8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a.tar.gz" }
 
 
 [dependency-groups]

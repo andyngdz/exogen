@@ -59,10 +59,21 @@ At startup the app SHALL copy the bundled backend into `userData/exogen_backend`
 - **WHEN** `.exogen-backend-version` equals the app version but a bundled file is missing or differs, for example after an older app ran `git reset --hard` to its release branch
 - **THEN** the sync runs again and restores the bundled code
 
+### Requirement: No Python Or Git Prerequisite
+
+Backend setup SHALL run on a machine that has neither Python nor Git installed. uv provides the Python pinned in `backend/.python-version` and fetches every dependency over HTTP.
+
+#### Scenario: Python is not installed
+
+- **WHEN** the app starts on a machine without Python
+- **THEN** `uv sync` downloads the Python version pinned in `backend/.python-version`
+- **AND** setup continues and the backend starts
+
 #### Scenario: Git is not installed
 
 - **WHEN** the app starts on a machine without Git
-- **THEN** setup stops before the sync with the Git install hint, because `uv sync` fetches a Git-sourced dependency
+- **THEN** `uv sync` installs basicsr from its GitHub commit archive, with the sdist hash pinned in `uv.lock`
+- **AND** setup continues and the backend starts
 
 ### Requirement: User Data Survives Sync
 

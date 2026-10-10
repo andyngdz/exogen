@@ -285,7 +285,7 @@ wheels = [
 [[package]]
 name = "basicsr"
 version = "1.4.2"
-source = { git = "https://github.com/XPixelGroup/BasicSR?rev=8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a#8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a" }
+source = { url = "https://github.com/XPixelGroup/BasicSR/archive/8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a.tar.gz" }
 dependencies = [
     { name = "addict" },
     { name = "future" },
@@ -299,6 +299,26 @@ dependencies = [
     { name = "scipy" },
     { name = "tb-nightly" },
     { name = "torch" },
+    { name = "torchvision" },
+    { name = "tqdm" },
+    { name = "yapf" },
+]
+sdist = { hash = "sha256:88a422325c7a08a9f3b6109e747bef5fbdf85d884d6033eacaf11f6c374aade9" }
+
+[package.metadata]
+requires-dist = [
+    { name = "addict" },
+    { name = "future" },
+    { name = "lmdb" },
+    { name = "numpy", specifier = ">=1.17" },
+    { name = "opencv-python" },
+    { name = "pillow" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "scikit-image" },
+    { name = "scipy" },
+    { name = "tb-nightly" },
+    { name = "torch", specifier = ">=1.7" },
     { name = "torchvision" },
     { name = "tqdm" },
     { name = "yapf" },
@@ -995,7 +1015,7 @@ requires-dist = [
     { name = "attr", specifier = "==0.3.2" },
     { name = "attrs", specifier = "==25.3.0" },
     { name = "babel", specifier = "==2.17.0" },
-    { name = "basicsr", git = "https://github.com/XPixelGroup/BasicSR?rev=8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a" },
+    { name = "basicsr", url = "https://github.com/XPixelGroup/BasicSR/archive/8d56e3a045f9fb3e1d8872f92ee4a4f07f886b0a.tar.gz" },
     { name = "bidict", specifier = "==0.23.1" },
     { name = "brotli", specifier = "==1.2.0" },
     { name = "brotlicffi", specifier = "==1.1.0.0" },
