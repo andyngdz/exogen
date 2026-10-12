@@ -1,42 +1,21 @@
-import { useUpdaterSettings } from '@/features/settings/states'
-import { Button } from '@heroui/react'
-import { RefreshCw } from 'lucide-react'
-import { SettingsBase } from '@/features/settings/presentations/SettingsBase'
-import { UpdateReadyCard } from './UpdateReadyCard'
+'use client'
 
+import { SettingsBase } from '@/features/settings/presentations/SettingsBase'
+import { useLoadAppVersion } from '@/features/settings/states/useAppVersion'
+import { useHasPendingUpdate } from '@/features/settings/states/useUpdaterStore'
+import { UpdateReadyCard } from './UpdateReadyCard'
+import { UpdateSettingsCheck } from './UpdateSettingsCheck'
+import { UpdateSettingsVersion } from './UpdateSettingsVersion'
+
+/** The Updates section: a downloaded update to install, and a manual check. */
 export const UpdateSettings = () => {
-  const {
-    downloadedVersion,
-    hasPendingUpdate,
-    isChecking,
-    lastCheckedLabel,
-    onCheck,
-    onInstall,
-    onLater,
-    version
-  } = useUpdaterSettings()
+  useLoadAppVersion()
+  const hasPendingUpdate = useHasPendingUpdate()
 
   return (
-    <SettingsBase title="Updates" description={`Current version: ${version}`}>
-      {hasPendingUpdate && downloadedVersion && (
-        <UpdateReadyCard
-          version={downloadedVersion}
-          onLater={onLater}
-          onInstall={onInstall}
-        />
-      )}
-      <div className="flex items-center justify-between gap-4 text-sm">
-        <span className="text-muted">{lastCheckedLabel}</span>
-        <Button
-          size="sm"
-          variant="tertiary"
-          onPress={() => void onCheck()}
-          isPending={isChecking}
-        >
-          {!isChecking && <RefreshCw size={14} />}
-          {isChecking ? 'Checking…' : 'Check for updates'}
-        </Button>
-      </div>
+    <SettingsBase title="Updates" description={<UpdateSettingsVersion />}>
+      {hasPendingUpdate && <UpdateReadyCard />}
+      <UpdateSettingsCheck />
     </SettingsBase>
   )
 }

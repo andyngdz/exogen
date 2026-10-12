@@ -1,20 +1,14 @@
+'use client'
+
+import { useUpdateReady } from '@/features/settings/states/useUpdateReady'
 import { Button, Card } from '@heroui/react'
 import clsx from 'clsx'
 import { Download, RotateCcw } from 'lucide-react'
-import { FC } from 'react'
-
-interface UpdateReadyCardProps {
-  version: string
-  onLater: VoidFunction
-  onInstall: VoidFunction
-}
 
 /** A downloaded update waiting for the user to restart into it. */
-export const UpdateReadyCard: FC<UpdateReadyCardProps> = ({
-  version,
-  onLater,
-  onInstall
-}) => {
+export const UpdateReadyCard = () => {
+  const { version, onLater, onInstall } = useUpdateReady()
+
   return (
     <Card>
       <Card.Content className="flex flex-col gap-4">

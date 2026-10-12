@@ -1,4 +1,7 @@
-import { BackendSetupStatusEntry } from '@/features/health-check/states/useBackendSetupStatusStore'
+import {
+  BackendSetupStatusEntry,
+  BackendSetupStatusState
+} from '@/features/health-check/states/useBackendSetupStatusStore'
 import {
   BackendStepPhase,
   BackendStepRow,
@@ -53,3 +56,7 @@ export class BackendStepService {
 }
 
 export const backendStepService = new BackendStepService()
+
+/** Store selector for the setup phase the newest message puts the Backend step in. */
+export const selectBackendStepPhase = (state: BackendSetupStatusState) =>
+  backendStepService.toPhase(state.entries)

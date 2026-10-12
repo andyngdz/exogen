@@ -22,6 +22,7 @@ Next.js 15 + Electron desktop app + Python FastAPI backend.
 src/features/       # Feature modules
 src/cores/sockets/  # Socket.io infrastructure (reactive pattern with Zustand)
 src/cores/          # Shared utilities, hooks, components
+src/cores/shared/   # UI two or more features render, fed through props (onboarding layout, memory sliders)
 electron/           # Main process + preload
 scripts/            # Build scripts (backend setup and sync, Electron compile)
 backend/            # Python FastAPI backend (uv), bundled into the app and run as its own process

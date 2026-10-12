@@ -2,7 +2,7 @@ import {
   OnboardingStep,
   OnboardingStepState,
   OnboardingStepView
-} from '@/features/setup-layout/types'
+} from '@/cores/shared/onboarding/types'
 import { findIndex, map } from 'es-toolkit/compat'
 
 const STEPS = [

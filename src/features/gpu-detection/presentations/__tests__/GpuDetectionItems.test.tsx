@@ -1,8 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import { createFormProviderWrapper } from '@/cores/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { GpuDetectionItems } from '../GpuDetectionItems'
 import { GpuInfo } from '@/types'
+
+const hardware = vi.hoisted(() => ({ gpus: [] as unknown[] }))
+
+vi.mock('@/cores/api-queries', () => ({
+  useHardwareQuery: () => ({ data: { gpus: hardware.gpus } })
+}))
+
+const renderItems = (
+  gpus: GpuInfo[],
+  options: Parameters<typeof render>[1]
+) => {
+  hardware.gpus = gpus
+  return render(<GpuDetectionItems />, options)
+}
 import { GpuDetectionFormProps } from '../../types/gpu-detection'
 
 const createWrapper = (defaultValues: Partial<GpuDetectionFormProps> = {}) =>
@@ -33,7 +47,7 @@ describe('GpuDetectionItems', () => {
   ]
 
   it('renders all GPU items', () => {
-    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
+    renderItems(mockGpus, { wrapper: createWrapper() })
 
     expect(screen.getByText('NVIDIA GeForce RTX 4090')).toBeInTheDocument()
     expect(screen.getByText('NVIDIA GeForce RTX 3080')).toBeInTheDocument()
@@ -41,7 +55,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('defaults to primary GPU selection', () => {
-    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
+    renderItems(mockGpus, { wrapper: createWrapper() })
 
     // Primary GPU is at index 1, so it should be selected by default
     const radioButtons = screen.getAllByRole('radio')
@@ -54,7 +68,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('handles empty GPU list', () => {
-    render(<GpuDetectionItems gpus={[]} />, { wrapper: createWrapper() })
+    renderItems([], { wrapper: createWrapper() })
 
     // Should not render any radio buttons
     expect(screen.queryAllByRole('radio')).toHaveLength(0)
@@ -76,7 +90,7 @@ describe('GpuDetectionItems', () => {
       }
     ]
 
-    render(<GpuDetectionItems gpus={noPrimaryGpus} />, {
+    renderItems(noPrimaryGpus, {
       wrapper: createWrapper()
     })
 
@@ -92,7 +106,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('renders correct number of GPU items', () => {
-    render(<GpuDetectionItems gpus={mockGpus} />, { wrapper: createWrapper() })
+    renderItems(mockGpus, { wrapper: createWrapper() })
 
     // Should render the same number of radio buttons as GPUs
     const radioButtons = screen.getAllByRole('radio')
@@ -105,7 +119,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('registers form field correctly', () => {
-    const { container } = render(<GpuDetectionItems gpus={mockGpus} />, {
+    const { container } = renderItems(mockGpus, {
       wrapper: createWrapper()
     })
 
@@ -115,7 +129,7 @@ describe('GpuDetectionItems', () => {
   })
 
   it('wraps content in a Card component', () => {
-    const { container } = render(<GpuDetectionItems gpus={mockGpus} />, {
+    const { container } = renderItems(mockGpus, {
       wrapper: createWrapper()
     })
 

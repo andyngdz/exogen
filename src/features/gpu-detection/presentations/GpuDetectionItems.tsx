@@ -1,16 +1,14 @@
+'use client'
+
 import { useGpuSelection } from '@/features/gpu-detection/states/useGpuSelection'
-import { GpuInfo } from '@/types'
 import { Card, RadioGroup } from '@heroui/react'
 import { map } from 'es-toolkit/compat'
-import { FC, useMemo } from 'react'
+import { useMemo } from 'react'
 import { GpuDetectionItem } from './GpuDetectionItem'
 
-export interface GpuDetectionItemsProps {
-  gpus: GpuInfo[]
-}
-
-export const GpuDetectionItems: FC<GpuDetectionItemsProps> = ({ gpus }) => {
-  const { selectedValue, onSelectedValueChange } = useGpuSelection(gpus)
+/** The GPU picker, shown when the machine has more than one. */
+export const GpuDetectionItems = () => {
+  const { gpus, selectedValue, onSelectedValueChange } = useGpuSelection()
 
   const items = useMemo(() => {
     // The array position is the backend device_index, so it identifies the GPU.

@@ -1,12 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useBackendSetupStatus } from '../useBackendSetupStatus'
-import { useBackendSetupStatusStore } from '../useBackendSetupStatusStore'
+import {
+  BACKEND_SETUP_STATUS_ACTIONS,
+  useBackendSetupStatusStore
+} from '../useBackendSetupStatusStore'
 import type { BackendStatusPayload } from '@types'
 import { BackendStatusLevel } from '@types'
 
 afterEach(() => {
-  useBackendSetupStatusStore.getState().clear()
+  BACKEND_SETUP_STATUS_ACTIONS.clear()
 })
 
 describe('useBackendSetupStatus', () => {
@@ -22,7 +25,7 @@ describe('useBackendSetupStatus', () => {
         return mockUnsubscribe
       })
 
-    const { result, unmount } = renderHook(() => useBackendSetupStatus())
+    const { unmount } = renderHook(() => useBackendSetupStatus())
 
     expect(window.electronAPI.onBackendSetupStatus).toHaveBeenCalled()
 
@@ -37,13 +40,15 @@ describe('useBackendSetupStatus', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.entries.length).toBe(1)
-      expect(result.current.entries[0]).toMatchObject({
+      const { entries } = useBackendSetupStatusStore.getState()
+      const [entry] = entries
+      expect(entries.length).toBe(1)
+      expect(entry).toMatchObject({
         level: payload.level,
         message: payload.message,
         commands: payload.commands
       })
-      expect(typeof result.current.entries[0]?.timestamp).toBe('number')
+      expect(typeof entry?.timestamp).toBe('number')
     })
 
     // Unmount should unsubscribe and clear store

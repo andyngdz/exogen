@@ -12,12 +12,21 @@ describe('useDownloadWatcher', () => {
   const mockUseDownloadWatcherStore = vi.mocked(
     useDownloadWatcherStoreModule.useDownloadWatcherStore
   )
+  type StoreState = Parameters<
+    Parameters<typeof useDownloadWatcherStoreModule.useDownloadWatcherStore>[0]
+  >[0]
+  // The hook reads the store through selectors, so apply them to the fake state.
+  const mockStoreState = (state: StoreState) => {
+    mockUseDownloadWatcherStore.mockImplementation(((
+      selector: (storeState: StoreState) => unknown
+    ) => selector(state)) as typeof mockUseDownloadWatcherStore)
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
 
     // Default mock: no active download
-    mockUseDownloadWatcherStore.mockReturnValue({
+    mockStoreState({
       model_id: undefined,
       step: undefined,
       onSetModelId: vi.fn(),
@@ -29,7 +38,7 @@ describe('useDownloadWatcher', () => {
 
   describe('isDownloading', () => {
     it('returns true when watchId matches store model_id', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: undefined,
         onSetModelId: vi.fn(),
@@ -44,7 +53,7 @@ describe('useDownloadWatcher', () => {
     })
 
     it('returns false when watchId does not match store model_id', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'other-model',
         step: undefined,
         onSetModelId: vi.fn(),
@@ -67,7 +76,7 @@ describe('useDownloadWatcher', () => {
 
   describe('percent', () => {
     it('calculates percent correctly when step has valid data', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -95,7 +104,7 @@ describe('useDownloadWatcher', () => {
     })
 
     it('returns 0 when total_downloaded_size is 0', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -117,7 +126,7 @@ describe('useDownloadWatcher', () => {
     })
 
     it('calculates percent for partial downloads', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -139,7 +148,7 @@ describe('useDownloadWatcher', () => {
     })
 
     it('returns 1 when download is complete', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -163,7 +172,7 @@ describe('useDownloadWatcher', () => {
 
   describe('downloadSized', () => {
     it('returns downloaded_size when step is defined', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -193,7 +202,7 @@ describe('useDownloadWatcher', () => {
 
   describe('downloadTotalSized', () => {
     it('returns total_downloaded_size when step is defined', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -223,7 +232,7 @@ describe('useDownloadWatcher', () => {
 
   describe('currentFile', () => {
     it('returns current_file when step is defined and has current_file', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -252,7 +261,7 @@ describe('useDownloadWatcher', () => {
     })
 
     it('returns undefined when current_file is not provided', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -286,7 +295,7 @@ describe('useDownloadWatcher', () => {
         current_file: 'config.json'
       }
 
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: mockStep,
         onSetModelId: vi.fn(),
@@ -309,7 +318,7 @@ describe('useDownloadWatcher', () => {
 
   describe('integration', () => {
     it('provides all expected properties', () => {
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -347,7 +356,7 @@ describe('useDownloadWatcher', () => {
       expect(result.current.downloadSized).toBe(0)
 
       // Download starts
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',
@@ -372,7 +381,7 @@ describe('useDownloadWatcher', () => {
       expect(result.current.currentFile).toBe('model.safetensors')
 
       // Download completes
-      mockUseDownloadWatcherStore.mockReturnValue({
+      mockStoreState({
         model_id: 'test-model',
         step: {
           model_id: 'test-model',

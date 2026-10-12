@@ -1,8 +1,8 @@
-import { onboardingStepsService } from '@/features/setup-layout/services/onboarding-steps'
+import { onboardingStepsService } from '@/cores/shared/onboarding/services/onboarding-steps'
 import {
   OnboardingStep,
   OnboardingStepState
-} from '@/features/setup-layout/types'
+} from '@/cores/shared/onboarding/types'
 import clsx from 'clsx'
 import { map } from 'es-toolkit/compat'
 import { Check, X } from 'lucide-react'

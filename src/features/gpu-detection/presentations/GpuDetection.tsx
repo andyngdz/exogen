@@ -1,75 +1,43 @@
 'use client'
 
-import {
-  MemoryScaleFactorItems,
-  MemoryScaleFactorPreview
-} from '@/cores/presentations/memory-scale-factor'
-import { useHardwareStep } from '@/features/gpu-detection/states/useHardwareStep'
-import { OnboardingLayout } from '@/features/setup-layout/presentations/OnboardingLayout'
-import { OnboardingStep } from '@/features/setup-layout/types'
-import { Button, Card, Spinner } from '@heroui/react'
-import { ArrowRight, ChevronLeft } from 'lucide-react'
+import { OnboardingLayout } from '@/cores/shared/onboarding/presentations/OnboardingLayout'
+import { OnboardingStep } from '@/cores/shared/onboarding/types'
+import { useGpuDetection } from '@/features/gpu-detection/states/useGpuDetection'
+import { Card, Spinner } from '@heroui/react'
 import { FormProvider } from 'react-hook-form'
+import { GpuDetectionBackButton } from './GpuDetectionBackButton'
+import { GpuDetectionContinueButton } from './GpuDetectionContinueButton'
 import { GpuDetectionCpuModeOnly } from './GpuDetectionCpuModeOnly'
+import { GpuDetectionMemory } from './GpuDetectionMemory'
 import { HardwareGpuCard } from './HardwareGpuCard'
 
 /** Onboarding step 2, per frame 2f: the GPU and the memory limits on one screen. */
 export const GpuDetection = () => {
-  const step = useHardwareStep()
+  const { form, isDetecting, hasGpuCard, isCpuOnly } = useGpuDetection()
 
   return (
-    <FormProvider {...step.gpuForm}>
+    <FormProvider {...form}>
       <OnboardingLayout
         step={OnboardingStep.HARDWARE}
         title="Your hardware"
         description="Pick how much memory models may use. You can change this later in Settings."
         footer={
           <>
-            <Button variant="ghost" onPress={step.onBack}>
-              <ChevronLeft size={16} />
-              Back
-            </Button>
-            <Button
-              variant="primary"
-              isDisabled={step.isContinueDisabled}
-              onPress={step.onContinue}
-            >
-              Continue
-              <ArrowRight size={16} />
-            </Button>
+            <GpuDetectionBackButton />
+            <GpuDetectionContinueButton />
           </>
         }
       >
-        {!step.hardware && <Spinner aria-label="Detecting hardware" />}
-        {step.selectedGpu && step.hardware?.is_cuda && (
-          <HardwareGpuCard
-            hardware={step.hardware}
-            gpu={step.selectedGpu}
-            hasManyGpus={step.hasManyGpus}
-          />
-        )}
-        {step.hardware && !step.hardware.is_cuda && (
+        {isDetecting && <Spinner aria-label="Detecting hardware" />}
+        {hasGpuCard && <HardwareGpuCard />}
+        {isCpuOnly && (
           <Card>
             <Card.Content>
-              <GpuDetectionCpuModeOnly onCheckAgain={step.onCheckAgain} />
+              <GpuDetectionCpuModeOnly />
             </Card.Content>
           </Card>
         )}
-        <Card>
-          <Card.Content className="flex flex-col gap-4">
-            <h2 className="font-semibold">Max memory</h2>
-            <MemoryScaleFactorItems
-              gpuScaleFactor={step.memory.gpuScaleFactor}
-              ramScaleFactor={step.memory.ramScaleFactor}
-              onGpuChange={step.memory.onGpuChange}
-              onRamChange={step.memory.onRamChange}
-            />
-            <MemoryScaleFactorPreview
-              gpuScaleFactor={step.memory.gpuScaleFactor}
-              ramScaleFactor={step.memory.ramScaleFactor}
-            />
-          </Card.Content>
-        </Card>
+        <GpuDetectionMemory />
       </OnboardingLayout>
     </FormProvider>
   )
