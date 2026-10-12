@@ -1,9 +1,9 @@
 import { Separator } from '@heroui/react'
-import { FC, PropsWithChildren } from 'react'
+import { FC, PropsWithChildren, ReactNode } from 'react'
 
 export interface SettingsBaseProps {
   title: string
-  description: string
+  description: ReactNode
 }
 
 export const SettingsBase: FC<PropsWithChildren<SettingsBaseProps>> = ({

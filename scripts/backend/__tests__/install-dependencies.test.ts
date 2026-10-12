@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { installDependencies } from '../install-dependencies'
 import { BackendStatusLevel } from '@types'
+import { OfflineError } from '../network'
 import * as utilsModule from '../utils'
 
 // Mock dependencies
@@ -9,6 +10,15 @@ vi.mock('zx', () => ({
   usePowerShell: vi.fn()
 }))
 vi.mock('../utils')
+
+const { mockIsOnline } = vi.hoisted(() => ({
+  mockIsOnline: vi.fn<() => Promise<boolean>>()
+}))
+
+vi.mock('../network', async () => {
+  const actual = await vi.importActual('../network')
+  return { ...actual, isOnline: mockIsOnline }
+})
 
 // Get references to mocked functions
 import { $ } from 'zx'
@@ -27,6 +37,7 @@ describe('installDependencies', () => {
 
     // Setup default successful mocks
     mock$.mockResolvedValue({})
+    mockIsOnline.mockResolvedValue(true)
     mockNormalizeError.mockImplementation((error, defaultMessage) =>
       error instanceof Error ? error : new Error(defaultMessage)
     )
@@ -221,5 +232,19 @@ describe('installDependencies', () => {
 
       expect(mockEmit).toHaveBeenCalledTimes(2)
     })
+  })
+
+  it('throws OfflineError without an error message when uv sync fails offline', async () => {
+    mock$.mockRejectedValue(new Error('Failed to download Python'))
+    mockIsOnline.mockResolvedValue(false)
+
+    await expect(
+      installDependencies({ backendPath: mockBackendPath, emit: mockEmit })
+    ).rejects.toBeInstanceOf(OfflineError)
+
+    expect(mockEmit).toHaveBeenCalledTimes(1)
+    expect(mockEmit).not.toHaveBeenCalledWith(
+      expect.objectContaining({ level: BackendStatusLevel.Error })
+    )
   })
 })

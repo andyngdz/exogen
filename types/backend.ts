@@ -2,7 +2,9 @@
 
 export enum BackendStatusLevel {
   Info = 'info',
-  Error = 'error'
+  Error = 'error',
+  /** Setup paused because a download needs an internet connection. */
+  Offline = 'offline'
 }
 
 export interface BackendStatusCommand {

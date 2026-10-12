@@ -1,23 +1,19 @@
+'use client'
+
 import { hardwareStepService } from '@/features/gpu-detection/services/hardware-step'
-import { GpuInfo, HardwareResponse } from '@/types'
+import { useSelectedGpu } from '@/features/gpu-detection/states/useSelectedGpu'
 import { Card, Chip } from '@heroui/react'
 import { map } from 'es-toolkit/compat'
 import { Check, Cpu } from 'lucide-react'
-import { FC } from 'react'
 import { GpuDetectionItems } from './GpuDetectionItems'
 
-interface HardwareGpuCardProps {
-  hardware: HardwareResponse
-  gpu: GpuInfo
-  hasManyGpus: boolean
-}
-
 /** The GPU ExoGen will use, with its CUDA facts; a picker when there is more than one. */
-export const HardwareGpuCard: FC<HardwareGpuCardProps> = ({
-  hardware,
-  gpu,
-  hasManyGpus
-}) => {
+export const HardwareGpuCard = () => {
+  const { hardware, gpu, hasManyGpus } = useSelectedGpu()
+
+  // GpuDetection mounts this card only once the picked GPU exists.
+  if (!hardware || !gpu) return
+
   return (
     <Card>
       <Card.Content className="flex flex-col gap-4">
@@ -31,7 +27,7 @@ export const HardwareGpuCard: FC<HardwareGpuCardProps> = ({
             CUDA ready
           </Chip>
         </div>
-        {hasManyGpus && <GpuDetectionItems gpus={hardware.gpus} />}
+        {hasManyGpus && <GpuDetectionItems />}
         <div className="flex flex-wrap gap-2">
           {map(hardwareStepService.toSpecs(hardware, gpu), (spec) => (
             <Card

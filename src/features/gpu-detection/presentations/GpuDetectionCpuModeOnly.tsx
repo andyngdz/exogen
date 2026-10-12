@@ -1,13 +1,13 @@
+'use client'
+
+import { useHardwareQuery } from '@/cores/api-queries'
 import { Button } from '@heroui/react'
-import { FC } from 'react'
 
-export interface GpuDetectionCpuModeOnlyProps {
-  onCheckAgain: VoidFunction
-}
+/** No CUDA GPU found: ExoGen runs on the CPU, and the hardware can be checked again. */
+export const GpuDetectionCpuModeOnly = () => {
+  const { refetch } = useHardwareQuery()
+  const onCheckAgain = () => void refetch()
 
-export const GpuDetectionCpuModeOnly: FC<GpuDetectionCpuModeOnlyProps> = ({
-  onCheckAgain
-}) => {
   return (
     <div className="rounded-md">
       <div className="flex flex-col items-center justify-center gap-4">

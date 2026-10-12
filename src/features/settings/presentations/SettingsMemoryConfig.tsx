@@ -3,7 +3,7 @@
 import {
   MemoryScaleFactorItems,
   MemoryScaleFactorPreview
-} from '@/cores/presentations/memory-scale-factor'
+} from '@/cores/shared/memory-scale-factor'
 import { useSettingsMemory } from '@/features/settings/states/useSettingsMemory'
 import { Separator } from '@heroui/react'
 import { SettingsBase } from './SettingsBase'

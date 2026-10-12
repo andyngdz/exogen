@@ -2,8 +2,11 @@
 
 import ExoGenLogo from '@/assets/logo.png'
 import { AppStatusBar } from '@/features/app-shell/presentations/AppStatusBar'
-import { useOnboardingLayout } from '@/features/setup-layout/states/useOnboardingLayout'
-import { OnboardingStep, OnboardingWidth } from '@/features/setup-layout/types'
+import { useOnboardingLayout } from '@/cores/shared/onboarding/states/useOnboardingLayout'
+import {
+  OnboardingStep,
+  OnboardingWidth
+} from '@/cores/shared/onboarding/types'
 import clsx from 'clsx'
 import NextImage from 'next/image'
 import { FC, ReactNode } from 'react'

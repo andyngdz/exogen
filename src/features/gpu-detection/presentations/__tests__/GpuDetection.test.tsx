@@ -1,5 +1,5 @@
-import { useHardwareQuery } from '@/cores/api-queries'
-import { useMaxMemoryScaleFactorForm } from '@/features/max-memory-scale-factor/states/useMaxMemoryScaleFactorForm'
+import { useHardwareQuery, useMaxMemoryMutation } from '@/cores/api-queries'
+import { MAX_MEMORY_FORM_DEFAULTS } from '@/features/max-memory-scale-factor/constants'
 import { api } from '@/services'
 import { BackendConfig, HardwareResponse } from '@/types'
 import { toast } from '@heroui/react'
@@ -9,16 +9,21 @@ import { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GpuDetection } from '../GpuDetection'
 
-vi.mock('@/cores/api-queries', () => ({ useHardwareQuery: vi.fn() }))
+const mockPush = vi.fn()
+const setMaxMemory = vi.fn()
+
+vi.mock('@/cores/api-queries', () => ({
+  useHardwareQuery: vi.fn(),
+  useMaxMemoryMutation: vi.fn()
+}))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, back: vi.fn() })
+}))
 vi.mock('@/services', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services')>()),
   api: { selectDevice: vi.fn() }
 }))
-vi.mock(
-  '@/features/max-memory-scale-factor/states/useMaxMemoryScaleFactorForm',
-  () => ({ useMaxMemoryScaleFactorForm: vi.fn() })
-)
-vi.mock('@/cores/presentations/memory-scale-factor', () => ({
+vi.mock('@/cores/shared/memory-scale-factor', () => ({
   MemoryScaleFactorItems: () => <div>Memory sliders</div>,
   MemoryScaleFactorPreview: () => <div>Memory preview</div>
 }))
@@ -26,7 +31,7 @@ vi.mock('@heroui/react', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@heroui/react')>()),
   toast: { danger: vi.fn() }
 }))
-vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+vi.mock('@/cores/shared/onboarding/presentations/OnboardingLayout', () => ({
   OnboardingLayout: ({
     title,
     children,
@@ -43,8 +48,6 @@ vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
     </div>
   )
 }))
-
-const onNext = vi.fn()
 
 const hardware = (overrides: Partial<HardwareResponse> = {}) =>
   ({
@@ -74,14 +77,13 @@ const renderStep = (data: HardwareResponse) => {
 describe('GpuDetection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useMaxMemoryScaleFactorForm).mockReturnValue({
-      gpuScaleFactor: 0.6,
-      ramScaleFactor: 0.5,
-      onGpuChange: vi.fn(),
-      onRamChange: vi.fn(),
-      onNext,
-      onBack: vi.fn()
-    })
+    vi.mocked(useMaxMemoryMutation).mockReturnValue({
+      mutate: setMaxMemory
+    } as unknown as ReturnType<typeof useMaxMemoryMutation>)
+    setMaxMemory.mockImplementation(
+      (_limits: unknown, options: { onSuccess: VoidFunction }) =>
+        options.onSuccess()
+    )
   })
 
   it('shows the GPU, its CUDA facts and the memory limits', () => {
@@ -101,9 +103,13 @@ describe('GpuDetection', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
     await waitFor(() => {
-      expect(onNext).toHaveBeenCalled()
+      expect(mockPush).toHaveBeenCalledWith('/model-recommendations')
     })
     expect(api.selectDevice).toHaveBeenCalledWith({ device_index: 0 })
+    expect(setMaxMemory).toHaveBeenCalledWith(
+      MAX_MEMORY_FORM_DEFAULTS,
+      expect.anything()
+    )
   })
 
   it('stays here and says why when the GPU is not saved', async () => {
@@ -118,7 +124,7 @@ describe('GpuDetection', () => {
         description: 'Device busy'
       })
     })
-    expect(onNext).not.toHaveBeenCalled()
+    expect(setMaxMemory).not.toHaveBeenCalled()
   })
 
   it('falls back to CPU mode without CUDA', () => {

@@ -1,33 +1,35 @@
 'use client'
 
+import { modelStepService } from '@/features/model-recommendations/services/model-step'
 import { ValueChanged } from '@/types'
-import { find, first, isEmpty, map } from 'es-toolkit/compat'
-import { useState } from 'react'
-import type { Key, Selection } from 'react-aria-components'
+import { first, isEmpty, map } from 'es-toolkit/compat'
+import { useEffect } from 'react'
+import type { Selection } from 'react-aria-components'
+import { useShallow } from 'zustand/react/shallow'
 import { useModelRecommendation } from './useModelRecommendation'
+import { MODEL_STEP_ACTIONS, useModelStepStore } from './useModelStepStore'
 
 /** The Model step: one section of recommendations at a time, one model picked to download. */
 export const useModelStep = () => {
   const { data, isDownloading, onSkip, onBack } = useModelRecommendation()
-  const [pickedSectionId, setPickedSectionId] = useState<Key>()
-  const [pickedModelId, setPickedModelId] = useState<string>()
+  const picks = useModelStepStore(
+    useShallow((state) => ({
+      pickedSectionId: state.pickedSectionId,
+      pickedModelId: state.pickedModelId
+    }))
+  )
+  const { sections, section, models, model } = modelStepService.toSelection(
+    picks,
+    data
+  )
 
-  const sections = data?.sections ?? []
-  const section =
-    find(sections, (option) => option.id === pickedSectionId) ??
-    find(sections, (option) => option.id === data?.default_section) ??
-    first(sections)
-  const models = section?.models ?? []
-  // Keep the pick only while it is in the shown section; otherwise use the backend's pick.
-  const model =
-    find(models, (option) => option.id === pickedModelId) ??
-    find(models, (option) => option.id === data?.default_selected_id) ??
-    find(models, (option) => option.is_recommended) ??
-    first(models)
+  // Start the next visit from the backend's defaults again.
+  useEffect(() => MODEL_STEP_ACTIONS.reset, [])
 
   const onSectionChange: ValueChanged<Selection> = (selection) => {
     if (selection === 'all') return
-    setPickedSectionId(first(Array.from(selection)))
+    const sectionId = first(Array.from(selection))
+    if (sectionId) MODEL_STEP_ACTIONS.pickSection(sectionId)
   }
 
   return {
@@ -40,7 +42,7 @@ export const useModelStep = () => {
     hasNoModels: Boolean(data) && isEmpty(models),
     isDownloading,
     onSectionChange,
-    onModelChange: setPickedModelId,
+    onModelChange: MODEL_STEP_ACTIONS.pickModel,
     onSkip,
     onBack
   }

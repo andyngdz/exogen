@@ -1,17 +1,14 @@
-import { BackendStatusCommand } from '@types'
+'use client'
+
+import { useBackendStepCommands } from '@/features/health-check/states/useBackendStepCommands'
 import { Card } from '@heroui/react'
 import { map } from 'es-toolkit/compat'
-import { FC } from 'react'
 import { SuggestedCommandSnippet } from './SuggestedCommandSnippet'
 
-interface BackendStepCommandsProps {
-  commands: BackendStatusCommand[]
-}
-
 /** The commands the failed setup suggests, each with a copy button. */
-export const BackendStepCommands: FC<BackendStepCommandsProps> = ({
-  commands
-}) => {
+export const BackendStepCommands = () => {
+  const commands = useBackendStepCommands()
+
   return (
     <Card>
       <Card.Content className="flex flex-col gap-4">

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { installDependencies } from '../install-dependencies'
 import { installUv } from '../install-uv'
+import { OfflineError } from '../network'
 import { runBackend } from '../run-backend'
 import { setupVenv } from '../setup-venv'
 import { syncBackend } from '../sync-backend'
@@ -97,6 +98,21 @@ describe('startBackend', () => {
     })
 
     // Verify subsequent steps are not called
+    expect(vi.mocked(syncBackend)).not.toHaveBeenCalled()
+  })
+
+  it('reports offline instead of an error when uv cannot download', async () => {
+    vi.mocked(installUv).mockRejectedValue(new OfflineError())
+
+    await startBackend(mockOptions)
+
+    expect(mockEmit).toHaveBeenCalledWith({
+      level: BackendStatusLevel.Offline,
+      message: 'No internet connection.'
+    })
+    expect(mockEmit).not.toHaveBeenCalledWith(
+      expect.objectContaining({ level: BackendStatusLevel.Error })
+    )
     expect(vi.mocked(syncBackend)).not.toHaveBeenCalled()
   })
 

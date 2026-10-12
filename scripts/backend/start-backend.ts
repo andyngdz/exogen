@@ -3,6 +3,7 @@ import * as path from 'node:path'
 import { BACKEND_DIRNAME } from './constants'
 import { installDependencies } from './install-dependencies'
 import { installUv } from './install-uv'
+import { OfflineError } from './network'
 import { runBackend } from './run-backend'
 import { setupVenv } from './setup-venv'
 import { syncBackend } from './sync-backend'
@@ -46,6 +47,14 @@ const startBackend = async ({
     // Step 5: Run the ExoGen Backend with uv run uvicorn
     await runBackend({ backendPath, emit })
   } catch (error) {
+    if (error instanceof OfflineError) {
+      emit({
+        level: BackendStatusLevel.Offline,
+        message: 'No internet connection.'
+      })
+      return
+    }
+
     const normalizedError = normalizeError(error, 'Unknown error')
 
     emit({

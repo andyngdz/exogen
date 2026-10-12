@@ -4,6 +4,7 @@ import {
   BackendStatusLevel,
   BackendStatusCommand
 } from '@types'
+import { isOnline, OfflineError } from './network'
 import { normalizeError } from './utils'
 
 export interface InstallDependenciesOptions {
@@ -34,6 +35,11 @@ const installDependencies = async ({
       message: 'Dependencies installed successfully'
     })
   } catch (error) {
+    // uv sync downloads Python and the wheels on a first run.
+    if (!(await isOnline())) {
+      throw new OfflineError()
+    }
+
     const commands: BackendStatusCommand[] = [
       {
         label: 'Install dependencies manually',

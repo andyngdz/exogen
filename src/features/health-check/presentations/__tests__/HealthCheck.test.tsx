@@ -1,18 +1,35 @@
-import { useBackendSetupStatusStore } from '@/features/health-check/states/useBackendSetupStatusStore'
+import {
+  BACKEND_SETUP_STATUS_ACTIONS,
+  useBackendSetupStatusStore
+} from '@/features/health-check/states/useBackendSetupStatusStore'
 import { BackendStatusLevel } from '@types'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HealthCheck } from '../HealthCheck'
-import { useHealthCheck } from '../../states/useHealthCheck'
+import { useBackendHealth } from '../../states/useBackendHealth'
+
+const mockPush = vi.fn()
 
 vi.mock('../../states/useHealthCheck', () => ({ useHealthCheck: vi.fn() }))
-vi.mock('@/features/backend-logs', () => ({
-  BackendLogDrawer: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen && <div>Log drawer</div>
+vi.mock('../../states/useBackendHealth', () => ({ useBackendHealth: vi.fn() }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }))
+vi.mock('@/cores/hooks', () => ({
+  useConfig: () => ({ isHasDevice: false })
 }))
-vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+vi.mock('@/features/backend-logs', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/backend-logs')>()
+  return {
+    ...actual,
+    BackendLogDrawer: () =>
+      actual.useBackendLogDrawerStore((state) => state.isOpen) && (
+        <div>Log drawer</div>
+      )
+  }
+})
+vi.mock('@/cores/shared/onboarding/presentations/OnboardingLayout', () => ({
   OnboardingLayout: ({
     title,
     isStepFailed,
@@ -33,15 +50,13 @@ vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
   )
 }))
 
-const onContinue = vi.fn()
-
 const renderStep = (isHealthy = false) => {
-  vi.mocked(useHealthCheck).mockReturnValue({ isHealthy, onContinue })
+  vi.mocked(useBackendHealth).mockReturnValue({ isHealthy })
   return render(<HealthCheck />)
 }
 
 const addEntry = (level: BackendStatusLevel, message: string, commands = []) =>
-  useBackendSetupStatusStore.getState().addEntry({ level, message, commands })
+  BACKEND_SETUP_STATUS_ACTIONS.addEntry({ level, message, commands })
 
 describe('HealthCheck', () => {
   beforeEach(() => {
@@ -67,13 +82,13 @@ describe('HealthCheck', () => {
 
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
-    expect(onContinue).toHaveBeenCalled()
+    expect(mockPush).toHaveBeenCalledWith('/gpu-detection')
   })
 
   it('shows the failure, the suggested command and retries the setup', async () => {
     const user = userEvent.setup()
     addEntry(BackendStatusLevel.Info, 'Python 3.11.9 detected.')
-    useBackendSetupStatusStore.getState().addEntry({
+    BACKEND_SETUP_STATUS_ACTIONS.addEntry({
       level: BackendStatusLevel.Error,
       message: 'Backend setup failed: uv installer exited with code 1',
       commands: [
@@ -96,6 +111,27 @@ describe('HealthCheck', () => {
 
     expect(globalThis.window.electronAPI.backend.retrySetup).toHaveBeenCalled()
     expect(useBackendSetupStatusStore.getState().entries).toEqual([])
+  })
+
+  it('pauses for an internet connection without any failure wording', async () => {
+    const user = userEvent.setup()
+    addEntry(BackendStatusLevel.Info, 'Installing uv…')
+    addEntry(BackendStatusLevel.Offline, 'No internet connection.')
+    const { container } = renderStep()
+
+    expect(
+      screen.getByText('Connect to the internet to finish setup')
+    ).toBeInTheDocument()
+    expect(screen.getByText('step ok')).toBeInTheDocument()
+    expect(screen.getByLabelText('Offline')).toBeInTheDocument()
+    // The AppImage catalog test reads the screen and flags these words.
+    expect(container.textContent).not.toMatch(
+      /error|fail|could not|cannot|unable to|not found|not installed/i
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(globalThis.window.electronAPI.backend.retrySetup).toHaveBeenCalled()
   })
 
   it('opens the logs', async () => {
