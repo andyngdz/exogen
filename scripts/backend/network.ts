@@ -13,7 +13,8 @@ class OfflineError extends Error {
 }
 
 /**
- * Resolves true when a TCP connection to the uv download host opens.
+ * Resolves true when a TCP connection to the uv download host opens, the
+ * probe for whether setup's downloads can reach the internet.
  * A DNS lookup alone is not enough: a local resolver cache answers offline.
  */
 const isOnline = () =>
