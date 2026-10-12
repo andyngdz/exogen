@@ -1,5 +1,8 @@
 import { BackendSetupStatusEntry } from '@/features/health-check/states/useBackendSetupStatusStore'
-import { BackendStepRowState } from '@/features/health-check/types'
+import {
+  BackendStepPhase,
+  BackendStepRowState
+} from '@/features/health-check/types'
 import { BackendStatusLevel } from '@types'
 import { map } from 'es-toolkit/compat'
 import { describe, expect, it } from 'vitest'
@@ -41,10 +44,29 @@ describe('backendStepService', () => {
       entry('uv', BackendStatusLevel.Error, [command])
     ]
 
-    expect(backendStepService.isFailed(entries)).toBe(true)
+    expect(backendStepService.toPhase(entries)).toBe(BackendStepPhase.FAILED)
     expect(backendStepService.toRows(entries, false)[1].state).toBe(
       BackendStepRowState.FAILED
     )
     expect(backendStepService.toCommands(entries)).toEqual([command])
+  })
+
+  it('pauses offline on a newest offline message, without failing', () => {
+    const entries = [
+      entry('uv', BackendStatusLevel.Info),
+      entry('offline', BackendStatusLevel.Offline)
+    ]
+
+    expect(backendStepService.toPhase(entries)).toBe(BackendStepPhase.OFFLINE)
+    expect(map(backendStepService.toRows(entries, false), 'state')).toEqual([
+      BackendStepRowState.DONE,
+      BackendStepRowState.OFFLINE
+    ])
+  })
+
+  it('keeps running while the newest message is info', () => {
+    expect(
+      backendStepService.toPhase([entry('uv', BackendStatusLevel.Info)])
+    ).toBe(BackendStepPhase.RUNNING)
   })
 })

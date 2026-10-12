@@ -98,6 +98,27 @@ describe('HealthCheck', () => {
     expect(useBackendSetupStatusStore.getState().entries).toEqual([])
   })
 
+  it('pauses for an internet connection without any failure wording', async () => {
+    const user = userEvent.setup()
+    addEntry(BackendStatusLevel.Info, 'Installing uv…')
+    addEntry(BackendStatusLevel.Offline, 'No internet connection.')
+    const { container } = renderStep()
+
+    expect(
+      screen.getByText('Connect to the internet to finish setup')
+    ).toBeInTheDocument()
+    expect(screen.getByText('step ok')).toBeInTheDocument()
+    expect(screen.getByLabelText('Offline')).toBeInTheDocument()
+    // The AppImage catalog test reads the screen and flags these words.
+    expect(container.textContent).not.toMatch(
+      /error|fail|could not|cannot|unable to|not found|not installed/i
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(globalThis.window.electronAPI.backend.retrySetup).toHaveBeenCalled()
+  })
+
   it('opens the logs', async () => {
     const user = userEvent.setup()
     renderStep()

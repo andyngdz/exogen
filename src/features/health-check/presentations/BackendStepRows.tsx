@@ -5,7 +5,7 @@ import {
 import { Card, Spinner } from '@heroui/react'
 import clsx from 'clsx'
 import { isEmpty, map } from 'es-toolkit/compat'
-import { CircleCheck, CircleX } from 'lucide-react'
+import { CircleCheck, CircleX, WifiOff } from 'lucide-react'
 import { FC } from 'react'
 
 interface BackendStepRowsProps {
@@ -39,6 +39,13 @@ export const BackendStepRows: FC<BackendStepRowsProps> = ({ rows }) => {
             )}
             {row.state === BackendStepRowState.RUNNING && (
               <Spinner size="sm" color="warning" aria-label="Running" />
+            )}
+            {row.state === BackendStepRowState.OFFLINE && (
+              <WifiOff
+                size={16}
+                className="shrink-0 text-warning"
+                aria-label="Offline"
+              />
             )}
             {row.state === BackendStepRowState.FAILED && (
               <CircleX

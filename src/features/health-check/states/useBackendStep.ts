@@ -6,14 +6,14 @@ import { useBackendSetupStatus } from './useBackendSetupStatus'
 import { useBackendSetupStatusStore } from './useBackendSetupStatusStore'
 import { useHealthCheck } from './useHealthCheck'
 
-/** The Backend setup step: progress rows, failure, suggested commands, retry, logs. */
+/** The Backend setup step: progress rows, phase, suggested commands, retry, logs. */
 export const useBackendStep = () => {
   const { entries } = useBackendSetupStatus()
   const clearEntries = useBackendSetupStatusStore((state) => state.clear)
   const { isHealthy, onContinue } = useHealthCheck()
   const logsDrawer = useOverlayState()
 
-  const isFailed = backendStepService.isFailed(entries)
+  const phase = backendStepService.toPhase(entries)
 
   const onRetry = async () => {
     clearEntries()
@@ -23,7 +23,7 @@ export const useBackendStep = () => {
   return {
     rows: backendStepService.toRows(entries, isHealthy),
     commands: backendStepService.toCommands(entries),
-    isFailed,
+    phase,
     isHealthy,
     logsDrawer,
     onContinue,
