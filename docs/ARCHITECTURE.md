@@ -23,6 +23,7 @@ src/features/       # Feature modules
 src/cores/sockets/  # Socket.io infrastructure (reactive pattern with Zustand)
 src/cores/          # Shared utilities, hooks, components
 electron/           # Main process + preload
-scripts/            # Build scripts (Python backend, Electron compile)
+scripts/            # Build scripts (backend setup and sync, Electron compile)
+backend/            # Python FastAPI backend (uv), bundled into the app and run as its own process
 types/              # Shared TypeScript types
 ```

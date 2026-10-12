@@ -1,53 +1,43 @@
+import { ValueChanged } from '@/types'
+import { find } from 'es-toolkit/compat'
 import { useCallback, useState } from 'react'
-
-import { imageInputService } from '../services'
-
-export type ImageDropzoneDragEvent = {
-  preventDefault: VoidFunction
-}
-
-export type ImageDropzoneDropEvent = {
-  preventDefault: VoidFunction
-  dataTransfer: {
-    files: ArrayLike<File>
-  }
-}
+import { isFileDropItem } from 'react-aria'
+import type { DropZoneProps, FileDropItem } from 'react-aria-components'
 
 interface UseImageDropzoneParams {
-  onFile: (file: File) => Promise<void>
+  onFile: ValueChanged<File, Promise<void>>
 }
 
+/** Tracks the drag-over state of a React Aria DropZone and hands the first dropped file to onFile. */
 export const useImageDropzone = ({ onFile }: UseImageDropzoneParams) => {
   const [isDragActive, setIsDragActive] = useState(false)
 
-  const onDragActivate = useCallback((event: ImageDropzoneDragEvent) => {
-    event.preventDefault()
+  const onDropEnter = useCallback(() => {
     setIsDragActive(true)
   }, [])
 
-  const onDragDeactivate = useCallback((event: ImageDropzoneDragEvent) => {
-    event.preventDefault()
+  const onDropExit = useCallback(() => {
     setIsDragActive(false)
   }, [])
 
-  const onDrop = useCallback(
-    async (event: ImageDropzoneDropEvent) => {
-      event.preventDefault()
-      setIsDragActive(false)
-
-      const file = imageInputService.firstFile(event.dataTransfer.files)
-      if (!file) return
-
-      await onFile(file)
+  const readDroppedFile = useCallback(
+    async (fileItem: FileDropItem) => {
+      await onFile(await fileItem.getFile())
     },
     [onFile]
   )
 
-  return {
-    isDragActive,
-    onDrop,
-    onDragEnter: onDragActivate,
-    onDragOver: onDragActivate,
-    onDragLeave: onDragDeactivate
-  }
+  const onDrop: NonNullable<DropZoneProps['onDrop']> = useCallback(
+    (event) => {
+      setIsDragActive(false)
+
+      const fileItem = find(event.items, isFileDropItem)
+      if (!fileItem) return
+
+      void readDroppedFile(fileItem)
+    },
+    [readDroppedFile]
+  )
+
+  return { isDragActive, onDropEnter, onDropExit, onDrop }
 }

@@ -4,8 +4,11 @@ import { Image2ImageResizeMode } from '@/types'
 import { generatorConfigFormDefaults } from '@/cores/test-utils'
 
 // Mock axios
-vi.mock('axios', () => {
+vi.mock('axios', async (importOriginal) => {
+  const { HttpStatusCode } = await importOriginal<typeof import('axios')>()
+
   return {
+    HttpStatusCode,
     default: {
       create: () => ({
         get: vi.fn(),
@@ -298,6 +301,14 @@ describe('API Service', () => {
 
       expect(client.post).toHaveBeenCalledWith('/models/load', request)
       expect(result).toEqual(mockResponse)
+    })
+
+    it('returns undefined when the backend skips a duplicate load', async () => {
+      vi.spyOn(client, 'post').mockResolvedValueOnce({ data: '', status: 204 })
+
+      const result = await api.loadModel({ model_id: 'model1' })
+
+      expect(result).toBeUndefined()
     })
   })
 
@@ -686,19 +697,6 @@ describe('API Service', () => {
       expect(client.post).toHaveBeenCalledWith('/loras/upload', {
         file_path: filePath
       })
-      expect(result).toEqual(mockResponse)
-    })
-  })
-
-  describe('deleteLora', () => {
-    it('deletes a LoRA by id', async () => {
-      const loraId = 3
-      const mockResponse = { id: loraId, message: 'LoRA deleted successfully' }
-      vi.spyOn(client, 'delete').mockResolvedValueOnce({ data: mockResponse })
-
-      const result = await api.deleteLora(loraId)
-
-      expect(client.delete).toHaveBeenCalledWith(`/loras/${loraId}`)
       expect(result).toEqual(mockResponse)
     })
   })

@@ -1,6 +1,6 @@
+import { SettingFormValues } from '@/features/settings/types'
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { SettingFormValues } from '../types'
 
 export enum SettingsTab {
   GENERAL = 'general',
@@ -9,39 +9,33 @@ export enum SettingsTab {
   UPDATES = 'updates'
 }
 
-interface UseSettingsStore {
+const SETTINGS_STORAGE_KEY = 'app-config'
+
+export interface SettingsState {
   values: SettingFormValues
-  setValues: (values: SettingFormValues) => void
-  reset: () => void
-  isModalOpen: boolean
   selectedTab: SettingsTab
-  openModal: (tab?: SettingsTab) => void
-  closeModal: VoidFunction
-  setSelectedTab: (tab: SettingsTab) => void
 }
 
-const useSettingsStore = create<UseSettingsStore>()(
+const INITIAL_SETTINGS: SettingsState = {
+  values: { safety_check_enabled: true },
+  selectedTab: SettingsTab.GENERAL
+}
+
+const useSettingsStore = create<SettingsState>()(
   devtools(
-    persist(
-      (set, _get, state) => ({
-        values: {
-          safety_check_enabled: true
-        },
-        setValues: (values) => set({ values }),
-        reset: () => set(state.getInitialState()),
-        isModalOpen: false,
-        selectedTab: SettingsTab.GENERAL,
-        openModal: (tab = SettingsTab.GENERAL) =>
-          set({ isModalOpen: true, selectedTab: tab }),
-        closeModal: () => set({ isModalOpen: false }),
-        setSelectedTab: (tab) => set({ selectedTab: tab })
-      }),
-      {
-        name: 'app-config',
-        partialize: (state) => ({ values: state.values })
-      }
-    )
+    persist(() => INITIAL_SETTINGS, {
+      name: SETTINGS_STORAGE_KEY,
+      partialize: (state) => ({ values: state.values })
+    })
   )
 )
 
-export { useSettingsStore }
+const SETTINGS_ACTIONS = {
+  setValues: (values: SettingFormValues) =>
+    useSettingsStore.setState({ values }),
+  setSelectedTab: (selectedTab: SettingsTab) =>
+    useSettingsStore.setState({ selectedTab }),
+  reset: () => useSettingsStore.setState(useSettingsStore.getInitialState())
+}
+
+export { SETTINGS_ACTIONS, useSettingsStore }

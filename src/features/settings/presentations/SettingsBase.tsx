@@ -1,4 +1,4 @@
-import { Divider } from '@heroui/react'
+import { Separator } from '@heroui/react'
 import { FC, PropsWithChildren } from 'react'
 
 export interface SettingsBaseProps {
@@ -15,9 +15,9 @@ export const SettingsBase: FC<PropsWithChildren<SettingsBaseProps>> = ({
     <div className="flex flex-col gap-6">
       <div>
         <h3 className="text-lg font-semibold">{title}</h3>
-        <p className="text-sm text-default-500">{description}</p>
+        <p className="text-sm text-muted">{description}</p>
       </div>
-      <Divider />
+      <Separator />
       {children}
     </div>
   )

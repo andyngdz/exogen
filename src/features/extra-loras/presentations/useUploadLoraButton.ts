@@ -1,42 +1,42 @@
 'use client'
 
 import { useUploadLoraMutation } from '@/cores/api-queries'
-import { addToast } from '@heroui/react'
+import { apiErrorService } from '@/services/errors'
+import { toast } from '@heroui/react'
 import { useCallback } from 'react'
+
+const LORA_FILE_FILTERS = [
+  {
+    name: 'LoRA Models',
+    extensions: ['safetensors', 'ckpt', 'pt', 'bin', 'pth']
+  }
+]
 
 export const useUploadLoraButton = () => {
   const uploadMutation = useUploadLoraMutation()
 
   const onUpload = useCallback(async () => {
-    try {
-      const filePath = await globalThis.window.electronAPI.selectFile([
-        {
-          name: 'LoRA Models',
-          extensions: ['safetensors', 'ckpt', 'pt', 'bin', 'pth']
-        }
-      ])
+    const filePath = await globalThis.window.electronAPI
+      .selectFile(LORA_FILE_FILTERS)
+      .catch((error: unknown) => {
+        toast.danger('Upload failed', {
+          description: apiErrorService.toMessage(
+            error,
+            'The file picker did not open. Try again.'
+          )
+        })
+      })
 
-      if (!filePath) {
-        return
+    if (!filePath) return
+
+    // The mutation shows its own error toast.
+    uploadMutation.mutate(filePath, {
+      onSuccess: () => {
+        toast.success('LoRA uploaded', {
+          description: 'The LoRA model was uploaded successfully.'
+        })
       }
-
-      await uploadMutation.mutateAsync(filePath)
-
-      addToast({
-        title: 'LoRA uploaded',
-        description: 'The LoRA model was uploaded successfully.',
-        color: 'success'
-      })
-    } catch (error) {
-      addToast({
-        title: 'Upload failed',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to upload LoRA model.',
-        color: 'danger'
-      })
-    }
+    })
   }, [uploadMutation])
 
   return {

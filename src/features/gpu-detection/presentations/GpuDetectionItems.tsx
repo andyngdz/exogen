@@ -1,8 +1,8 @@
+import { useGpuSelection } from '@/features/gpu-detection/states/useGpuSelection'
 import { GpuInfo } from '@/types'
 import { Card, RadioGroup } from '@heroui/react'
+import { map } from 'es-toolkit/compat'
 import { FC, useMemo } from 'react'
-import { useFormContext } from 'react-hook-form'
-import { GpuDetectionFormProps } from '../types/gpu-detection'
 import { GpuDetectionItem } from './GpuDetectionItem'
 
 export interface GpuDetectionItemsProps {
@@ -10,20 +10,28 @@ export interface GpuDetectionItemsProps {
 }
 
 export const GpuDetectionItems: FC<GpuDetectionItemsProps> = ({ gpus }) => {
-  const { register } = useFormContext<GpuDetectionFormProps>()
-  const defaultValue = gpus.findIndex((g) => g.is_primary)
+  const { selectedValue, onSelectedValueChange } = useGpuSelection(gpus)
 
   const items = useMemo(() => {
-    return gpus.map((gpu, index) => {
-      return <GpuDetectionItem key={index} gpu={gpu} value={`${index}`} />
+    // The array position is the backend device_index, so it identifies the GPU.
+    return map(gpus, (gpu, deviceIndex) => {
+      return (
+        <GpuDetectionItem
+          key={deviceIndex}
+          gpu={gpu}
+          value={`${deviceIndex}`}
+        />
+      )
     })
   }, [gpus])
 
   return (
     <Card>
       <RadioGroup
-        defaultValue={`${defaultValue}`}
-        {...register('gpu', { required: true })}
+        aria-label="GPU"
+        name="gpu"
+        value={selectedValue}
+        onChange={onSelectedValueChange}
       >
         {items}
       </RadioGroup>

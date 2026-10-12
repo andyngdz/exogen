@@ -2,14 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createFormProviderWrapper } from '@/cores/test-utils'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ModelSearchFormValues } from '../../types'
 import { ModelSearchInput } from '../ModelSearchInput'
 
-// Mock @heroui/react Input component
-vi.mock('@heroui/react', () => ({
-  Input: vi.fn(({ ...props }) => <input data-testid="hero-input" {...props} />)
-}))
+const getSearchInput = () =>
+  screen.getByRole('textbox', { name: 'Search models' })
 
 const createWrapper = (defaultValues: ModelSearchFormValues = { query: '' }) =>
   createFormProviderWrapper<ModelSearchFormValues>({
@@ -37,34 +35,21 @@ const TestWrapperWithReset = ({ children }: { children: React.ReactNode }) => {
 }
 
 describe('ModelSearchInput', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   describe('Component Rendering', () => {
-    it('renders the Input component', () => {
+    it('renders the search input', () => {
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       expect(input).toBeInTheDocument()
     })
 
-    it('applies correct props to Input component', async () => {
-      const { Input } = await import('@heroui/react')
-
+    it('shows the search placeholder', () => {
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const callArgs = vi.mocked(Input).mock.calls[0][0]
-      expect(callArgs).toHaveProperty('placeholder', 'Model name, author, ...')
-    })
-
-    it('registers the query field with react-hook-form', async () => {
-      const { Input } = await import('@heroui/react')
-
-      render(<ModelSearchInput />, { wrapper: createWrapper() })
-
-      const callArgs = vi.mocked(Input).mock.calls[0][0]
-      expect(callArgs).toHaveProperty('name', 'query')
+      expect(getSearchInput()).toHaveAttribute(
+        'placeholder',
+        'Model name, author, ...'
+      )
     })
   })
 
@@ -74,7 +59,7 @@ describe('ModelSearchInput', () => {
         wrapper: createWrapper({ query: 'test query' })
       })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       expect(input).toHaveValue('test query')
     })
 
@@ -83,7 +68,7 @@ describe('ModelSearchInput', () => {
 
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       await user.type(input, 'new search query')
 
@@ -93,7 +78,7 @@ describe('ModelSearchInput', () => {
     it('handles empty initial value', () => {
       render(<ModelSearchInput />, { wrapper: createWrapper({ query: '' }) })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       expect(input).toHaveValue('')
     })
 
@@ -102,7 +87,7 @@ describe('ModelSearchInput', () => {
         wrapper: createWrapper({ query: 'pre-filled search' })
       })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       expect(input).toHaveValue('pre-filled search')
     })
   })
@@ -113,7 +98,7 @@ describe('ModelSearchInput', () => {
 
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       await user.type(input, 'search term')
 
@@ -127,7 +112,7 @@ describe('ModelSearchInput', () => {
         wrapper: createWrapper({ query: 'initial value' })
       })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       expect(input).toHaveValue('initial value')
 
       await user.clear(input)
@@ -142,7 +127,7 @@ describe('ModelSearchInput', () => {
         wrapper: createWrapper({ query: 'original text' })
       })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       await user.clear(input)
       await user.type(input, 'replacement text')
@@ -155,7 +140,7 @@ describe('ModelSearchInput', () => {
 
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       await user.click(input)
       expect(input).toHaveFocus()
@@ -237,7 +222,7 @@ describe('ModelSearchInput', () => {
         </TestWrapperWithState>
       )
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       const formValues = screen.getByTestId('form-values')
 
       expect(formValues).toHaveTextContent('{"query":""}')
@@ -245,31 +230,6 @@ describe('ModelSearchInput', () => {
       await user.type(input, 'test query')
 
       expect(formValues).toHaveTextContent('{"query":"test query"}')
-    })
-  })
-
-  describe('Component Props', () => {
-    it('passes all register props to Input component', async () => {
-      const { Input } = await import('@heroui/react')
-
-      render(<ModelSearchInput />, { wrapper: createWrapper() })
-
-      const callArgs = vi.mocked(Input).mock.calls[0][0]
-
-      // Should have register props like name, onChange, onBlur, ref
-      expect(callArgs).toHaveProperty('name', 'query')
-      expect(callArgs).toHaveProperty('onChange')
-      expect(callArgs).toHaveProperty('onBlur')
-      expect(callArgs).toHaveProperty('placeholder', 'Model name, author, ...')
-    })
-
-    it('maintains Input component styling', async () => {
-      const { Input } = await import('@heroui/react')
-
-      render(<ModelSearchInput />, { wrapper: createWrapper() })
-
-      const callArgs = vi.mocked(Input).mock.calls[0][0]
-      expect(callArgs).toHaveProperty('placeholder', 'Model name, author, ...')
     })
   })
 
@@ -288,7 +248,7 @@ describe('ModelSearchInput', () => {
         </TestWrapperWithReset>
       )
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
       const resetButton = screen.getByTestId('reset-button')
 
       expect(input).toHaveValue('initial')
@@ -305,7 +265,7 @@ describe('ModelSearchInput', () => {
     it('maintains input accessibility', () => {
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       expect(input).toBeVisible()
       expect(input).not.toHaveAttribute('disabled')
@@ -316,32 +276,13 @@ describe('ModelSearchInput', () => {
 
       render(<ModelSearchInput />, { wrapper: createWrapper() })
 
-      const input = screen.getByTestId('hero-input')
+      const input = getSearchInput()
 
       await user.click(input)
       expect(input).toHaveFocus()
 
       await user.tab()
       expect(input).not.toHaveFocus()
-    })
-  })
-
-  describe('Performance', () => {
-    it('does not cause unnecessary re-renders', async () => {
-      const { Input } = await import('@heroui/react')
-
-      render(<ModelSearchInput />, { wrapper: createWrapper() })
-
-      const initialCount = vi.mocked(Input).mock.calls.length
-
-      // Re-rendering the same component
-      render(<ModelSearchInput />, { wrapper: createWrapper() })
-
-      const finalCount = vi.mocked(Input).mock.calls.length
-
-      // Expect the call count to increase by at most 1 for this simple re-render
-      expect(finalCount).toBeGreaterThanOrEqual(initialCount)
-      expect(finalCount - initialCount).toBeLessThanOrEqual(2)
     })
   })
 

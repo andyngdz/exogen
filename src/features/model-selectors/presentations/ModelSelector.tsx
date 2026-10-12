@@ -1,81 +1,74 @@
 'use client'
 
-import { useDownloadedModels } from '@/cores/hooks'
-import { ModelFamily } from '@/types'
-import {
-  Button,
-  Chip,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger
-} from '@heroui/react'
-import { map } from 'es-toolkit/compat'
+import { useModelSelectorMenu } from '@/features/model-selectors/states/useModelSelectorMenu'
+import { Button, Dropdown, Spinner } from '@heroui/react'
+import clsx from 'clsx'
+import { isEmpty, map } from 'es-toolkit/compat'
 import { ChevronDown } from 'lucide-react'
 import { useMemo } from 'react'
-import { useModelSelectors, useModelSelectorStore } from '../states'
 
 export const ModelSelector = () => {
-  useModelSelectors()
-  const { downloadedModels } = useDownloadedModels()
-  const { selected_model_id, loaded_model_family, setSelectedModelId } =
-    useModelSelectorStore()
-
-  const familyLabel = useMemo(() => {
-    if (loaded_model_family === ModelFamily.UNKNOWN) return
-
-    switch (loaded_model_family) {
-      case ModelFamily.SD15:
-        return 'SD 1.5'
-      case ModelFamily.SDXL:
-        return 'SDXL'
-      case ModelFamily.SD2:
-        return 'SD 2.x'
-      case ModelFamily.SD3:
-        return 'SD3'
-      case ModelFamily.FLUX:
-        return 'FLUX'
-      default:
-        return
-    }
-  }, [loaded_model_family])
+  const {
+    downloadedModels,
+    selectedModelId,
+    familyLabel,
+    isLoading,
+    loadPercentLabel,
+    onSelectionChange
+  } = useModelSelectorMenu()
 
   const items = useMemo(() => {
-    return map(downloadedModels, (d) => {
-      return <DropdownItem key={d.model_id}>{d.model_id}</DropdownItem>
+    return map(downloadedModels, (downloadedModel) => {
+      return (
+        <Dropdown.Item
+          key={downloadedModel.model_id}
+          id={downloadedModel.model_id}
+          textValue={downloadedModel.model_id}
+        >
+          {downloadedModel.model_id}
+        </Dropdown.Item>
+      )
     })
   }, [downloadedModels])
 
+  const hasModel = !isEmpty(selectedModelId)
+
+  const StatusIcon = useMemo(() => {
+    if (isLoading) return <Spinner size="sm" color="current" />
+    return (
+      <span
+        className={clsx('size-2 rounded-full', {
+          'bg-success': hasModel,
+          'bg-muted': !hasModel
+        })}
+      />
+    )
+  }, [hasModel, isLoading])
+
+  const trailingLabel = isLoading ? loadPercentLabel : familyLabel
+
   return (
     <Dropdown>
-      <DropdownTrigger>
-        <Button
-          variant="light"
-          color="primary"
-          endContent={<ChevronDown size={16} />}
+      <Button variant="outline">
+        {StatusIcon}
+        <span className="max-w-60 min-w-0 truncate">
+          {selectedModelId || 'Select a model'}
+        </span>
+        {trailingLabel && (
+          <span className="font-mono text-xs text-muted">{trailingLabel}</span>
+        )}
+        <ChevronDown size={16} className="text-muted" />
+      </Button>
+      <Dropdown.Popover>
+        <Dropdown.Menu
+          aria-label="Model selector"
+          selectedKeys={[selectedModelId]}
+          selectionMode="single"
+          onSelectionChange={onSelectionChange}
         >
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="min-w-0 truncate">{selected_model_id}</span>
-            {familyLabel && (
-              <Chip size="sm" variant="flat">
-                <span>{familyLabel}</span>
-              </Chip>
-            )}
-          </span>
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Model selector"
-        selectedKeys={[selected_model_id]}
-        selectionMode="single"
-        onSelectionChange={(id) => {
-          if (id.currentKey) {
-            setSelectedModelId(id.currentKey)
-          }
-        }}
-      >
-        {items}
-      </DropdownMenu>
+          {items}
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   )
 }

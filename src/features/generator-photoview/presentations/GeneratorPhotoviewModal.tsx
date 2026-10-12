@@ -1,62 +1,67 @@
 'use client'
 
-import {
-  Button,
-  ButtonGroup,
-  Modal,
-  ModalBody,
-  ModalContent
-} from '@heroui/react'
+import { useGeneratorPhotoviewModalModel } from '@/features/generator-photoview/states/useGeneratorPhotoviewModalModel'
+import { Button, Modal } from '@heroui/react'
 import { Download, ImageUp } from 'lucide-react'
-import { useGeneratorPhotoviewModalModel } from '../states/useGeneratorPhotoviewModalModel'
 import { GeneratorPhotoviewCarousel } from './GeneratorPhotoviewCarousel'
 
 export const GeneratorPhotoviewModal = () => {
   const model = useGeneratorPhotoviewModalModel()
+  const { onUseAsInput } = model
+
+  const onOpenChange = (isOpen: boolean) => {
+    if (isOpen) return
+
+    model.closePhotoview()
+  }
 
   return (
-    <Modal
+    <Modal.Backdrop
       isOpen={model.isOpen}
-      onClose={model.closePhotoview}
-      size="5xl"
-      backdrop="blur"
-      scrollBehavior="outside"
-      aria-label="Generator photo viewer"
-      classNames={{
-        body: 'p-0',
-        closeButton: 'z-50'
-      }}
+      onOpenChange={onOpenChange}
+      variant="blur"
     >
-      <ModalContent>
-        <ModalBody>
-          <div className="relative">
-            <GeneratorPhotoviewCarousel initialIndex={model.safeIndex} />
-            <div className="absolute top-4 left-4 right-14 z-50 flex justify-end pointer-events-none">
-              <ButtonGroup className="pointer-events-auto">
-                <Button
-                  startContent={<Download size={16} />}
-                  variant="flat"
-                  color="default"
-                  onPress={model.onDownload}
-                  aria-label="Download current image"
-                >
-                  Download
-                </Button>
-                <Button
-                  startContent={<ImageUp size={16} />}
-                  variant="solid"
-                  color="primary"
-                  isLoading={model.isUsingAsInput}
-                  onPress={model.onUseAsInput}
-                  aria-label="Use current image as input"
-                >
-                  Use as input
-                </Button>
-              </ButtonGroup>
+      <Modal.Container size="full">
+        <Modal.Dialog aria-label="Generator photo viewer">
+          <Modal.Header className="flex flex-row items-center justify-between gap-4 pe-12">
+            <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex items-baseline gap-2">
+                <Modal.Heading className="text-sm">
+                  Image {model.safeIndex + 1} of {model.total}
+                </Modal.Heading>
+                {model.seedLabel && (
+                  <span className="text-xs text-muted tabular-nums">
+                    Seed {model.seedLabel}
+                  </span>
+                )}
+              </div>
+              {model.prompt && (
+                <span className="truncate text-sm text-muted">
+                  {model.prompt}
+                </span>
+              )}
             </div>
-          </div>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                variant="secondary"
+                isPending={model.isUsingAsInput}
+                onPress={() => void onUseAsInput()}
+              >
+                <ImageUp size={16} />
+                Use as input
+              </Button>
+              <Button variant="secondary" onPress={model.onDownload}>
+                <Download size={16} />
+                Download
+              </Button>
+            </div>
+          </Modal.Header>
+          <Modal.CloseTrigger />
+          <Modal.Body>
+            <GeneratorPhotoviewCarousel initialIndex={model.safeIndex} />
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   )
 }

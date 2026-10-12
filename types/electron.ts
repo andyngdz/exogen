@@ -2,11 +2,11 @@
 
 import { BackendStatusEmitter } from './backend'
 import { LogEntry } from './logging'
-import { UpdateCheckResult } from './update'
+import { UpdateCheckResult, UpdaterState } from './update'
 
 export interface ElectronAPI {
   downloadImage: (url: string) => Promise<void>
-  selectFile: (filters?: Electron.FileFilter[]) => Promise<string | null>
+  selectFile: (filters?: Electron.FileFilter[]) => Promise<string | undefined>
   onBackendSetupStatus: (listener: BackendStatusEmitter) => () => void
   app: {
     getVersion: () => Promise<string>
@@ -16,10 +16,12 @@ export interface ElectronAPI {
     isLogStreaming: () => Promise<boolean>
     onLog: (listener: (logEntry: LogEntry) => void) => () => void
     openBackendFolder: () => Promise<string>
+    retrySetup: () => Promise<void>
   }
   updater: {
     checkForUpdates: () => Promise<UpdateCheckResult>
     installUpdate: () => Promise<void>
+    onState: (listener: (state: UpdaterState) => void) => () => void
   }
 }
 

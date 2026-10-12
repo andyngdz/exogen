@@ -1,16 +1,13 @@
 'use client'
 
+import { useManageDownloadedModel } from '@/features/model-search/states/useManageDownloadedModel'
 import { Button } from '@heroui/react'
-import {
-  SettingsTab,
-  useSettingsStore
-} from '@/features/settings/states/useSettingsStore'
 
 export const ModelSearchViewDownloadedButton = () => {
-  const { openModal } = useSettingsStore()
+  const { onManageModel } = useManageDownloadedModel()
 
   return (
-    <Button variant="bordered" onPress={() => openModal(SettingsTab.MODELS)}>
+    <Button variant="outline" onPress={onManageModel}>
       Manage this model
     </Button>
   )

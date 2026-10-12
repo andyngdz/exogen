@@ -108,4 +108,35 @@ describe('useGeneratorForm', () => {
 
     expect(methods.reset).toHaveBeenCalledWith(storeValues)
   })
+
+  it('clamps saved values above the slider ranges on load', () => {
+    mockUseLocalStorage.mockReturnValue([
+      { ...localStorageValues, number_of_images: 12, steps: 150 },
+      vi.fn()
+    ])
+
+    useGeneratorForm()
+
+    expect(mockUseForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        defaultValues: expect.objectContaining({
+          number_of_images: 8,
+          steps: 100
+        })
+      })
+    )
+  })
+
+  it('clamps a reused history config before resetting the form', () => {
+    mockUseFormValuesStore.mockImplementation(
+      (selector: (s: { values?: GeneratorConfigFormValues }) => unknown) =>
+        selector({ values: { ...storeValues, cfg_scale: 40 } })
+    )
+
+    const { methods } = useGeneratorForm()
+
+    expect(methods.reset).toHaveBeenCalledWith(
+      expect.objectContaining({ cfg_scale: 30 })
+    )
+  })
 })

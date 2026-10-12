@@ -17,7 +17,7 @@ export const MemoryScaleFactorPreview: FC<MemoryScaleFactorPreviewProps> = ({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="text-center text-default-500">Memory Usage Preview</div>
+      <div className="text-center text-muted">Memory Usage Preview</div>
       <div className="flex gap-2">
         <div className="font-bold">
           GPU: {formatter.bytes(total_gpu_memory * gpuScaleFactor)}

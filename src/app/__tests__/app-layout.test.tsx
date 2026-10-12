@@ -2,10 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppLayout } from '../app-layout'
 
-vi.mock('@/features/app-footer', () => ({
-  AppFooter: () => <div data-testid="app-footer" />
-}))
-
 vi.mock('@/cores/presentations', () => ({
   FullScreenLoader: ({ message }: { message: string }) => (
     <div data-testid="full-screen-loader">{message}</div>
@@ -31,7 +27,7 @@ describe('AppLayout', () => {
     mockUseBackendInitStore.mockReturnValue(true)
   })
 
-  it('renders children and footer when initialized', () => {
+  it('renders children when initialized', () => {
     render(
       <AppLayout>
         <div data-testid="test-content">Test Content</div>
@@ -39,7 +35,6 @@ describe('AppLayout', () => {
     )
 
     expect(screen.getByTestId('test-content')).toBeInTheDocument()
-    expect(screen.getByTestId('app-footer')).toBeInTheDocument()
   })
 
   it('calls initializeBackend on mount', async () => {
@@ -82,7 +77,6 @@ describe('AppLayout', () => {
     expect(screen.queryByTestId('editor-content')).not.toBeInTheDocument()
     expect(screen.getByTestId('full-screen-loader')).toBeInTheDocument()
     expect(screen.getByText('Initializing backend...')).toBeInTheDocument()
-    expect(screen.getByTestId('app-footer')).toBeInTheDocument()
   })
 
   it('renders children on other pages when initialized', async () => {

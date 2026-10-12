@@ -2,14 +2,15 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import serve from 'electron-serve'
 import fixPath from 'fix-path'
 import path from 'node:path'
-import { BACKEND_DIRNAME, startBackend, stopBackend } from '../scripts/backend'
+import { BACKEND_DIRNAME, startBackend, stopBackend } from '@scripts/backend'
 import { setupBackendPortHandler } from './backend-port'
 import { isLogStreaming, startLogStreaming } from './log-streamer'
 import {
   broadcastBackendStatus,
+  clearBackendStatusHistory,
   getBackendStatusHistory
 } from './status-broadcaster'
-import { checkForUpdates, installUpdate, setMainWindow } from './updater'
+import { checkForUpdates, getUpdaterState, installUpdate } from './updater'
 
 // This is required to get the correct path in the packaged app
 fixPath()
@@ -55,9 +56,7 @@ const onCreateWindow = async () => {
   win.once('ready-to-show', () => {
     win.show()
 
-    // Set main window for updater and check for updates
     if (IS_PRODUCTION) {
-      setMainWindow(win)
       // Check for updates 5 seconds after window is ready
       setTimeout(() => checkForUpdates(), 5000)
     }
@@ -67,6 +66,8 @@ const onCreateWindow = async () => {
     await appServe(win)
   } else {
     console.log('Development mode: waiting for Next.js server at', DEV_URL)
+    // Rule Ignore: TS023
+    // Reason: wait-on is a devDependency that only the unpackaged dev app loads; the packaged app never reaches this branch.
     const { default: waitOn } = await import('wait-on')
 
     try {
@@ -105,7 +106,7 @@ const onSelectFile = () => {
     })
 
     if (result.canceled || result.filePaths.length === 0) {
-      return null
+      return
     }
 
     return result.filePaths[0]
@@ -129,12 +130,38 @@ const onBackendStatusHistory = () => {
   ipcMain.handle('backend-setup:get-history', () => getBackendStatusHistory())
 }
 
+let backendSetup: Promise<void> | undefined
+
+/** Runs backend setup once at a time; a second call while it runs joins the first. */
+const runBackendSetup = () => {
+  backendSetup ??= startBackend({
+    userDataPath: app.getPath('userData'),
+    backendSourcePath: IS_PRODUCTION
+      ? path.join(process.resourcesPath, 'backend')
+      : path.join(app.getAppPath(), 'backend'),
+    ...(IS_PRODUCTION && { appVersion: app.getVersion() }),
+    externalEmit: broadcastBackendStatus
+  }).finally(() => {
+    backendSetup = undefined
+  })
+
+  return backendSetup
+}
+
+const onBackendSetupRetry = () => {
+  ipcMain.handle('backend-setup:retry', () => {
+    clearBackendStatusHistory()
+    void runBackendSetup()
+  })
+}
+
 const onAppInfo = () => {
   ipcMain.handle('app:get-version', () => app.getVersion())
 }
 
 const onAutoUpdate = () => {
   ipcMain.handle('updater:check', () => checkForUpdates())
+  ipcMain.handle('updater:get-state', () => getUpdaterState())
 
   ipcMain.handle('updater:install', () => {
     installUpdate()
@@ -157,6 +184,7 @@ const onAppReady = async () => {
   onLogStreaming()
   onOpenBackendFolder()
   onBackendStatusHistory()
+  onBackendSetupRetry()
   onAppInfo()
   setupBackendPortHandler()
   onAutoUpdate()
@@ -165,10 +193,7 @@ const onAppReady = async () => {
     console.log('Skipping backend startup (SKIP_BACKEND=true)')
   } else {
     console.log('Starting Python backend...')
-    startBackend({
-      userDataPath: app.getPath('userData'),
-      externalEmit: broadcastBackendStatus
-    })
+    void runBackendSetup()
   }
 }
 

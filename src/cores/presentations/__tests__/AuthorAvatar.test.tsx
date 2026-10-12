@@ -2,80 +2,69 @@
  * @file Tests for the AuthorAvatar component
  *
  * Tests that the AuthorAvatar component:
- * - Renders with the correct avatar URL based on the provided ID
- * - Passes through additional props to the Avatar component
- * - Maintains proper typing with AvatarProps
+ * - Renders the avatar image from the backend URL for the provided ID
+ * - Passes size and className through to the Avatar root
+ * - Falls back to the first letter of the ID
  */
 
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthorAvatar, AuthorAvatarProps } from '../AuthorAvatar'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AuthorAvatar } from '../AuthorAvatar'
 
-// Mock the Avatar component
-vi.mock('@heroui/react', () => ({
-  Avatar: vi.fn(({ src, ...props }) => (
-    <div
-      data-testid="mock-avatar"
-      data-src={src}
-      data-props={JSON.stringify(props)}
-    >
-      Mock Avatar
-    </div>
-  ))
-}))
+// Radix Avatar renders the image only once window.Image reports it loaded
+class LoadedImageMock {
+  complete = true
+  naturalWidth = 1
+  src = ''
+  addEventListener = vi.fn()
+  removeEventListener = vi.fn()
+}
+
+const originalImage = window.Image
 
 describe('AuthorAvatar', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    window.Image = LoadedImageMock as unknown as typeof Image
   })
 
-  it('renders with the correct avatar URL based on the provided ID', () => {
-    // Arrange
-    const authorId = 'test-author-123'
-    const expectedUrl = `http://localhost:8000/users/avatar/${authorId}.png`
-
-    // Act
-    render(<AuthorAvatar id={authorId} />)
-    const avatarElement = screen.getByTestId('mock-avatar')
-
-    // Assert
-    expect(avatarElement).toBeInTheDocument()
-    expect(avatarElement.getAttribute('data-src')).toBe(expectedUrl)
+  afterEach(() => {
+    window.Image = originalImage
   })
 
-  it('passes additional props to the Avatar component', () => {
-    // Arrange
-    const testProps: AuthorAvatarProps = {
-      id: 'test-author',
-      className: 'custom-avatar',
-      alt: 'Author Profile Picture',
-      size: 'lg'
-    }
+  it('renders the avatar image from the backend URL based on the ID', () => {
+    render(<AuthorAvatar id="test-author-123" />)
 
-    // Act
-    render(<AuthorAvatar {...testProps} />)
-    const avatarElement = screen.getByTestId('mock-avatar')
-
-    // Assert
-    const passedProps = JSON.parse(
-      avatarElement.getAttribute('data-props') || '{}'
+    expect(
+      screen.getByRole('img', { name: 'test-author-123' })
+    ).toHaveAttribute(
+      'src',
+      'http://localhost:8000/users/avatar/test-author-123.png'
     )
-    expect(passedProps.className).toBe('custom-avatar')
-    expect(passedProps.alt).toBe('Author Profile Picture')
-    expect(passedProps.size).toBe('lg')
   })
 
-  it('handles empty ID gracefully', () => {
-    // Arrange
-    const emptyId = ''
-    const expectedUrl = `http://localhost:8000/users/avatar/${emptyId}.png`
+  it('uses the provided alt text and passes size and className to the root', () => {
+    const { container } = render(
+      <AuthorAvatar
+        id="test-author"
+        alt="Author Profile Picture"
+        className="custom-avatar"
+        size="lg"
+      />
+    )
 
-    // Act
-    render(<AuthorAvatar id={emptyId} />)
-    const avatarElement = screen.getByTestId('mock-avatar')
+    expect(
+      screen.getByRole('img', { name: 'Author Profile Picture' })
+    ).toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass(
+      'custom-avatar',
+      'avatar--lg'
+    )
+  })
 
-    // Assert
-    expect(avatarElement).toBeInTheDocument()
-    expect(avatarElement.getAttribute('data-src')).toBe(expectedUrl)
+  it('shows the first letter of the ID while the image is not loaded', () => {
+    window.Image = originalImage
+    render(<AuthorAvatar id="zeta" />)
+
+    expect(screen.getByText('z')).toBeInTheDocument()
   })
 })

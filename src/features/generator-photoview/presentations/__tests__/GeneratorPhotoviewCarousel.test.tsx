@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createStoreSelectorMock } from '@/cores/test-utils'
 import { useUseImageGenerationStore } from '@/features/generators'
 import { useGeneratorPhotoviewStore } from '../../states/useGeneratorPhotoviewStore'
 import { GeneratorPhotoviewCarousel } from '../GeneratorPhotoviewCarousel'
+
+const { mockSlideToLoop } = vi.hoisted(() => ({ mockSlideToLoop: vi.fn() }))
 
 vi.mock('@/features/generators')
 
@@ -43,7 +46,8 @@ vi.mock('swiper/react', () => ({
   ),
   useSwiper: () => ({
     slidePrev: vi.fn(),
-    slideNext: vi.fn()
+    slideNext: vi.fn(),
+    slideToLoop: mockSlideToLoop
   })
 }))
 
@@ -58,13 +62,15 @@ describe('GeneratorPhotoviewCarousel', () => {
   })
 
   it('should render swiper with all image slides', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/a.png', file_name: 'a.png' },
-        { path: 'images/b.png', file_name: 'b.png' },
-        { path: 'images/c.png', file_name: 'c.png' }
-      ]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/a.png', file_name: 'a.png' },
+          { path: 'images/b.png', file_name: 'b.png' },
+          { path: 'images/c.png', file_name: 'c.png' }
+        ]
+      })
+    )
 
     render(<GeneratorPhotoviewCarousel initialIndex={0} />)
 
@@ -72,12 +78,14 @@ describe('GeneratorPhotoviewCarousel', () => {
   })
 
   it('should enable loop mode with multiple images', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/a.png', file_name: 'a.png' },
-        { path: 'images/b.png', file_name: 'b.png' }
-      ]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/a.png', file_name: 'a.png' },
+          { path: 'images/b.png', file_name: 'b.png' }
+        ]
+      })
+    )
 
     render(<GeneratorPhotoviewCarousel initialIndex={0} />)
 
@@ -85,9 +93,11 @@ describe('GeneratorPhotoviewCarousel', () => {
   })
 
   it('should disable loop mode with single image', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [{ path: 'images/a.png', file_name: 'a.png' }]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [{ path: 'images/a.png', file_name: 'a.png' }]
+      })
+    )
 
     render(<GeneratorPhotoviewCarousel initialIndex={0} />)
 
@@ -95,12 +105,14 @@ describe('GeneratorPhotoviewCarousel', () => {
   })
 
   it('should clamp initial index', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/a.png', file_name: 'a.png' },
-        { path: 'images/b.png', file_name: 'b.png' }
-      ]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/a.png', file_name: 'a.png' },
+          { path: 'images/b.png', file_name: 'b.png' }
+        ]
+      })
+    )
 
     render(<GeneratorPhotoviewCarousel initialIndex={999} />)
 
@@ -111,17 +123,53 @@ describe('GeneratorPhotoviewCarousel', () => {
   })
 
   it('updates current index when slide changes', () => {
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      items: [
-        { path: 'images/a.png', file_name: 'a.png' },
-        { path: 'images/b.png', file_name: 'b.png' }
-      ]
-    } as never)
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/a.png', file_name: 'a.png' },
+          { path: 'images/b.png', file_name: 'b.png' }
+        ]
+      })
+    )
 
     render(<GeneratorPhotoviewCarousel initialIndex={0} />)
 
     fireEvent.click(screen.getByTestId('trigger-slide-change'))
 
     expect(useGeneratorPhotoviewStore.getState().currentIndex).toBe(1)
+  })
+  it('jumps to an image from its thumbnail and marks the current one', () => {
+    useGeneratorPhotoviewStore.setState({ currentIndex: 1 })
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [
+          { path: 'images/a.png', file_name: 'a.png' },
+          { path: 'images/b.png', file_name: 'b.png' },
+          { path: 'images/c.png', file_name: 'c.png' }
+        ]
+      })
+    )
+
+    render(<GeneratorPhotoviewCarousel initialIndex={0} />)
+
+    expect(
+      screen.getByRole('button', { name: 'Show image 2' })
+    ).toHaveAttribute('aria-current', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show image 3' }))
+
+    expect(mockSlideToLoop).toHaveBeenCalledWith(2)
+  })
+
+  it('shows no thumbnails for a single image', () => {
+    vi.mocked(useUseImageGenerationStore).mockImplementation(
+      createStoreSelectorMock({
+        items: [{ path: 'images/a.png', file_name: 'a.png' }]
+      })
+    )
+
+    render(<GeneratorPhotoviewCarousel initialIndex={0} />)
+
+    expect(screen.queryByRole('button', { name: /show image/i })).toBeNull()
   })
 })

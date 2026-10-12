@@ -2,6 +2,7 @@
 
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { FORM_DEFAULT_VALUES } from '@/features/generators/constants'
+import { generatorConfigService } from '@/features/generators/services/generator-config'
 import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useDeepCompareEffect, useLocalStorage } from 'react-use'
@@ -19,7 +20,9 @@ export const useGeneratorForm = () => {
   const methods = useForm<GeneratorConfigFormValues>({
     mode: 'all',
     reValidateMode: 'onChange',
-    defaultValues: localStorageValues
+    defaultValues: generatorConfigService.clampFormValues(
+      localStorageValues ?? FORM_DEFAULT_VALUES
+    )
   })
 
   const formValues = useWatch({ control: methods.control })
@@ -30,7 +33,9 @@ export const useGeneratorForm = () => {
 
   // Reset form when Zustand updates externally (e.g., history restore)
   useEffect(() => {
-    methods.reset(storeValues)
+    if (!storeValues) return
+
+    methods.reset(generatorConfigService.clampFormValues(storeValues))
   }, [methods, storeValues])
 
   return { methods }

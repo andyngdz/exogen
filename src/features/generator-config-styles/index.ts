@@ -1,7 +1,5 @@
-export * from './presentations/GeneratorConfigStyle'
 export * from './presentations/GeneratorConfigStyleEmptyState'
 export * from './presentations/GeneratorConfigStyleItem'
-export * from './presentations/GeneratorConfigStyleModal'
 export * from './presentations/GeneratorConfigStyleSearchInput'
 export * from './presentations/GeneratorConfigStyleSection'
 export * from './presentations/GeneratorConfigStyleSelectedPreviewer'

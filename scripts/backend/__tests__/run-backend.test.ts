@@ -118,6 +118,17 @@ describe('runBackend', () => {
       expect(mockEmit).toHaveBeenCalledTimes(3)
     })
 
+    it('passes this process PID so the backend can stop when the app dies', async () => {
+      delete process.env.EXOGEN_PARENT_PID
+
+      await runBackend({
+        backendPath: mockBackendPath,
+        emit: mockEmit
+      })
+
+      expect(process.env.EXOGEN_PARENT_PID).toBe(String(process.pid))
+    })
+
     it('should setup stdout stream listener', async () => {
       await runBackend({
         backendPath: mockBackendPath,

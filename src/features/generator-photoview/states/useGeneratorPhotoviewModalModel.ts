@@ -1,60 +1,48 @@
 import { useBackendUrl } from '@/cores/backend-initialization'
 import { useDownloadImages } from '@/features/generator-previewers/states'
 import {
-  useGeneratorModeStore,
-  useImage2ImageConfigStore,
+  useImageAsInput,
+  useLastRunStore,
   useUseImageGenerationStore
 } from '@/features/generators'
-import { GeneratorMode } from '@/types'
-import { addToast } from '@heroui/react'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 
-import { dataUrlService } from '@/services/data-url'
+import { photoviewService } from '@/features/generator-photoview/services/photoview'
 
 import { useGeneratorPhotoviewStore } from './useGeneratorPhotoviewStore'
 
 export const useGeneratorPhotoviewModalModel = () => {
   const baseURL = useBackendUrl()
-  const { isOpen, currentIndex, closePhotoview } = useGeneratorPhotoviewStore()
-  const { items } = useUseImageGenerationStore()
+  const isOpen = useGeneratorPhotoviewStore((state) => state.isOpen)
+  const currentIndex = useGeneratorPhotoviewStore((state) => state.currentIndex)
+  const closePhotoview = useGeneratorPhotoviewStore(
+    (state) => state.closePhotoview
+  )
+  const items = useUseImageGenerationStore((state) => state.items)
   const { onDownloadImage } = useDownloadImages()
-  const { setInitImageBase64 } = useImage2ImageConfigStore()
-  const { setMode } = useGeneratorModeStore()
-  const [isUsingAsInput, setIsUsingAsInput] = useState(false)
+  const prompt = useLastRunStore((state) => state.prompt)
+  const seed = useLastRunStore((state) => state.seed)
+  const { isUsingAsInput, loadAsInput } = useImageAsInput()
 
   const safeIndex = Math.min(Math.max(0, currentIndex), items.length - 1)
   const imageUrl = `${baseURL}/${items[safeIndex].path}`
 
   const onDownload = useCallback(() => {
-    onDownloadImage(imageUrl)
+    void onDownloadImage(imageUrl)
   }, [imageUrl, onDownloadImage])
 
   const onUseAsInput = useCallback(async () => {
-    setIsUsingAsInput(true)
-
-    try {
-      const dataUrl = await dataUrlService.fetchUrlToDataUrl(imageUrl)
-      setInitImageBase64(dataUrl)
-      setMode(GeneratorMode.IMAGE_2_IMAGE)
-      closePhotoview()
-    } catch (error: unknown) {
-      addToast({
-        title: 'Use as input',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to use image as input',
-        color: 'danger'
-      })
-    } finally {
-      setIsUsingAsInput(false)
-    }
-  }, [closePhotoview, imageUrl, setInitImageBase64, setMode])
+    const isLoaded = await loadAsInput(imageUrl)
+    if (isLoaded) closePhotoview()
+  }, [closePhotoview, imageUrl, loadAsInput])
 
   return {
     isOpen,
     closePhotoview,
     safeIndex,
+    total: items.length,
+    prompt,
+    seedLabel: photoviewService.toSeedLabel(seed),
     isUsingAsInput,
     onDownload,
     onUseAsInput

@@ -1,76 +1,45 @@
 'use client'
 
-import { FullScreenLoader } from '@/cores/presentations'
-import { GenerationPhaseStepper } from '@/features/generation-phase-stepper'
-import { GeneratorConfig } from '@/features/generator-configs'
-import { ModeTabs } from '@/features/generator-modes'
+import { GeneratorDock } from '@/features/generator-dock'
+import { GeneratorInspector } from '@/features/generator-inspector'
 import { GeneratorPhotoviewModal } from '@/features/generator-photoview'
-import { useGeneratorPhotoviewStore } from '@/features/generator-photoview/states/useGeneratorPhotoviewStore'
-import { Histories } from '@/features/histories'
-import { useModelLoadProgressStore } from '@/features/model-load-progress'
-import {
-  useGenerationStatusStore,
-  useUseImageGenerationStore
-} from '@/features/generators'
-import { Progress } from '@heroui/react'
-import { Allotment } from 'allotment'
-import 'allotment/dist/style.css'
-import clsx from 'clsx'
-import { isEmpty } from 'es-toolkit/compat'
-import { useEffect } from 'react'
+import { GeneratorStage } from '@/features/generator-stage'
+import { useGeneratorLayout } from '@/features/generators/states/useGeneratorLayout'
+import { Form, ProgressBar } from '@heroui/react'
 import { FormProvider } from 'react-hook-form'
-import { useMountedState } from 'react-use'
-import { useGeneratorForm } from '../states'
+import { GeneratorTopBar } from './GeneratorTopBar'
 
 export const Generator = () => {
-  const isMounted = useMountedState()
-  const mounted = isMounted()
-  const { methods } = useGeneratorForm()
-  const { progress } = useModelLoadProgressStore()
-  const { isGenerating } = useGenerationStatusStore()
-  const { items } = useUseImageGenerationStore()
-  const { isOpen: isPhotoviewOpen, closePhotoview } =
-    useGeneratorPhotoviewStore()
+  const { isMounted, methods, canMountPhotoview } = useGeneratorLayout()
 
-  const canMountPhotoview = !isGenerating && !isEmpty(items)
-
-  useEffect(() => {
-    if (!isPhotoviewOpen) return
-    if (canMountPhotoview) return
-    closePhotoview()
-  }, [canMountPhotoview, closePhotoview, isPhotoviewOpen])
-
-  if (!mounted)
-    return <Progress isIndeterminate aria-label="Loading..." size="sm" />
+  if (!isMounted)
+    return (
+      <ProgressBar isIndeterminate aria-label="Loading..." size="sm">
+        <ProgressBar.Track>
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
+    )
 
   return (
     <FormProvider {...methods}>
-      <div className="relative w-full h-full">
-        <form
-          name="generator"
-          onSubmit={(event) => {
-            event.preventDefault()
-          }}
-          className={clsx('w-full h-full opacity-0 transition-opacity', {
-            'opacity-100': mounted
-          })}
-        >
-          <Allotment defaultSizes={[300, 0, 300]}>
-            <Allotment.Pane maxSize={350} minSize={300} preferredSize={300}>
-              <GeneratorConfig />
-            </Allotment.Pane>
-            <Allotment.Pane>
-              <ModeTabs />
-            </Allotment.Pane>
-            <Allotment.Pane maxSize={350} minSize={300} preferredSize={300}>
-              <Histories />
-            </Allotment.Pane>
-          </Allotment>
-        </form>
-        {progress && <FullScreenLoader message={progress.message} />}
-        <GenerationPhaseStepper />
-        {canMountPhotoview && <GeneratorPhotoviewModal />}
-      </div>
+      <Form
+        aria-label="Generator"
+        onSubmit={(event) => {
+          event.preventDefault()
+        }}
+        className="flex h-full w-full"
+      >
+        <main className="flex min-w-0 flex-1 flex-col gap-4 pb-4">
+          <GeneratorTopBar />
+          <GeneratorStage />
+          <div className="flex justify-center px-4">
+            <GeneratorDock />
+          </div>
+        </main>
+        <GeneratorInspector />
+      </Form>
+      {canMountPhotoview && <GeneratorPhotoviewModal />}
     </FormProvider>
   )
 }

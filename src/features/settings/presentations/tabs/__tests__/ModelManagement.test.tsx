@@ -12,83 +12,6 @@ vi.mock('@/services/api', () => ({
   }
 }))
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => ({
-  Listbox: ({ children, ...props }: { children: React.ReactNode }) => (
-    <ul data-testid="listbox" {...props}>
-      {children}
-    </ul>
-  ),
-  ListboxItem: ({
-    children,
-    endContent,
-    ...props
-  }: {
-    children: React.ReactNode
-    endContent?: React.ReactNode
-  }) => (
-    <li data-testid="listbox-item" {...props}>
-      {children}
-      {endContent && <div data-testid="item-end-content">{endContent}</div>}
-    </li>
-  ),
-  Button: ({
-    children,
-    isIconOnly,
-    variant,
-    color,
-    onPress,
-    isDisabled,
-    isLoading,
-    ...props
-  }: {
-    children: React.ReactNode
-    isIconOnly?: boolean
-    variant?: string
-    color?: string
-    onPress?: () => void
-    isDisabled?: boolean
-    isLoading?: boolean
-  }) => (
-    <button
-      data-testid="delete-button"
-      data-variant={variant}
-      data-color={color}
-      data-icon-only={isIconOnly}
-      onClick={onPress}
-      disabled={isDisabled || isLoading}
-      {...props}
-    >
-      {children}
-    </button>
-  ),
-  Spinner: ({ size }: { size?: string }) => (
-    <div data-testid="spinner" data-size={size}>
-      Loading...
-    </div>
-  ),
-  Modal: ({
-    children,
-    isOpen
-  }: {
-    children: React.ReactNode
-    isOpen: boolean
-  }) => (isOpen ? <div data-testid="modal">{children}</div> : null),
-  ModalContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="modal-content">{children}</div>
-  ),
-  ModalHeader: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="modal-header">{children}</div>
-  ),
-  ModalBody: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="modal-body">{children}</div>
-  ),
-  ModalFooter: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="modal-footer">{children}</div>
-  ),
-  Divider: () => <hr />
-}))
-
 // Mock Lucide icons
 vi.mock('lucide-react', () => ({
   Trash2: ({ size }: { size?: number }) => (
@@ -109,6 +32,11 @@ vi.mock('@/features/settings/states/useDeleteModel', () => ({
 // Helper to create a pending promise (never resolves)
 const createPendingPromise = <T,>(): Promise<T> => new Promise(() => {})
 
+const findModelsList = () =>
+  screen.findByRole('listbox', { name: 'Models list' })
+const getDeleteButtons = () =>
+  screen.getAllByRole('button', { name: /^Delete / })
+
 describe('ModelManagement', () => {
   let wrapper = createQueryClientWrapper()
 
@@ -126,9 +54,9 @@ describe('ModelManagement', () => {
 
       render(<ModelManagement />, { wrapper })
 
-      expect(screen.getByTestId('spinner')).toBeInTheDocument()
-      expect(screen.getByTestId('spinner')).toHaveAttribute('data-size', 'lg')
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
+      expect(
+        screen.getByRole('status', { name: 'Loading' })
+      ).toBeInTheDocument()
     })
 
     it('has correct loading container styling', () => {
@@ -138,7 +66,9 @@ describe('ModelManagement', () => {
 
       render(<ModelManagement />, { wrapper })
 
-      const container = screen.getByTestId('spinner').parentElement
+      const container = screen.getByRole('status', {
+        name: 'Loading'
+      }).parentElement
       expect(container).toHaveClass(
         'flex',
         'justify-center',
@@ -189,9 +119,8 @@ describe('ModelManagement', () => {
     it('renders models listbox with correct aria-label', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const listbox = await screen.findByTestId('listbox')
+      const listbox = await findModelsList()
       expect(listbox).toBeInTheDocument()
-      expect(listbox).toHaveAttribute('aria-label', 'Models list')
     })
 
     it('displays all downloaded models in the list', async () => {
@@ -205,7 +134,7 @@ describe('ModelManagement', () => {
       expect(screen.getByText('stable-diffusion-v1-5')).toBeInTheDocument()
       expect(screen.getByText('dreamshaper-v8')).toBeInTheDocument()
 
-      const listItems = screen.getAllByTestId('listbox-item')
+      const listItems = screen.getAllByRole('option')
       expect(listItems).toHaveLength(3)
     })
 
@@ -214,7 +143,7 @@ describe('ModelManagement', () => {
 
       await screen.findByText('stable-diffusion-xl-base-1.0')
 
-      const listItems = screen.getAllByTestId('listbox-item')
+      const listItems = screen.getAllByRole('option')
       expect(listItems).toHaveLength(3)
 
       // Verify each model is rendered in its own list item
@@ -228,14 +157,11 @@ describe('ModelManagement', () => {
 
       await screen.findByText('stable-diffusion-xl-base-1.0')
 
-      const deleteButtons = screen.getAllByTestId('delete-button')
+      const deleteButtons = getDeleteButtons()
       expect(deleteButtons).toHaveLength(3)
-
-      deleteButtons.forEach((button) => {
-        expect(button).toHaveAttribute('data-icon-only', 'true')
-        expect(button).toHaveAttribute('data-variant', 'light')
-        expect(button).toHaveAttribute('data-color', 'danger')
-      })
+      expect(deleteButtons[0]).toHaveAccessibleName(
+        'Delete stable-diffusion-xl-base-1.0'
+      )
     })
 
     it('renders trash icons in delete buttons with correct size', async () => {
@@ -251,17 +177,15 @@ describe('ModelManagement', () => {
       })
     })
 
-    it('positions delete buttons as end content', async () => {
+    it('places each delete button inside its model option', async () => {
       render(<ModelManagement />, { wrapper })
 
       await screen.findByText('stable-diffusion-xl-base-1.0')
 
-      const endContent = screen.getAllByTestId('item-end-content')
-      expect(endContent).toHaveLength(3)
-
-      const deleteButtons = screen.getAllByTestId('delete-button')
-      endContent.forEach((content, index) => {
-        expect(content).toContainElement(deleteButtons[index])
+      const options = screen.getAllByRole('option')
+      const deleteButtons = getDeleteButtons()
+      options.forEach((option, optionPosition) => {
+        expect(option).toContainElement(deleteButtons[optionPosition])
       })
     })
 
@@ -286,21 +210,21 @@ describe('ModelManagement', () => {
       expect(await screen.findByText('Model Management')).toBeInTheDocument()
     })
 
-    it('renders empty listbox when no models are downloaded', async () => {
+    it('renders the empty state when no models are downloaded', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const listbox = await screen.findByTestId('listbox')
-      expect(listbox).toBeInTheDocument()
-      expect(listbox).toBeEmptyDOMElement()
+      const listbox = await findModelsList()
+      expect(listbox).toHaveTextContent('No items.')
     })
 
-    it('does not render any listbox items for empty model list', async () => {
+    it('does not render any model items for empty model list', async () => {
       render(<ModelManagement />, { wrapper })
 
-      await screen.findByTestId('listbox')
+      await findModelsList()
 
-      expect(screen.queryByTestId('listbox-item')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('delete-button')).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /^Delete / })
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -329,9 +253,8 @@ describe('ModelManagement', () => {
 
       expect(await screen.findByText('Model Management')).toBeInTheDocument()
 
-      const listbox = screen.getByTestId('listbox')
-      expect(listbox).toBeInTheDocument()
-      expect(listbox).toBeEmptyDOMElement()
+      const listbox = await findModelsList()
+      expect(listbox).toHaveTextContent('No items.')
     })
   })
 
@@ -368,7 +291,7 @@ describe('ModelManagement', () => {
       render(<ModelManagement />, { wrapper })
 
       const title = await screen.findByText('Model Management')
-      const listbox = await screen.findByTestId('listbox')
+      const listbox = await findModelsList()
 
       // Title should come before listbox in the DOM
       expect(
@@ -396,7 +319,7 @@ describe('ModelManagement', () => {
     it('provides proper aria-label for models list', async () => {
       render(<ModelManagement />, { wrapper })
 
-      const listbox = await screen.findByTestId('listbox')
+      const listbox = await findModelsList()
       expect(listbox).toHaveAttribute('aria-label', 'Models list')
     })
 
@@ -412,7 +335,9 @@ describe('ModelManagement', () => {
 
       await screen.findByText('accessible-model')
 
-      const deleteButton = screen.getByTestId('delete-button')
+      const deleteButton = screen.getByRole('button', {
+        name: 'Delete accessible-model'
+      })
       expect(deleteButton).toBeInTheDocument()
 
       // Icon should have title for screen readers

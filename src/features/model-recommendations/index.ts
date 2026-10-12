@@ -1,7 +1,2 @@
 export { ModelRecommendations } from './presentations/ModelRecommendations'
-export { ModelRecommendationsBadge } from './presentations/ModelRecommendationsBadge'
-export { ModelRecommendationsCard } from './presentations/ModelRecommendationsCard'
-export { ModelRecommendationsHeader } from './presentations/ModelRecommendationsHeader'
-export { ModelRecommendationsList } from './presentations/ModelRecommendationsList'
-export { ModelRecommendationsSection } from './presentations/ModelRecommendationsSection'
 export { ModelRecommendationsTags } from './presentations/ModelRecommendationsTags'

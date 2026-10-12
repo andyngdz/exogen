@@ -1,60 +1,14 @@
 import { useImage2ImageConfigStore } from '@/features/generators'
 import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
 import { createFileListLike } from '@/cores/test-utils'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImageInput } from '../ImageInput'
 
-vi.mock('@heroui/react', () => ({
-  Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  CardHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  CardBody: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  Image: ({
-    src,
-    alt,
-    classNames
-  }: {
-    src?: string
-    alt?: string
-    classNames?: { wrapper?: string; img?: string }
-  }) => (
-    <div className={classNames?.wrapper}>
-      <img src={src} alt={alt} className={classNames?.img} />
-    </div>
-  ),
-  Button: ({
-    children,
-    onPress,
-    as,
-    isDisabled,
-    'aria-label': ariaLabel
-  }: {
-    children: ReactNode
-    onPress?: VoidFunction
-    as?: string
-    isDisabled?: boolean
-    'aria-label'?: string
-  }) =>
-    // Allow rendering as a label to support nested <input type="file" />.
-    as === 'label' ? (
-      <label>
-        {children}
-        <span onClick={onPress} />
-      </label>
-    ) : (
-      <button
-        type="button"
-        onClick={onPress}
-        disabled={isDisabled}
-        aria-label={ariaLabel}
-      >
-        {children}
-      </button>
-    ),
-  addToast: vi.fn(() => 'toast-key'),
-  Spinner: () => <div />
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 const FormWrapper = createGeneratorConfigFormWrapper()
@@ -123,7 +77,7 @@ describe('ImageInput', () => {
 
     fireEvent.change(input)
 
-    expect(addToast).toHaveBeenCalled()
+    expect(vi.mocked(toast.danger)).toHaveBeenCalled()
   })
 
   it('opens file picker when clicked', async () => {
@@ -139,16 +93,15 @@ describe('ImageInput', () => {
 
     fireEvent.change(input)
 
-    expect(addToast).toHaveBeenCalled()
+    expect(vi.mocked(toast.danger)).toHaveBeenCalled()
 
     const clickSpy = vi
       .spyOn(HTMLInputElement.prototype, 'click')
       .mockImplementation(() => undefined)
 
-    const clickTarget =
-      screen.queryByText('Click to upload') ?? screen.getByAltText('Input')
-
-    fireEvent.click(clickTarget)
+    fireEvent.click(
+      screen.getByRole('button', { name: /^(Upload|Change) input image$/ })
+    )
 
     expect(clickSpy).toHaveBeenCalled()
   })
@@ -176,10 +129,9 @@ describe('ImageInput', () => {
 
     fireEvent.change(input)
 
-    const clickTarget =
-      screen.queryByText('Click to upload') ?? screen.getByAltText('Input')
-
-    fireEvent.click(clickTarget)
+    fireEvent.click(
+      screen.getByRole('button', { name: /^(Upload|Change) input image$/ })
+    )
 
     expect(clickSpy).not.toHaveBeenCalled()
   })

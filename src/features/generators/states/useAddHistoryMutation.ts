@@ -1,6 +1,6 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
 import { api, standardizeErrorMessage } from '@/services'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { useMutation } from '@tanstack/react-query'
 
 export const useAddHistoryMutation = () => {
@@ -10,20 +10,16 @@ export const useAddHistoryMutation = () => {
       return api.addHistory(config)
     },
     onSuccess: () => {
-      addToast({
-        title: 'Added history',
-        description: 'Your generation has been added to history.',
-        color: 'success'
+      toast.success('Added history', {
+        description: 'Your generation has been added to history.'
       })
     },
     onError: (error) => {
-      addToast({
-        title: 'Something went wrong',
+      toast.danger('Something went wrong', {
         description: standardizeErrorMessage(
           error,
           'There was an error adding your generation to history.'
-        ),
-        color: 'danger'
+        )
       })
     }
   })

@@ -1,6 +1,6 @@
 import { createQueryClientWrapper } from '@/cores/test-utils/query-client'
 import { api } from '@/services/api'
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDeleteHistory } from '../useDeleteHistory'
@@ -12,7 +12,7 @@ vi.mock('@/services/api', () => ({
 }))
 
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn()
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('useDeleteHistory', () => {
@@ -57,10 +57,8 @@ describe('useDeleteHistory', () => {
 
       await result.current.mutateAsync(123)
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'History deleted',
-        description: 'The history entry was removed successfully.',
-        color: 'success'
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('History deleted', {
+        description: 'The history entry was removed successfully.'
       })
     })
 
@@ -75,10 +73,8 @@ describe('useDeleteHistory', () => {
         expect(result.current.isSuccess).toBe(true)
       })
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'History deleted',
-        description: 'The history entry was removed successfully.',
-        color: 'success'
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('History deleted', {
+        description: 'The history entry was removed successfully.'
       })
     })
   })
@@ -98,10 +94,8 @@ describe('useDeleteHistory', () => {
         errorMessage
       )
 
-      expect(addToast).toHaveBeenCalledWith({
-        title: 'Delete failed',
-        description: errorMessage,
-        color: 'danger'
+      expect(vi.mocked(toast.danger)).toHaveBeenCalledWith('Delete failed', {
+        description: errorMessage
       })
     })
 

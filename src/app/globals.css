@@ -1,8 +1,6 @@
 @import 'tailwindcss';
+@import '@heroui/styles';
 @plugin "@tailwindcss/typography";
-@plugin 'tailwind-scrollbar';
-@plugin './hero.ts';
-@source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @source '../**/*.{js,ts,jsx,tsx,mdx}';
 @custom-variant dark (&:is(.dark *));
 
@@ -32,13 +30,13 @@
 }
 
 :root {
-  --swiper-pagination-color: hsl(var(--heroui-primary));
-  --swiper-pagination-bullet-inactive-color: hsl(var(--heroui-default-900));
+  --swiper-pagination-color: var(--accent);
+  --swiper-pagination-bullet-inactive-color: var(--foreground);
 }
 
 .dark {
-  --swiper-pagination-color: hsl(var(--heroui-primary));
-  --swiper-pagination-bullet-inactive-color: hsl(var(--heroui-default-900));
+  --accent: #5048e5;
+  --background: #0b0c11;
 }
 
 /* Scrollbar customization */
@@ -52,7 +50,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--heroui-default-200));
+  background: var(--default);
   border-radius: calc(var(--spacing) * 1.5);
 }
 

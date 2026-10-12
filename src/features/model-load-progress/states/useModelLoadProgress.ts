@@ -6,10 +6,14 @@ import {
 } from '@/cores/sockets'
 import { useCallback } from 'react'
 import { useModelLoadProgressStore } from './useModelLoadProgressStore'
+import { useModelLoadStatus } from './useModelLoadStatus'
 
 export const useModelLoadProgress = () => {
-  const { model_id, progress, onUpdateProgress, onSetModelId, reset } =
-    useModelLoadProgressStore()
+  const onUpdateProgress = useModelLoadProgressStore(
+    (state) => state.onUpdateProgress
+  )
+  const onSetModelId = useModelLoadProgressStore((state) => state.onSetModelId)
+  const reset = useModelLoadProgressStore((state) => state.reset)
 
   const onLoadStarted = useCallback(
     (data: ModelLoadStartedResponse) => {
@@ -39,13 +43,7 @@ export const useModelLoadProgress = () => {
     onLoadCompleted
   ])
 
-  const percentage = progress
-    ? Math.round((progress.step / progress.total) * 100)
-    : 0
+  const { isLoading, message, percentage } = useModelLoadStatus()
 
-  return {
-    isLoading: !!model_id,
-    message: progress?.message || 'Loading model...',
-    percentage
-  }
+  return { isLoading, message, percentage }
 }

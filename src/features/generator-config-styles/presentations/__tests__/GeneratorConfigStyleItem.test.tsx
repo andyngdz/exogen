@@ -1,44 +1,14 @@
 import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
-import { createGeneratorConfigFormWrapper } from '@/cores/test-utils'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { ReactNode } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  createCapturedGeneratorConfigFormWrapper,
+  mockNextImage
+} from '@/cores/test-utils'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleItem } from '../GeneratorConfigStyleItem'
 
-// Mock @heroui/react components
-vi.mock('@heroui/react', () => ({
-  Tooltip: ({
-    closeDelay,
-    classNames,
-    children
-  }: {
-    closeDelay?: number
-    classNames?: Record<string, string>
-    children: ReactNode
-  }) => (
-    <div
-      data-testid="tooltip"
-      data-close-delay={closeDelay}
-      data-tooltip-classnames={JSON.stringify(classNames)}
-    >
-      {children}
-    </div>
-  ),
-  Chip: ({
-    children,
-    className,
-    onClick
-  }: {
-    children: ReactNode
-    className?: string
-    onClick?: () => void
-  }) => (
-    <button data-testid="chip" className={className} onClick={onClick}>
-      {children}
-    </button>
-  ),
-  Avatar: () => <div data-testid="avatar" />
-}))
+vi.mock('next/image', () => mockNextImage())
 
 // Mock the style item data
 const mockStyleItem = {
@@ -50,93 +20,82 @@ const mockStyleItem = {
   image: 'test-style.jpg'
 }
 
-const createWrapper = (defaultValues?: Partial<GeneratorConfigFormValues>) =>
-  createGeneratorConfigFormWrapper({ overrides: defaultValues })
-
-describe('GeneratorConfigStyleItem', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+const renderStyleItem = (
+  defaultValues?: Partial<GeneratorConfigFormValues>
+) => {
+  const { Wrapper, getMethods } = createCapturedGeneratorConfigFormWrapper({
+    overrides: defaultValues
   })
 
-  it('renders style item information', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper()
-    })
+  render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
+    wrapper: Wrapper
+  })
 
+  return { getMethods }
+}
+
+const getTrigger = () => screen.getByRole('button', { name: 'Test Style' })
+const getChip = () => screen.getByText('Test Style').closest('.chip')
+
+describe('GeneratorConfigStyleItem', () => {
+  it('renders style item information', () => {
+    renderStyleItem()
+
+    expect(getTrigger()).toBeInTheDocument()
     expect(screen.getByText('Test Style')).toBeInTheDocument()
   })
 
   it('shows as not selected when style is not in the form', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper()
-    })
+    renderStyleItem()
 
-    const chip = screen.getByText('Test Style').closest('button')
-    expect(chip).not.toHaveClass('border-primary')
+    expect(getChip()).not.toHaveClass('ring-accent')
   })
 
   it('shows as selected when style is in the form', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper({ styles: ['test-style-id'] })
-    })
+    renderStyleItem({ styles: ['test-style-id'] })
 
-    const chip = screen.getByText('Test Style').closest('button')
-    expect(chip).toHaveClass('border-primary')
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
-  it('adds style to selection when clicked and not selected', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper()
-    })
+  it('adds style to selection when pressed and not selected', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderStyleItem()
 
-    const chip = screen.getByTestId('chip')
-    fireEvent.click(chip)
+    await user.click(getTrigger())
 
-    // The chip should now have the selected styling
-    expect(chip).toHaveClass('border-primary')
+    expect(getMethods().getValues('styles')).toEqual(['test-style-id'])
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
-  it('removes style from selection when clicked and already selected', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper({ styles: ['test-style-id'] })
-    })
+  it('removes style from selection when pressed and already selected', async () => {
+    const user = userEvent.setup()
+    const { getMethods } = renderStyleItem({ styles: ['test-style-id'] })
 
-    const chip = screen.getByTestId('chip')
-    fireEvent.click(chip)
+    await user.click(getTrigger())
 
-    // The chip should no longer have the selected styling
-    expect(chip).not.toHaveClass('border-primary')
+    expect(getMethods().getValues('styles')).toEqual([])
+    expect(getChip()).not.toHaveClass('ring-accent')
   })
 
   it('handles multiple styles in selection correctly', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper({
-        styles: ['other-style', 'test-style-id', 'another-style']
-      })
+    renderStyleItem({
+      styles: ['other-style', 'test-style-id', 'another-style']
     })
 
-    const chip = screen.getByText('Test Style').closest('button')
-    expect(chip).toHaveClass('border-primary')
+    expect(getChip()).toHaveClass('ring-accent')
   })
 
-  it('renders tooltip with closeDelay={0} to close immediately', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper()
-    })
+  it('previews the style image in a tooltip that ignores pointer events', async () => {
+    const user = userEvent.setup()
+    renderStyleItem()
 
-    const tooltip = screen.getByTestId('tooltip')
-    expect(tooltip).toHaveAttribute('data-close-delay', '0')
-  })
+    await user.tab()
 
-  it('renders tooltip with pointer-events-none class to allow interaction with adjacent items', () => {
-    render(<GeneratorConfigStyleItem styleItem={mockStyleItem} />, {
-      wrapper: createWrapper()
-    })
-
-    const tooltip = screen.getByTestId('tooltip')
-    const classNamesStr = tooltip.dataset.tooltipClassnames
-    const classNames = classNamesStr ? JSON.parse(classNamesStr) : {}
-
-    expect(classNames.base).toBe('pointer-events-none')
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).toHaveClass('pointer-events-none')
+    expect(screen.getByTestId('mock-next-image')).toHaveAttribute(
+      'data-alt',
+      'Test Style'
+    )
   })
 })

@@ -42,7 +42,7 @@ describe('GeneratorConfigCommonSteps', () => {
     expect(getMethods().getValues('steps')).toBe(32)
   })
 
-  it('should render buttons with light variant and proper styling', () => {
+  it('should render ghost buttons with foreground text', () => {
     render(<GeneratorConfigCommonSteps />, { wrapper: Wrapper })
 
     // Get all buttons
@@ -51,12 +51,8 @@ describe('GeneratorConfigCommonSteps', () => {
     // Check number of buttons matches COMMON_STEPS length
     expect(buttons).toHaveLength(COMMON_STEPS.length)
 
-    // Check each button has the light variant class
     buttons.forEach((button) => {
-      expect(button).toHaveAttribute(
-        'class',
-        expect.stringContaining('text-default-700')
-      )
+      expect(button).toHaveClass('button--ghost', 'text-foreground')
     })
   })
 })

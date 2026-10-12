@@ -30,7 +30,7 @@ describe('useBackendLogCollector', () => {
 
     globalThis.window.electronAPI = {
       downloadImage: vi.fn(),
-      selectFile: vi.fn().mockResolvedValue(null),
+      selectFile: vi.fn().mockResolvedValue(undefined),
       onBackendSetupStatus: vi.fn(),
       app: {
         getVersion: vi.fn().mockResolvedValue('0.0.0')
@@ -39,14 +39,16 @@ describe('useBackendLogCollector', () => {
         getPort: vi.fn().mockResolvedValue(8000),
         isLogStreaming: mockIsLogStreaming.mockResolvedValue(false),
         onLog: mockOnLog.mockReturnValue(noop),
-        openBackendFolder: vi.fn().mockResolvedValue('')
+        openBackendFolder: vi.fn().mockResolvedValue(''),
+        retrySetup: vi.fn().mockResolvedValue(undefined)
       },
       updater: {
         checkForUpdates: vi.fn().mockResolvedValue(undefined),
         downloadUpdate: vi.fn().mockResolvedValue(undefined),
         installUpdate: vi.fn().mockResolvedValue(undefined),
         getUpdateInfo: vi.fn().mockResolvedValue({ updateAvailable: false }),
-        onUpdateStatus: vi.fn().mockReturnValue(noop)
+        onUpdateStatus: vi.fn().mockReturnValue(noop),
+        onState: vi.fn().mockReturnValue(noop)
       }
     } as ElectronAPI
   })

@@ -1,11 +1,20 @@
 'use client'
 
-import { addToast } from '@heroui/react'
+import { dateFormatter } from '@/services/date-formatter'
+import { toast } from '@heroui/react'
 import { useCallback, useEffect, useState } from 'react'
+import {
+  UPDATER_ACTIONS,
+  useHasPendingUpdate,
+  useUpdaterStore
+} from './useUpdaterStore'
 
 export const useUpdaterSettings = () => {
   const [version, setVersion] = useState('Development Build')
   const [isChecking, setIsChecking] = useState(false)
+  const downloadedVersion = useUpdaterStore((state) => state.downloadedVersion)
+  const hasPendingUpdate = useHasPendingUpdate()
+  const lastCheckedAt = useUpdaterStore((state) => state.lastCheckedAt)
 
   const onGetVersion = useCallback(async () => {
     const api = globalThis.window.electronAPI
@@ -23,19 +32,14 @@ export const useUpdaterSettings = () => {
         await globalThis.window.electronAPI.updater.checkForUpdates()
 
       if (result && !result.updateAvailable) {
-        addToast({
-          title: "You're already on the latest version",
-          description: `Current version: ${version}`,
-          color: 'success'
+        toast.success("You're already on the latest version", {
+          description: `Current version: ${version}`
         })
       }
-      // If update is available, auto-download will handle it and native dialog will show
     } catch (error) {
       console.error('Failed to check for updates', error)
-      addToast({
-        title: 'Failed to check for updates',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        color: 'danger'
+      toast.danger('Failed to check for updates', {
+        description: error instanceof Error ? error.message : 'Unknown error'
       })
     } finally {
       setIsChecking(false)
@@ -43,12 +47,23 @@ export const useUpdaterSettings = () => {
   }, [version])
 
   useEffect(() => {
-    onGetVersion()
+    void onGetVersion()
   }, [onGetVersion])
 
+  const onInstall = useCallback(async () => {
+    await globalThis.window.electronAPI.updater.installUpdate()
+  }, [])
+
   return {
+    downloadedVersion,
+    hasPendingUpdate,
     isChecking,
+    ...(lastCheckedAt && {
+      lastCheckedLabel: `Last checked at ${dateFormatter.timeFromTimestamp(lastCheckedAt)}`
+    }),
     onCheck,
+    onInstall,
+    onLater: UPDATER_ACTIONS.dismiss,
     version
   }
 }

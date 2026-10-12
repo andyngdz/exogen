@@ -1,119 +1,109 @@
-import { renderWithAct } from '@/cores/test-utils'
-import { screen } from '@testing-library/react'
-import React from 'react'
+import { useBackendSetupStatusStore } from '@/features/health-check/states/useBackendSetupStatusStore'
+import { BackendStatusLevel } from '@types'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HealthCheck } from '../HealthCheck'
-import * as useHealthCheckModule from '../../states/useHealthCheck'
+import { useHealthCheck } from '../../states/useHealthCheck'
 
-// Mock the modules
-vi.mock('../states/useBackendSetupStatus', () => ({
-  useBackendSetupStatus: () => ({ entries: [] })
+vi.mock('../../states/useHealthCheck', () => ({ useHealthCheck: vi.fn() }))
+vi.mock('@/features/backend-logs', () => ({
+  BackendLogDrawer: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen && <div>Log drawer</div>
 }))
-
-vi.mock('../../states/useHealthCheck', () => ({
-  useHealthCheck: vi.fn()
-}))
-
-vi.mock('@/features/setup-layout/presentations/SetupLayout', () => ({
-  SetupLayout: ({
-    children,
+vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+  OnboardingLayout: ({
     title,
-    description,
-    onNext,
-    isNextDisabled
+    isStepFailed,
+    children,
+    footer
   }: {
-    children: React.ReactNode
     title: string
-    description: string
-    onNext?: () => void
-    isNextDisabled?: boolean
+    isStepFailed?: boolean
+    children: ReactNode
+    footer: ReactNode
   }) => (
-    <div data-testid="mock-setup-layout">
+    <div>
       <h1>{title}</h1>
-      <p>{description}</p>
-      <div>{children}</div>
-      <button
-        data-testid="next-button"
-        onClick={onNext}
-        disabled={isNextDisabled}
-      >
-        Next
-      </button>
+      <span>{isStepFailed ? 'step failed' : 'step ok'}</span>
+      {children}
+      {footer}
     </div>
   )
 }))
 
-vi.mock('../HealthCheckContent', () => ({
-  HealthCheckContent: ({
-    isHealthy,
-    statuses
-  }: {
-    isHealthy: boolean
-    statuses: unknown[]
-  }) => (
-    <div data-testid="mock-health-check-content">
-      {isHealthy ? 'Healthy' : 'Not Healthy'}
-      <span data-testid="status-count">{statuses.length}</span>
-    </div>
-  )
-}))
+const onContinue = vi.fn()
+
+const renderStep = (isHealthy = false) => {
+  vi.mocked(useHealthCheck).mockReturnValue({ isHealthy, onContinue })
+  return render(<HealthCheck />)
+}
+
+const addEntry = (level: BackendStatusLevel, message: string, commands = []) =>
+  useBackendSetupStatusStore.getState().addEntry({ level, message, commands })
 
 describe('HealthCheck', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useBackendSetupStatusStore.setState({ entries: [] })
   })
 
-  // Helper to setup useHealthCheck mock
-  const setupHealthCheckMock = (isHealthy: boolean) => {
-    vi.mocked(useHealthCheckModule.useHealthCheck).mockReturnValue({
-      isHealthy
+  it('shows setup progress with the newest step running and Continue disabled', () => {
+    addEntry(BackendStatusLevel.Info, 'Python 3.11.9 detected.')
+    addEntry(BackendStatusLevel.Info, 'Starting ExoGen Backend on port 8000…')
+    renderStep()
+
+    expect(screen.getByText('Setting up the backend')).toBeInTheDocument()
+    expect(screen.getByLabelText('Done')).toBeInTheDocument()
+    expect(screen.getByLabelText('Running')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  })
+
+  it('continues once the backend answers', async () => {
+    const user = userEvent.setup()
+    addEntry(BackendStatusLevel.Info, 'Backend is up to date.')
+    renderStep(true)
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(onContinue).toHaveBeenCalled()
+  })
+
+  it('shows the failure, the suggested command and retries the setup', async () => {
+    const user = userEvent.setup()
+    addEntry(BackendStatusLevel.Info, 'Python 3.11.9 detected.')
+    useBackendSetupStatusStore.getState().addEntry({
+      level: BackendStatusLevel.Error,
+      message: 'Backend setup failed: uv installer exited with code 1',
+      commands: [
+        {
+          label: 'Install uv (macOS and Linux)',
+          command: 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+        }
+      ]
     })
-  }
+    renderStep()
 
-  it('renders with correct title and description', async () => {
-    setupHealthCheckMock(true)
-
-    await renderWithAct(<HealthCheck />)
-
-    expect(screen.getByText('Health Check')).toBeInTheDocument()
+    expect(screen.getByText('The backend could not start')).toBeInTheDocument()
+    expect(screen.getByText('step failed')).toBeInTheDocument()
+    expect(screen.getByLabelText('Failed')).toBeInTheDocument()
     expect(
-      screen.getByText('Checking the connection to your ExoGen backend server')
+      screen.getByText('curl -LsSf https://astral.sh/uv/install.sh | sh')
     ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Retry setup' }))
+
+    expect(globalThis.window.electronAPI.backend.retrySetup).toHaveBeenCalled()
+    expect(useBackendSetupStatusStore.getState().entries).toEqual([])
   })
 
-  it('renders HealthCheckContent with isHealthy=true when backend is healthy', async () => {
-    setupHealthCheckMock(true)
+  it('opens the logs', async () => {
+    const user = userEvent.setup()
+    renderStep()
 
-    await renderWithAct(<HealthCheck />)
+    await user.click(screen.getByRole('button', { name: 'View logs' }))
 
-    const content = screen.getByTestId('mock-health-check-content')
-    expect(content).toHaveTextContent('Healthy')
-  })
-
-  it('renders HealthCheckContent with isHealthy=false when backend is not healthy', async () => {
-    setupHealthCheckMock(false)
-
-    await renderWithAct(<HealthCheck />)
-
-    const content = screen.getByTestId('mock-health-check-content')
-    expect(content).toHaveTextContent('Not Healthy')
-  })
-
-  it('enables the Next button when backend is healthy', async () => {
-    setupHealthCheckMock(true)
-
-    await renderWithAct(<HealthCheck />)
-
-    const nextButton = screen.getByTestId('next-button')
-    expect(nextButton).not.toBeDisabled()
-  })
-
-  it('disables the Next button when backend is not healthy', async () => {
-    setupHealthCheckMock(false)
-
-    await renderWithAct(<HealthCheck />)
-
-    const nextButton = screen.getByTestId('next-button')
-    expect(nextButton).toBeDisabled()
+    expect(screen.getByText('Log drawer')).toBeInTheDocument()
   })
 })

@@ -1,5 +1,4 @@
 export * from './constants'
-export { MaxMemoryScaleFactor as MaxMemory } from './presentations/MaxMemoryScaleFactor'
 export {
   MemoryScaleFactorItems as MemoryOptionItem,
   MemoryScaleFactorPreview as MemoryPreview

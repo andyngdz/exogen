@@ -3,7 +3,7 @@ import { LogEntry } from '@types'
 import clsx from 'clsx'
 import { FC } from 'react'
 import stripAnsi from 'strip-ansi'
-import { backendLogsService } from '../services'
+import { backendLogsService } from '@/features/backend-logs/services'
 
 export interface BackendLogItemProps {
   log: LogEntry
@@ -20,7 +20,7 @@ export const BackendLogItem: FC<BackendLogItemProps> = ({ log }) => {
           'w-1 shrink-0 rounded-sm'
         )}
       />
-      <span className="shrink-0 min-w-10 text-default">
+      <span className="shrink-0 min-w-10 text-foreground">
         {dateFormatter.timeFromTimestamp(timestamp)}
       </span>
       <span

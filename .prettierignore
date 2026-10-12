@@ -1,0 +1,2 @@
+# The Python backend has its own formatter (ruff); keep Prettier out of it.
+backend/

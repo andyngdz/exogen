@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import RootLayout, { metadata } from '../layout'
+import RootLayout, { generateMetadata } from '../layout'
 
 // Mock the CSS import
 vi.mock('../globals.css', () => ({}))
@@ -81,9 +81,9 @@ describe('RootLayout', () => {
   })
 })
 
-describe('metadata', () => {
-  it('exports correct metadata', () => {
-    expect(metadata).toEqual({
+describe('generateMetadata', () => {
+  it('returns the app metadata', () => {
+    expect(generateMetadata()).toEqual({
       title: 'ExoGen',
       description:
         'Generate images with Stable Diffusion, run LLMs, and more, all on your local machine.'

@@ -12,7 +12,7 @@ import { ModelSearchInfo } from '@/types'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { onUpdateModelId } from '../../states'
+import { onUpdateModelId } from '../../states/useModelSearchSelectorStores'
 import { ModelSearchItem } from '../ModelSearchItem'
 
 // Mock dependencies
@@ -31,11 +31,12 @@ vi.mock('@/services/formatter', () => ({
 }))
 
 // Mock the state function and store
-vi.mock('../../states', () => ({
+vi.mock('../../states/useModelSearchSelectorStores', () => ({
   onUpdateModelId: vi.fn(),
-  useModelSearchSelectorStore: vi.fn(() => ({
-    model_id: ''
-  }))
+  useModelSearchSelectorStore: vi.fn(
+    (selector: (state: { model_id: string }) => unknown) =>
+      selector({ model_id: '' })
+  )
 }))
 
 describe('ModelSearchItem', () => {

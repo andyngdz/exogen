@@ -8,7 +8,7 @@ class BackendLogsService {
       case 'info':
       case 'log':
       default:
-        return 'text-default-500'
+        return 'text-muted'
     }
   }
 

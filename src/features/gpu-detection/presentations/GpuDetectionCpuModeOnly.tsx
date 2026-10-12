@@ -16,7 +16,11 @@ export const GpuDetectionCpuModeOnly: FC<GpuDetectionCpuModeOnlyProps> = ({
           ExoGen will run on CPU. This will be slower but still functional.
           Consider installing CUDA drivers for better performance.
         </div>
-        <Button variant="bordered" color="primary" onPress={onCheckAgain}>
+        <Button
+          variant="outline"
+          className="text-accent"
+          onPress={onCheckAgain}
+        >
           {"I've installed CUDA drivers. Check again"}
         </Button>
       </div>

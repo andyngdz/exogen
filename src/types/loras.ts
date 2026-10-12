@@ -19,8 +19,3 @@ export interface LoRAListResponse {
 export interface LoRAUploadRequest {
   file_path: string
 }
-
-export interface LoRADeleteResponse {
-  id: number
-  message: string
-}

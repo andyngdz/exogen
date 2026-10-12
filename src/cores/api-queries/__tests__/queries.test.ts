@@ -1,15 +1,18 @@
+import { toast } from '@heroui/react'
 import { UpscalerMethod } from '@/cores/constants'
 import { api } from '@/services/api'
-import type { BackendConfig, LoRA, LoRADeleteResponse } from '@/types'
+import type { BackendConfig, LoRA } from '@/types'
+import { AcceleratorMemoryDevice } from '@/types'
 import type { ModelDownloaded } from '@/types/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { AxiosError, AxiosHeaders } from 'axios'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   useBackendConfigQuery,
-  useDeleteLoraMutation,
   useDownloadedModelsQuery,
+  useHardwareMemoryQuery,
   useHardwareQuery,
   useHealthQuery,
   useHistoriesQuery,
@@ -23,10 +26,15 @@ import {
 } from '../queries'
 
 // Mock the API service
+vi.mock('@heroui/react', () => ({
+  toast: { danger: vi.fn() }
+}))
+
 vi.mock('@/services/api', () => ({
   api: {
     health: vi.fn(),
     getHardwareStatus: vi.fn(),
+    getHardwareMemory: vi.fn(),
     getModelRecommendations: vi.fn(),
     getDownloadedModels: vi.fn(),
     styles: vi.fn(),
@@ -34,7 +42,6 @@ vi.mock('@/services/api', () => ({
     getSamplers: vi.fn(),
     loras: vi.fn(),
     uploadLora: vi.fn(),
-    deleteLora: vi.fn(),
     getConfig: vi.fn(),
     setSafetyCheckEnabled: vi.fn(),
     setMaxMemory: vi.fn()
@@ -105,6 +112,81 @@ describe('React Query Hooks', () => {
       })
 
       expect(api.health).toHaveBeenCalled()
+    })
+  })
+
+  describe('useHardwareMemoryQuery', () => {
+    const memory = {
+      device: AcceleratorMemoryDevice.CUDA,
+      used_bytes: 4 * 1024 ** 3,
+      total_bytes: 12 * 1024 ** 3
+    }
+
+    const notFoundError = () =>
+      new AxiosError('Not Found', 'ERR_BAD_REQUEST', undefined, undefined, {
+        status: 404,
+        statusText: 'Not Found',
+        data: {},
+        headers: {},
+        config: { headers: new AxiosHeaders() }
+      })
+
+    beforeEach(() => {
+      vi.mocked(api.getHardwareMemory).mockClear()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('returns the memory reading', async () => {
+      vi.mocked(api.getHardwareMemory).mockResolvedValue(memory)
+
+      const { result } = renderHook(() => useHardwareMemoryQuery(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(memory)
+      })
+    })
+
+    it('stops polling after the backend answers 404', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      vi.mocked(api.getHardwareMemory).mockRejectedValue(notFoundError())
+
+      const { result } = renderHook(() => useHardwareMemoryQuery(), {
+        wrapper: testEnv.wrapper
+      })
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000)
+      })
+
+      expect(api.getHardwareMemory).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps polling after other failures', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      vi.mocked(api.getHardwareMemory).mockRejectedValue(new Error('down'))
+
+      const { result } = renderHook(() => useHardwareMemoryQuery(), {
+        wrapper: testEnv.wrapper
+      })
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+      })
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10000)
+      })
+
+      expect(
+        vi.mocked(api.getHardwareMemory).mock.calls.length
+      ).toBeGreaterThan(1)
     })
   })
 
@@ -511,28 +593,6 @@ describe('React Query Hooks', () => {
     })
   })
 
-  describe('useDeleteLoraMutation', () => {
-    it('deletes a LoRA and invalidates the loras query cache', async () => {
-      const loraId = 5
-      const mockResponse: LoRADeleteResponse = {
-        id: loraId,
-        message: 'LoRA deleted'
-      }
-      vi.mocked(api.deleteLora).mockResolvedValue(mockResponse)
-      const invalidateSpy = vi.spyOn(testEnv.queryClient, 'invalidateQueries')
-
-      const { result } = renderHook(() => useDeleteLoraMutation(), {
-        wrapper: testEnv.wrapper
-      })
-
-      const response = await result.current.mutateAsync(loraId)
-
-      expect(api.deleteLora).toHaveBeenCalledWith(loraId)
-      expect(response).toEqual(mockResponse)
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['loras'] })
-    })
-  })
-
   describe('useBackendConfigQuery', () => {
     it('calls api.getConfig and returns the data', async () => {
       const mockResponse: BackendConfig = {
@@ -616,7 +676,60 @@ describe('React Query Hooks', () => {
       await expect(result.current.mutateAsync(true)).rejects.toThrow(
         'Failed to update safety check'
       )
+      expect(toast.danger).toHaveBeenCalledWith('Safety check not changed', {
+        description: 'Failed to update safety check'
+      })
       expect(api.setSafetyCheckEnabled).toHaveBeenCalledWith(true)
+    })
+  })
+
+  describe('mutation failures', () => {
+    beforeEach(() => {
+      vi.mocked(toast.danger).mockClear()
+    })
+
+    it('shows the backend reason when a LoRA upload fails', async () => {
+      vi.mocked(api.uploadLora).mockRejectedValue(
+        new AxiosError(
+          'Request failed',
+          'ERR_BAD_REQUEST',
+          undefined,
+          undefined,
+          {
+            status: 400,
+            statusText: 'Bad Request',
+            data: { detail: 'File is not a LoRA model' },
+            headers: {},
+            config: { headers: new AxiosHeaders() }
+          }
+        )
+      )
+      const { result } = renderHook(() => useUploadLoraMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await expect(
+        result.current.mutateAsync('/loras/broken.safetensors')
+      ).rejects.toThrow()
+
+      expect(toast.danger).toHaveBeenCalledWith('Upload failed', {
+        description: 'File is not a LoRA model'
+      })
+    })
+
+    it('says the memory limits were not saved', async () => {
+      vi.mocked(api.setMaxMemory).mockRejectedValue('offline')
+      const { result } = renderHook(() => useMaxMemoryMutation(), {
+        wrapper: testEnv.wrapper
+      })
+
+      await expect(
+        result.current.mutateAsync({ gpuScaleFactor: 0.5, ramScaleFactor: 0.5 })
+      ).rejects.toBe('offline')
+
+      expect(toast.danger).toHaveBeenCalledWith('Memory limits not saved', {
+        description: 'The backend kept the previous limits. Try again.'
+      })
     })
   })
 

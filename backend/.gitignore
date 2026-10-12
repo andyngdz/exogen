@@ -1,0 +1,74 @@
+# Python Backend Specific .gitignore
+
+# ------------------------------------------------------------------
+# GENERAL IGNORES
+# ------------------------------------------------------------------
+# macOS system files
+.DS_Store
+# macOS localized files
+.localized
+# pytest cache directory
+.pytest_cache/
+# Vim swap files
+*.swp
+# Backup files
+*.bak
+# Log files
+*.log
+logs.txt
+exogen_backend.db
+.coverage
+coverage.xml
+*.xlsx
+*.csv
+.claude/settings.*.json
+.worktrees/
+
+# Build artifacts and distribution directories
+# PyInstaller output (e.g., dist/app.exe or dist/app)
+dist/
+# PyInstaller build cache
+build/
+*.spec
+
+# ------------------------------------------------------------------
+# PYTHON SPECIFIC IGNORES
+# ------------------------------------------------------------------
+# Virtual environment
+.venv/
+venv/
+
+# Byte-code files
+__pycache__/
+*.pyc
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Runtime downloaded models
+static/generated_images
+
+# Caches
+.cache/
+.ruff_cache/
+.pyright_cache/
+.pytest_cache/
+
+# ------------------------------------------------------------------
+# ENVIRONMENTS / SECRETS
+# ------------------------------------------------------------------
+# Environment variables (e.g., API keys, device settings)
+.env
+
+# ------------------------------------------------------------------
+# SEMANTIC RELEASE
+# ------------------------------------------------------------------
+# Node.js dependencies for semantic-release
+node_modules/
+# NPM lock file
+package-lock.json
+# Temporary version file
+.VERSION
+# setuptools metadata written by uv sync
+*.egg-info/

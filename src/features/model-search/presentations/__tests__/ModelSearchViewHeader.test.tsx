@@ -1,33 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import type { LucideProps } from 'lucide-react'
 import type { FC } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { ButtonProps } from '@heroui/react'
 import { ModelSearchViewHeader } from '../ModelSearchViewHeader'
-
-// Mock only the Button from @heroui/react to a simple anchor/button
-vi.mock('@heroui/react', () => ({
-  Button: ({ children, href, target, className }: ButtonProps) => {
-    if (href) {
-      return (
-        <a
-          data-testid="button-link"
-          href={href}
-          target={target}
-          className={className}
-        >
-          {children}
-        </a>
-      )
-    }
-    return (
-      <button data-testid="button" className={className}>
-        {children}
-      </button>
-    )
-  }
-}))
 
 // Provide a lightweight Icon implementation to assert it renders and receives className
 const DummyIcon: FC<LucideProps> = (props) => (
@@ -42,9 +18,9 @@ describe('ModelSearchViewHeader', () => {
     // Assert
     const icon = screen.getByTestId('icon')
     expect(icon).toBeInTheDocument()
-    expect(icon).toHaveClass('text-primary')
+    expect(icon).toHaveClass('text-accent')
     expect(screen.getByText('Model Card')).toBeInTheDocument()
-    expect(screen.queryByTestId('button-link')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 
   it('renders external link button when href is provided', () => {
@@ -57,10 +33,11 @@ describe('ModelSearchViewHeader', () => {
     )
 
     // Assert
-    const link = screen.getByTestId('button-link')
-    expect(link).toBeInTheDocument()
+    const link = screen.getByRole('link', {
+      name: 'Open Model Card on Hugging Face'
+    })
     expect(link).toHaveAttribute('href', href)
     expect(link).toHaveAttribute('target', '_blank')
-    expect(link).toHaveClass('text-default-700')
+    expect(link).toHaveClass('button--ghost', 'button--icon-only')
   })
 })

@@ -1,56 +1,61 @@
 'use client'
 
 import { useBackendUrl } from '@/cores/backend-initialization'
+import { useGeneratorConfigStyle } from '@/features/generator-config-styles/states'
 import { StyleItem } from '@/types'
-import { Avatar, Chip, Tooltip } from '@heroui/react'
+import { Avatar, Chip, ChipProps, Tooltip } from '@heroui/react'
 import clsx from 'clsx'
 import NextImage from 'next/image'
 import { FC } from 'react'
-import { useGeneratorConfigStyle } from '../states'
+import { usePress } from 'react-aria'
 
-export interface GeneratorConfigStyleItemProps {
+export interface GeneratorConfigStyleItemProps extends Pick<
+  ChipProps,
+  'color' | 'variant'
+> {
   styleItem: StyleItem
 }
 
 export const GeneratorConfigStyleItem: FC<GeneratorConfigStyleItemProps> = ({
-  styleItem
+  styleItem,
+  color,
+  variant = 'secondary'
 }) => {
   const baseURL = useBackendUrl()
   const { isSelected, onClick } = useGeneratorConfigStyle(styleItem.id)
+  const { pressProps } = usePress({ onPress: onClick })
+  const imageUrl = `${baseURL}/static/${styleItem.image}`
 
   return (
-    <Tooltip
-      key={styleItem.id}
-      closeDelay={0}
-      classNames={{
-        base: 'pointer-events-none',
-        content: 'p-0 rounded-lg overflow-hidden'
-      }}
-      content={
+    <Tooltip delay={0} closeDelay={0}>
+      <Tooltip.Trigger
+        {...pressProps}
+        aria-label={styleItem.name}
+        className="cursor-pointer"
+      >
+        <Chip
+          color={color}
+          variant={variant}
+          className={clsx('transition-all', {
+            'ring-2 ring-accent': isSelected
+          })}
+        >
+          <span className="flex items-center gap-2">
+            <Avatar size="sm" className="size-5">
+              <Avatar.Image src={imageUrl} alt={styleItem.name} />
+            </Avatar>
+            <Chip.Label>{styleItem.name}</Chip.Label>
+          </span>
+        </Chip>
+      </Tooltip.Trigger>
+      <Tooltip.Content className="pointer-events-none p-0 rounded-lg overflow-hidden">
         <NextImage
-          src={`${baseURL}/static/${styleItem.image}`}
+          src={imageUrl}
           width={196}
           height={196}
           alt={styleItem.name}
         />
-      }
-    >
-      <Chip
-        avatar={
-          <Avatar
-            src={`${baseURL}/static/${styleItem.image}`}
-            alt={styleItem.name}
-            size="sm"
-          />
-        }
-        variant="bordered"
-        className={clsx('cursor-pointer transition-all', {
-          'border-primary': isSelected
-        })}
-        onClick={onClick}
-      >
-        {styleItem.name}
-      </Chip>
+      </Tooltip.Content>
     </Tooltip>
   )
 }

@@ -1,7 +1,7 @@
 import { SkeletonLoader } from '@/cores/presentations'
-import { Alert, Progress, ScrollShadow } from '@heroui/react'
-import { isEmpty } from 'es-toolkit/compat'
-import { useModelSearch } from '../states'
+import { useModelSearch } from '@/features/model-search/states'
+import { Alert, ProgressBar, ScrollShadow } from '@heroui/react'
+import { isEmpty, map } from 'es-toolkit/compat'
 import { ModelSearchItem } from './ModelSearchItem'
 
 export const ModelSearchListModel = () => {
@@ -10,7 +10,9 @@ export const ModelSearchListModel = () => {
   if (isEmpty(data) && !isLoading) {
     return (
       <Alert className="grow-0">
-        <span className="text-default">No models found</span>
+        <Alert.Content>
+          <Alert.Title>No models found</Alert.Title>
+        </Alert.Content>
       </Alert>
     )
   }
@@ -21,17 +23,21 @@ export const ModelSearchListModel = () => {
         isLoading={isLoading}
         data={data}
         skeleton={
-          <Progress
+          <ProgressBar
             isIndeterminate
             aria-label="Loading..."
             className="max-w-md"
             size="sm"
-          />
+          >
+            <ProgressBar.Track>
+              <ProgressBar.Fill />
+            </ProgressBar.Track>
+          </ProgressBar>
         }
       >
         {(models) => (
           <div className="flex flex-col gap-2 p-2">
-            {models.map((model) => (
+            {map(models, (model) => (
               <ModelSearchItem key={model.id} modelSearchInfo={model} />
             ))}
           </div>

@@ -1,52 +1,35 @@
+import { Card } from '@heroui/react'
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { ImageInputHeader } from '../ImageInputHeader'
 
-vi.mock('@heroui/react', () => ({
-  CardHeader: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="card-header">{children}</div>
-  ),
-  Spinner: () => <div data-testid="spinner" />
-}))
+const renderHeader = (dropzoneLabel: string, isLoading: boolean) =>
+  render(
+    <Card>
+      <ImageInputHeader dropzoneLabel={dropzoneLabel} isLoading={isLoading} />
+    </Card>
+  )
 
 describe('ImageInputHeader', () => {
-  it('renders the dropzone label', () => {
-    render(<ImageInputHeader dropzoneLabel="Drop here" isLoading={false} />)
+  it('renders the dropzone label in the card header', () => {
+    const { container } = renderHeader('Drop here', false)
 
     expect(screen.getByText('Drop here')).toBeInTheDocument()
+    expect(
+      container.querySelector('[data-slot="card-header"]')
+    ).toContainElement(screen.getByText('Drop here'))
   })
 
   it('shows spinner when loading', () => {
-    render(<ImageInputHeader dropzoneLabel="Drop here" isLoading={true} />)
+    renderHeader('Drop here', true)
 
-    expect(screen.getByTestId('spinner')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('hides spinner when not loading', () => {
-    render(<ImageInputHeader dropzoneLabel="Drop here" isLoading={false} />)
+    renderHeader('Drop here', false)
 
-    expect(screen.queryByTestId('spinner')).not.toBeInTheDocument()
-  })
-
-  it('renders with correct structure', () => {
-    render(<ImageInputHeader dropzoneLabel="Upload Image" isLoading={false} />)
-
-    expect(screen.getByTestId('card-header')).toBeInTheDocument()
-    expect(screen.getByText('Upload Image')).toBeInTheDocument()
-  })
-
-  it('displays different labels correctly', () => {
-    const { rerender } = render(
-      <ImageInputHeader dropzoneLabel="Drag & Drop" isLoading={false} />
-    )
-
-    expect(screen.getByText('Drag & Drop')).toBeInTheDocument()
-
-    rerender(
-      <ImageInputHeader dropzoneLabel="Select a file" isLoading={false} />
-    )
-
-    expect(screen.getByText('Select a file')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })

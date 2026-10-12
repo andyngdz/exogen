@@ -1,19 +1,29 @@
 import { api } from '@/services/api'
+import { apiErrorService } from '@/services/errors'
+import { toast } from '@heroui/react'
 import {
   ApiError,
   BackendConfig,
+  HardwareMemoryResponse,
   HardwareResponse,
   HealthResponse,
   HistoryItem,
   LoRA,
-  LoRADeleteResponse,
   MaxMemoryParams,
   ModelDownloaded,
   ModelRecommendationResponse,
   Sampler,
   StyleSection
 } from '@/types'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Query,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
+
+const HARDWARE_MEMORY_POLL_MS = 5000
 
 const useHealthQuery = (enabled = true) => {
   return useQuery<HealthResponse, ApiError>({
@@ -28,6 +38,31 @@ const useHardwareQuery = () => {
   return useQuery<HardwareResponse, ApiError>({
     queryKey: ['getHardwareStatus'],
     queryFn: () => api.getHardwareStatus()
+  })
+}
+
+const isNotFoundError = (error: unknown) =>
+  isAxiosError(error) && error.response?.status === 404
+
+/** False once the backend answered 404, which means it predates the endpoint. */
+const isHardwareMemorySupported = (
+  query: Query<HardwareMemoryResponse, ApiError>
+) => !isNotFoundError(query.state.error)
+
+/**
+ * Polls memory in use on the accelerator. A backend without the endpoint
+ * answers 404; after that nothing refetches it, not the interval, a window
+ * focus or a remount, for the rest of the session.
+ */
+const useHardwareMemoryQuery = () => {
+  return useQuery<HardwareMemoryResponse, ApiError>({
+    queryKey: ['getHardwareMemory'],
+    queryFn: () => api.getHardwareMemory(),
+    retry: false,
+    refetchInterval: (query) =>
+      isHardwareMemorySupported(query) ? HARDWARE_MEMORY_POLL_MS : false,
+    refetchOnWindowFocus: isHardwareMemorySupported,
+    refetchOnMount: isHardwareMemorySupported
   })
 }
 
@@ -82,16 +117,14 @@ const useUploadLoraMutation = () => {
     mutationFn: (file_path: string) => api.uploadLora(file_path),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loras'] })
-    }
-  })
-}
-
-const useDeleteLoraMutation = () => {
-  const queryClient = useQueryClient()
-  return useMutation<LoRADeleteResponse, ApiError, number>({
-    mutationFn: (id: number) => api.deleteLora(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['loras'] })
+    },
+    onError: (error) => {
+      toast.danger('Upload failed', {
+        description: apiErrorService.toMessage(
+          error,
+          'Check that the file is a LoRA model and try again.'
+        )
+      })
     }
   })
 }
@@ -110,6 +143,14 @@ const useSafetyCheckMutation = () => {
     mutationFn: (enabled: boolean) => api.setSafetyCheckEnabled(enabled),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config'] })
+    },
+    onError: (error) => {
+      toast.danger('Safety check not changed', {
+        description: apiErrorService.toMessage(
+          error,
+          'The backend did not save the setting. Try again.'
+        )
+      })
     }
   })
 }
@@ -124,14 +165,22 @@ const useMaxMemoryMutation = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config'] })
+    },
+    onError: (error) => {
+      toast.danger('Memory limits not saved', {
+        description: apiErrorService.toMessage(
+          error,
+          'The backend kept the previous limits. Try again.'
+        )
+      })
     }
   })
 }
 
 export {
   useBackendConfigQuery,
-  useDeleteLoraMutation,
   useDownloadedModelsQuery,
+  useHardwareMemoryQuery,
   useHardwareQuery,
   useHealthQuery,
   useHistoriesQuery,

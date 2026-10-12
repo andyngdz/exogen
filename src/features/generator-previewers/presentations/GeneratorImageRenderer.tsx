@@ -1,7 +1,7 @@
-import { Skeleton } from '@heroui/react'
 import { isEmpty } from 'es-toolkit/compat'
 import NextImage from 'next/image'
 import { FC, useMemo } from 'react'
+import { GeneratorImageRendererLoader } from './GeneratorImageRendererLoader'
 
 interface GeneratorImageRendererProps {
   imagePath: string
@@ -29,7 +29,7 @@ export const GeneratorImageRenderer: FC<GeneratorImageRendererProps> = ({
     }
 
     if (isEmpty(imageBase64)) {
-      return <Skeleton className="rounded-2xl w-full h-full" />
+      return <GeneratorImageRendererLoader />
     }
 
     const src = `data:image/png;base64,${imageBase64}`

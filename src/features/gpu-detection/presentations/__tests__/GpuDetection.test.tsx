@@ -1,184 +1,130 @@
-import {
-  createMockQuery,
-  renderWithAct,
-  setupRouterMock
-} from '@/cores/test-utils'
-import { HardwareResponse } from '@/types'
-import { screen } from '@testing-library/react'
-import React from 'react'
+import { useHardwareQuery } from '@/cores/api-queries'
+import { useMaxMemoryScaleFactorForm } from '@/features/max-memory-scale-factor/states/useMaxMemoryScaleFactorForm'
+import { api } from '@/services'
+import { BackendConfig, HardwareResponse } from '@/types'
+import { toast } from '@heroui/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GpuDetection } from '../GpuDetection'
 
-// Mock the modules
-vi.mock('next/navigation', () => ({
-  useRouter: vi.fn()
+vi.mock('@/cores/api-queries', () => ({ useHardwareQuery: vi.fn() }))
+vi.mock('@/services', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/services')>()),
+  api: { selectDevice: vi.fn() }
 }))
-
-vi.mock('@/features/setup-layout/presentations/SetupLayout', () => ({
-  SetupLayout: ({
-    children,
+vi.mock(
+  '@/features/max-memory-scale-factor/states/useMaxMemoryScaleFactorForm',
+  () => ({ useMaxMemoryScaleFactorForm: vi.fn() })
+)
+vi.mock('@/cores/presentations/memory-scale-factor', () => ({
+  MemoryScaleFactorItems: () => <div>Memory sliders</div>,
+  MemoryScaleFactorPreview: () => <div>Memory preview</div>
+}))
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { danger: vi.fn() }
+}))
+vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+  OnboardingLayout: ({
     title,
-    description,
-    onNext,
-    onBack,
-    isNextDisabled
+    children,
+    footer
   }: {
-    children: React.ReactNode
     title: string
-    description: string
-    onNext?: () => void
-    onBack?: () => void
-    isNextDisabled?: boolean
+    children: ReactNode
+    footer: ReactNode
   }) => (
-    <div data-testid="mock-setup-layout">
+    <div>
       <h1>{title}</h1>
-      <p>{description}</p>
-      <div>{children}</div>
-      <button
-        data-testid="next-button"
-        onClick={onNext}
-        disabled={isNextDisabled}
-      >
-        Next
-      </button>
-      <button data-testid="back-button" onClick={onBack}>
-        Back
-      </button>
+      {children}
+      {footer}
     </div>
   )
 }))
 
-vi.mock('../GpuDetectionContent', () => ({
-  GpuDetectionContent: ({
-    hardwareData
-  }: {
-    hardwareData: HardwareResponse
-  }) => (
-    <div data-testid="mock-gpu-detection-content">
-      Hardware Data: {hardwareData.message}
-    </div>
-  )
-}))
+const onNext = vi.fn()
 
-vi.mock('@/services/api', () => ({
-  api: {
-    selectDevice: vi.fn()
-  }
-}))
-
-vi.mock('@/cores/api-queries', () => ({
-  useHardwareQuery: vi.fn()
-}))
-
-describe('GpuDetection', () => {
-  const mockHardwareData: HardwareResponse = {
+const hardware = (overrides: Partial<HardwareResponse> = {}) =>
+  ({
     is_cuda: true,
-    cuda_runtime_version: '12.2',
-    nvidia_driver_version: '535.104.05',
+    cuda_runtime_version: '12.4',
+    nvidia_driver_version: '560.94',
+    message: '',
     gpus: [
       {
-        name: 'NVIDIA GeForce RTX 4090',
-        memory: 25769803776,
-        cuda_compute_capability: '8.9',
+        name: 'NVIDIA GeForce RTX 3060',
+        memory: 12 * 1024 ** 3,
+        cuda_compute_capability: '8.6',
         is_primary: true
       }
     ],
-    message: 'Hardware detected successfully'
-  }
+    ...overrides
+  }) as HardwareResponse
 
+const renderStep = (data: HardwareResponse) => {
+  vi.mocked(useHardwareQuery).mockReturnValue({
+    data,
+    refetch: vi.fn()
+  } as unknown as ReturnType<typeof useHardwareQuery>)
+  return render(<GpuDetection />)
+}
+
+describe('GpuDetection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  // Reusable helper to set up hardware query mock
-  const setupHardwareQueryMock = async (data: HardwareResponse | null) => {
-    const { useHardwareQuery } = await import('@/cores/api-queries')
-    vi.mocked(useHardwareQuery).mockReturnValue(createMockQuery(data))
-    return { useHardwareQuery }
-  }
-
-  it('renders nothing when hardware data is not available', async () => {
-    await setupHardwareQueryMock(null)
-    await setupRouterMock()
-
-    const { container } = await renderWithAct(<GpuDetection />)
-
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('renders correctly when hardware data is available', async () => {
-    await setupHardwareQueryMock(mockHardwareData)
-    await setupRouterMock()
-
-    await renderWithAct(<GpuDetection />)
-
-    expect(screen.getByText('GPU & Hardware Detection')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Detecting your GPU and CUDA capabilities for optimal performance'
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('mock-gpu-detection-content')).toBeInTheDocument()
-    expect(
-      screen.getByText('Hardware Data: Hardware detected successfully')
-    ).toBeInTheDocument()
-  })
-
-  it('provides form context to children', async () => {
-    await setupHardwareQueryMock(mockHardwareData)
-    await setupRouterMock()
-
-    await renderWithAct(<GpuDetection />)
-
-    // FormProvider should wrap the content
-    expect(screen.getByTestId('mock-setup-layout')).toBeInTheDocument()
-  })
-
-  // This test verifies that the isNextDisabled prop is correctly bound to form validity
-  // Note: With the mock component that doesn't register form fields, form is always valid
-  // after initialization. We test the binding works by checking the button exists.
-  it('binds next button disabled state to form validity', async () => {
-    await setupHardwareQueryMock(mockHardwareData)
-    await setupRouterMock()
-
-    await renderWithAct(<GpuDetection />)
-
-    const nextButton = screen.getByTestId('next-button')
-    // The button should exist and the disabled binding should work
-    // (actual disabled state depends on form field registration in real component)
-    expect(nextButton).toBeInTheDocument()
-  })
-
-  it('handles form submission correctly', async () => {
-    await setupHardwareQueryMock(mockHardwareData)
-    await setupRouterMock()
-
-    const { api } = await import('@/services/api')
-    vi.mocked(api.selectDevice).mockResolvedValue({
-      upscalers: [],
-      safety_check_enabled: true,
-      gpu_scale_factor: 0.8,
-      ram_scale_factor: 0.8,
-      total_gpu_memory: 12485197824,
-      total_ram_memory: 32943878144,
-      device_index: 0
+    vi.mocked(useMaxMemoryScaleFactorForm).mockReturnValue({
+      gpuScaleFactor: 0.6,
+      ramScaleFactor: 0.5,
+      onGpuChange: vi.fn(),
+      onRamChange: vi.fn(),
+      onNext,
+      onBack: vi.fn()
     })
-
-    await renderWithAct(<GpuDetection />)
-
-    // This test is simplified since testing form submission with react-hook-form
-    // requires more complex mocking. The key behavior is tested in integration.
-    expect(screen.getByTestId('next-button')).toBeInTheDocument()
   })
 
-  it('passes hardware data to GpuDetectionContent', async () => {
-    await setupHardwareQueryMock(mockHardwareData)
-    await setupRouterMock()
+  it('shows the GPU, its CUDA facts and the memory limits', () => {
+    renderStep(hardware())
 
-    await renderWithAct(<GpuDetection />)
+    expect(screen.getByText('NVIDIA GeForce RTX 3060')).toBeInTheDocument()
+    expect(screen.getByText('CUDA ready')).toBeInTheDocument()
+    expect(screen.getByText('560.94')).toBeInTheDocument()
+    expect(screen.getByText('Memory sliders')).toBeInTheDocument()
+  })
 
-    expect(
-      screen.getByText('Hardware Data: Hardware detected successfully')
-    ).toBeInTheDocument()
+  it('saves the GPU, then the memory limits', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.selectDevice).mockResolvedValue({} as BackendConfig)
+    renderStep(hardware())
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => {
+      expect(onNext).toHaveBeenCalled()
+    })
+    expect(api.selectDevice).toHaveBeenCalledWith({ device_index: 0 })
+  })
+
+  it('stays here and says why when the GPU is not saved', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.selectDevice).mockRejectedValue(new Error('Device busy'))
+    renderStep(hardware())
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => {
+      expect(toast.danger).toHaveBeenCalledWith('GPU not selected', {
+        description: 'Device busy'
+      })
+    })
+    expect(onNext).not.toHaveBeenCalled()
+  })
+
+  it('falls back to CPU mode without CUDA', () => {
+    renderStep(hardware({ is_cuda: false, gpus: [] }))
+
+    expect(screen.getByText('CPU Mode Only')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
   })
 })

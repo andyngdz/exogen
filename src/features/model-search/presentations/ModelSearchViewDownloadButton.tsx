@@ -1,8 +1,8 @@
 import { useDownloadWatcher } from '@/features/download-watcher'
+import { useDownloadButton } from '@/features/model-search/states'
 import { Button } from '@heroui/react'
 import clsx from 'clsx'
 import { FC } from 'react'
-import { useDownloadButton } from '../states'
 
 export interface ModelSearchViewDownloadButtonProps {
   id: string
@@ -15,7 +15,7 @@ export const ModelSearchViewDownloadButton: FC<
   const { isDownloading } = useDownloadWatcher(id)
 
   return (
-    <Button color="primary" onPress={onDownload} isLoading={isDownloading}>
+    <Button variant="primary" onPress={onDownload} isPending={isDownloading}>
       <span
         className={clsx({
           'animate-pulse': isDownloading

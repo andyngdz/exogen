@@ -16,20 +16,28 @@ const monoFont = JetBrains_Mono({
   subsets: ['latin']
 })
 
-export const metadata: Metadata = {
-  title: 'ExoGen',
-  description:
-    'Generate images with Stable Diffusion, run LLMs, and more, all on your local machine.'
+export function generateMetadata(): Metadata {
+  return {
+    title: 'ExoGen',
+    description:
+      'Generate images with Stable Diffusion, run LLMs, and more, all on your local machine.'
+  }
 }
 
 export default function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode
-}>) {
+}>): React.JSX.Element {
   return (
     <html lang="en" className="dark">
-      <body className={clsx(font.className, monoFont.variable, 'antialiased')}>
+      <body
+        className={clsx(
+          font.className,
+          monoFont.variable,
+          'antialiased bg-background text-foreground'
+        )}
+      >
         <Providers>
           <AppLayout>
             {children}

@@ -12,14 +12,12 @@ export const ModelDownloadStatusInfo: FC<ModelDownloadStatusInfoProps> = ({
   const { downloadSized, downloadTotalSized, currentFile } =
     useDownloadWatcher(id)
 
-  if (downloadTotalSized <= 0) return null
+  if (downloadTotalSized <= 0) return
 
   return (
     <div className="flex justify-between items-center px-4">
-      <span className="text-xs text-default-700 font-medium">
-        {currentFile}
-      </span>
-      <span className="text-xs text-default-700 font-medium">
+      <span className="text-xs text-foreground font-medium">{currentFile}</span>
+      <span className="text-xs text-foreground font-medium">
         <span>{formatter.bytes(downloadSized)}</span>
         <span> / </span>
         <span>{formatter.bytes(downloadTotalSized)}</span>

@@ -26,8 +26,7 @@ export const SwiperNavigationActions: FC<SwiperNavigationActionsProps> = ({
     <div className="absolute inset-4 flex items-center justify-between pointer-events-none">
       <Button
         isIconOnly
-        variant="flat"
-        color="default"
+        variant="tertiary"
         onPress={onPrevious}
         className="z-10 pointer-events-auto"
         aria-label={previousLabel}
@@ -36,8 +35,7 @@ export const SwiperNavigationActions: FC<SwiperNavigationActionsProps> = ({
       </Button>
       <Button
         isIconOnly
-        variant="flat"
-        color="default"
+        variant="tertiary"
         onPress={onNext}
         className="z-10 pointer-events-auto"
         aria-label={nextLabel}

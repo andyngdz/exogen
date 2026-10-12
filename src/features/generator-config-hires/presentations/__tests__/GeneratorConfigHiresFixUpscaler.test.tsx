@@ -80,74 +80,6 @@ const mockUpscalerOptions = mockUpscalerSections.flatMap(
   (section) => section.options
 )
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => {
-  return {
-    Select: ({
-      label,
-      selectedKeys,
-      onSelectionChange,
-      'aria-label': ariaLabel,
-      children
-    }: {
-      label: string
-      selectedKeys: string[]
-      onSelectionChange: (keys: { currentKey: string | null }) => void
-      children: React.ReactNode
-      'aria-label': string
-    }) => {
-      return (
-        <div data-testid="select" aria-label={ariaLabel}>
-          <label>{label}</label>
-          <select
-            data-testid="select-input"
-            value={selectedKeys?.[0] || ''}
-            onChange={(e) =>
-              onSelectionChange({ currentKey: e.target.value || null })
-            }
-          >
-            {children}
-          </select>
-        </div>
-      )
-    },
-    SelectSection: ({
-      title,
-      children
-    }: {
-      title: string
-      children: React.ReactNode
-    }) => (
-      <optgroup label={title} data-testid={`section-${title.toLowerCase()}`}>
-        {children}
-      </optgroup>
-    ),
-    SelectItem: ({
-      children,
-      description,
-      'data-key': dataKey
-    }: {
-      children: React.ReactNode
-      description?: React.ReactNode
-      'data-key'?: string
-    }) => {
-      return (
-        <option
-          value={dataKey}
-          data-description={description ? 'true' : undefined}
-        >
-          {children}
-        </option>
-      )
-    },
-    Skeleton: ({ className }: { className: string }) => (
-      <div data-testid="skeleton" className={className}>
-        Loading...
-      </div>
-    )
-  }
-})
-
 // Mock react-hook-form
 const mockOnChange = vi.fn()
 const mockSetValue = vi.fn()
@@ -159,20 +91,22 @@ vi.mock('react-hook-form', () => ({
     control: mockControl,
     setValue: mockSetValue
   }),
-  Controller: ({
-    render
-  }: {
-    render: (props: {
-      field: { value: string | undefined; onChange: (v: string) => void }
-    }) => React.ReactNode
-  }) => {
-    const mockField = {
-      value: mockFieldValue,
-      onChange: mockOnChange
-    }
-    return <>{render({ field: mockField })}</>
-  }
+  useController: () => ({
+    field: { value: mockFieldValue, onChange: mockOnChange }
+  })
 }))
+
+const openUpscalerSelect = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button'))
+}
+
+const chooseUpscaler = async (
+  user: ReturnType<typeof userEvent.setup>,
+  optionName: string
+) => {
+  await openUpscalerSelect(user)
+  await user.click(screen.getByRole('option', { name: new RegExp(optionName) }))
+}
 
 describe('GeneratorConfigHiresFixUpscaler', () => {
   beforeEach(() => {
@@ -203,34 +137,35 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
     expect(screen.getByText('Upscaler')).toBeInTheDocument()
   })
 
-  it('renders select with correct aria-label', () => {
+  it('labels the select as Upscaler', () => {
     render(<GeneratorConfigHiresFixUpscaler />)
 
-    expect(screen.getByLabelText('Upscaler')).toBeInTheDocument()
+    expect(screen.getByRole('button')).toHaveAccessibleName(/Upscaler/)
   })
 
-  it('displays upscaler options from useConfig', () => {
+  it('displays upscaler options from useConfig', async () => {
+    const user = userEvent.setup()
     render(<GeneratorConfigHiresFixUpscaler />)
 
-    expect(screen.getByText('Lanczos')).toBeInTheDocument()
-    expect(screen.getByText('Bicubic')).toBeInTheDocument()
-    expect(screen.getByText('Bilinear')).toBeInTheDocument()
-    expect(screen.getByText('Nearest')).toBeInTheDocument()
+    await openUpscalerSelect(user)
+
+    expect(screen.getByRole('option', { name: /Lanczos/ })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Bicubic/ })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Bilinear/ })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Nearest/ })).toBeInTheDocument()
   })
 
   it('displays selected value', () => {
     render(<GeneratorConfigHiresFixUpscaler />)
-    const select = screen.getByTestId<HTMLSelectElement>('select-input')
 
-    expect(select.value).toBe(UpscalerType.LANCZOS)
+    expect(screen.getByRole('button')).toHaveTextContent('Lanczos')
   })
 
   it('calls onChange when selection changes', async () => {
     const user = userEvent.setup()
     render(<GeneratorConfigHiresFixUpscaler />)
-    const select = screen.getByTestId('select-input')
 
-    await user.selectOptions(select, UpscalerType.BICUBIC)
+    await chooseUpscaler(user, 'Bicubic')
 
     expect(mockOnChange).toHaveBeenCalledWith(UpscalerType.BICUBIC)
   })
@@ -238,9 +173,8 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
   it('sets suggested_denoise_strength when upscaler changes', async () => {
     const user = userEvent.setup()
     render(<GeneratorConfigHiresFixUpscaler />)
-    const select = screen.getByTestId('select-input')
 
-    await user.selectOptions(select, UpscalerType.BICUBIC)
+    await chooseUpscaler(user, 'Bicubic')
 
     expect(mockSetValue).toHaveBeenCalledWith(
       'hires_fix.denoising_strength',
@@ -251,19 +185,18 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
   it('sets correct denoise strength for each upscaler', async () => {
     const user = userEvent.setup()
     render(<GeneratorConfigHiresFixUpscaler />)
-    const select = screen.getByTestId('select-input')
 
-    await user.selectOptions(select, UpscalerType.LANCZOS)
-    expect(mockSetValue).toHaveBeenCalledWith(
-      'hires_fix.denoising_strength',
-      0.5
-    )
-
-    mockSetValue.mockClear()
-    await user.selectOptions(select, UpscalerType.NEAREST)
+    await chooseUpscaler(user, 'Nearest')
     expect(mockSetValue).toHaveBeenCalledWith(
       'hires_fix.denoising_strength',
       0.3
+    )
+
+    mockSetValue.mockClear()
+    await chooseUpscaler(user, 'Bilinear')
+    expect(mockSetValue).toHaveBeenCalledWith(
+      'hires_fix.denoising_strength',
+      0.35
     )
   })
 
@@ -298,12 +231,12 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
       isHasDevice: true
     })
 
+    mockFieldValue = UpscalerType.BICUBIC
     const user = userEvent.setup()
     render(<GeneratorConfigHiresFixUpscaler />)
-    const select = screen.getByTestId('select-input')
 
     // Select LANCZOS which exists - should call setValue
-    await user.selectOptions(select, UpscalerType.LANCZOS)
+    await chooseUpscaler(user, 'Lanczos')
     expect(mockSetValue).toHaveBeenCalledWith(
       'hires_fix.denoising_strength',
       0.5
@@ -313,18 +246,17 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
   describe('skeleton state', () => {
     it('shows skeleton when value is undefined', () => {
       mockFieldValue = undefined
-      render(<GeneratorConfigHiresFixUpscaler />)
+      const { container } = render(<GeneratorConfigHiresFixUpscaler />)
 
-      expect(screen.getByTestId('skeleton')).toBeInTheDocument()
-      expect(screen.queryByTestId('select')).not.toBeInTheDocument()
+      expect(container.querySelector('.h-14')).toBeInTheDocument()
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
     })
 
     it('skeleton has correct class', () => {
       mockFieldValue = undefined
-      render(<GeneratorConfigHiresFixUpscaler />)
-      const skeleton = screen.getByTestId('skeleton')
+      const { container } = render(<GeneratorConfigHiresFixUpscaler />)
 
-      expect(skeleton).toHaveClass('h-14', 'rounded-medium')
+      expect(container.firstElementChild).toHaveClass('h-14', 'rounded-xl')
     })
   })
 
@@ -344,36 +276,45 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
     render(<GeneratorConfigHiresFixUpscaler />)
 
     // Should render without crashing, just with no options
-    expect(screen.getByTestId('select')).toBeInTheDocument()
+    expect(screen.getByRole('button')).toBeInTheDocument()
   })
 
   describe('sections and recommendations', () => {
-    it('groups upscalers into Traditional and AI sections', () => {
+    it('groups upscalers into Traditional and AI sections', async () => {
+      const user = userEvent.setup()
       render(<GeneratorConfigHiresFixUpscaler />)
 
-      expect(screen.getByTestId('section-traditional')).toBeInTheDocument()
-      expect(screen.getByTestId('section-ai')).toBeInTheDocument()
+      await openUpscalerSelect(user)
+
+      expect(screen.getByText('Traditional')).toBeInTheDocument()
+      expect(screen.getByText('AI')).toBeInTheDocument()
     })
 
-    it('displays AI upscalers in the AI section', () => {
+    it('displays AI upscalers in the AI section', async () => {
+      const user = userEvent.setup()
       render(<GeneratorConfigHiresFixUpscaler />)
 
-      expect(screen.getByText('Real-ESRGAN 2x')).toBeInTheDocument()
-      expect(screen.getByText('Real-ESRGAN 4x')).toBeInTheDocument()
+      await openUpscalerSelect(user)
+
+      expect(
+        screen.getByRole('option', { name: /Real-ESRGAN 2x/ })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('option', { name: /Real-ESRGAN 4x/ })
+      ).toBeInTheDocument()
     })
 
-    it('marks recommended upscalers with data attribute', () => {
+    it('marks recommended upscalers', async () => {
+      const user = userEvent.setup()
       render(<GeneratorConfigHiresFixUpscaler />)
 
-      // Get all options with the data-description attribute (indicates recommendation)
-      const selectElement = screen.getByTestId('select-input')
-      const optionsWithDescription = selectElement.querySelectorAll(
-        'option[data-description="true"]'
-      )
-      expect(optionsWithDescription.length).toBe(2) // Both AI upscalers are recommended
+      await openUpscalerSelect(user)
+
+      // Both AI upscalers are recommended
+      expect(screen.getAllByText('Recommended')).toHaveLength(2)
     })
 
-    it('does not mark non-recommended upscalers with description', () => {
+    it('does not mark non-recommended upscalers', async () => {
       const nonRecommendedSections = [
         {
           method: UpscalerMethod.TRADITIONAL,
@@ -403,13 +344,12 @@ describe('GeneratorConfigHiresFixUpscaler', () => {
         isHasDevice: true
       })
 
+      const user = userEvent.setup()
       render(<GeneratorConfigHiresFixUpscaler />)
 
-      const selectElement = screen.getByTestId('select-input')
-      const optionsWithDescription = selectElement.querySelectorAll(
-        'option[data-description="true"]'
-      )
-      expect(optionsWithDescription.length).toBe(0)
+      await openUpscalerSelect(user)
+
+      expect(screen.queryByText('Recommended')).not.toBeInTheDocument()
     })
 
     it('includes AI upscalers with correct denoise strength in config', () => {

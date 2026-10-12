@@ -1,40 +1,21 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useUpdaterStore } from '@/features/settings/states/useUpdaterStore'
 import { UpdateSettings } from '../UpdateSettings'
 
 // Helper to create a delayed promise
 const createDelayedPromise = <T,>(value: T, ms: number): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(value), ms))
 
-// Mock HeroUI components
-vi.mock('@heroui/react', () => ({
-  Button: ({
-    children,
-    onPress,
-    isLoading,
-    color
-  }: {
-    children: React.ReactNode
-    onPress?: () => void
-    isLoading?: boolean
-    color?: string
-  }) => (
-    <button
-      onClick={onPress}
-      disabled={isLoading}
-      data-loading={isLoading}
-      data-color={color}
-    >
-      {children}
-    </button>
-  ),
-  addToast: vi.fn(),
-  Divider: () => <hr />
+vi.mock('@heroui/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@heroui/react')>()),
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('UpdateSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useUpdaterStore.setState(useUpdaterStore.getInitialState(), true)
     vi.mocked(window.electronAPI.updater.checkForUpdates).mockResolvedValue({
       updateAvailable: false
     })
@@ -89,7 +70,7 @@ describe('UpdateSettings', () => {
     })
 
     expect(button).toBeInTheDocument()
-    expect(button).toHaveAttribute('data-color', 'primary')
+    expect(button).toHaveClass('button--tertiary')
 
     // Wait for async effect to complete
     await waitFor(() => {
@@ -131,9 +112,9 @@ describe('UpdateSettings', () => {
 
     // Button should show loading state
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'true')
+      expect(button).toHaveAttribute('data-pending', 'true')
       expect(button).toHaveTextContent('Checking…')
-      expect(button).toBeDisabled()
+      expect(button).toHaveAttribute('aria-disabled', 'true')
     })
   })
 
@@ -152,13 +133,13 @@ describe('UpdateSettings', () => {
     })
 
     // Wait for loading state
-    await waitFor(() => expect(button).toHaveAttribute('data-loading', 'true'))
+    await waitFor(() => expect(button).toHaveAttribute('data-pending', 'true'))
 
     // Wait for loading to finish
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'false')
+      expect(button).not.toHaveAttribute('data-pending')
       expect(button).toHaveTextContent('Check for updates')
-      expect(button).not.toBeDisabled()
+      expect(button).not.toHaveAttribute('aria-disabled')
     })
   })
 
@@ -183,7 +164,7 @@ describe('UpdateSettings', () => {
 
     // Button should return to normal state after error
     await waitFor(() => {
-      expect(button).toHaveAttribute('data-loading', 'false')
+      expect(button).not.toHaveAttribute('data-pending')
       expect(button).toHaveTextContent('Check for updates')
     })
 
@@ -212,7 +193,7 @@ describe('UpdateSettings', () => {
     )
 
     // Wait for loading to finish
-    await waitFor(() => expect(button).not.toBeDisabled())
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-disabled'))
 
     // Second click
     await act(async () => {
@@ -223,6 +204,68 @@ describe('UpdateSettings', () => {
       expect(window.electronAPI.updater.checkForUpdates).toHaveBeenCalledTimes(
         2
       )
+    )
+  })
+
+  describe('downloaded update', () => {
+    beforeEach(() => {
+      useUpdaterStore.setState({ downloadedVersion: '1.20.0' })
+    })
+
+    it('shows the ready card with the downloaded version', async () => {
+      render(<UpdateSettings />)
+
+      expect(
+        screen.getByText('ExoGen 1.20.0 is ready to install')
+      ).toBeInTheDocument()
+      await waitFor(() =>
+        expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
+      )
+    })
+
+    it('installs when Install and restart is pressed', async () => {
+      render(<UpdateSettings />)
+
+      await act(async () => {
+        fireEvent.click(
+          screen.getByRole('button', { name: /Install and restart/ })
+        )
+      })
+
+      expect(window.electronAPI.updater.installUpdate).toHaveBeenCalledTimes(1)
+    })
+
+    it('hides the card after Later', async () => {
+      render(<UpdateSettings />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Later' }))
+      })
+
+      expect(
+        screen.queryByText('ExoGen 1.20.0 is ready to install')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows when the last check ran', async () => {
+    const lastCheckedAt = new Date(2026, 9, 2, 21, 58).getTime()
+    useUpdaterStore.setState({ lastCheckedAt })
+
+    render(<UpdateSettings />)
+
+    expect(screen.getByText('Last checked at 21:58')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
+    )
+  })
+
+  it('shows no ready card without a downloaded update', async () => {
+    render(<UpdateSettings />)
+
+    expect(screen.queryByText(/ready to install/)).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText(/Current version: 0.0.0/)).toBeInTheDocument()
     )
   })
 })

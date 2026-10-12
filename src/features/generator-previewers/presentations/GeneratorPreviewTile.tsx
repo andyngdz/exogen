@@ -3,6 +3,7 @@
 import { Card } from '@heroui/react'
 import clsx from 'clsx'
 import { ReactNode } from 'react'
+import { usePress } from 'react-aria'
 
 interface GeneratorPreviewTileProps {
   aspectRatio?: number
@@ -28,12 +29,11 @@ export const GeneratorPreviewTile = ({
   ariaLabel
 }: GeneratorPreviewTileProps) => {
   const isClickable = !!onPress
+  const { pressProps } = usePress({ onPress })
 
   return (
     <Card
-      as="div"
-      isPressable={isClickable}
-      onPress={onPress}
+      {...(isClickable && { ...pressProps, role: 'button', tabIndex: 0 })}
       aria-label={ariaLabel ?? 'Open preview'}
       className={clsx(
         'relative group h-full w-full overflow-hidden rounded-2xl',

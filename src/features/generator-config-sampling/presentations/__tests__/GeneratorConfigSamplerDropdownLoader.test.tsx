@@ -16,6 +16,6 @@ describe('GeneratorConfigSamplerDropdownLoader', () => {
 
     const skeleton = screen.getByTestId('skeleton')
     expect(skeleton).toBeInTheDocument()
-    expect(skeleton).toHaveClass('h-10', 'w-full', 'rounded-medium')
+    expect(skeleton).toHaveClass('h-10', 'w-full', 'rounded-xl')
   })
 })

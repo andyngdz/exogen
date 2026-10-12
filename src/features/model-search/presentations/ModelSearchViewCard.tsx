@@ -2,6 +2,7 @@ import { ModelWithAvatar } from '@/cores/presentations/ModelWithAvatar'
 import { formatter } from '@/services'
 import { Chip, ScrollShadow } from '@heroui/react'
 import { CircleArrowDown, CircleDashed, Heart, Package } from 'lucide-react'
+import { map } from 'es-toolkit/compat'
 import { FC } from 'react'
 import { ModelSearchViewHeader } from './ModelSearchViewHeader'
 
@@ -29,7 +30,7 @@ export const ModelSearchViewCard: FC<ModelSearchViewCardProps> = ({
       />
       <div className="flex flex-col gap-4">
         <ModelWithAvatar author={author} id={id} />
-        <div className="flex items-center gap-4 text-default-700">
+        <div className="flex items-center gap-4 text-foreground">
           <div className="flex items-center gap-2">
             <CircleDashed size={16} />
             <span className="text-xs">Text to Image</span>
@@ -43,18 +44,16 @@ export const ModelSearchViewCard: FC<ModelSearchViewCardProps> = ({
             <span className="text-xs">{formatter.number(likes)}</span>
           </div>
         </div>
-        <ScrollShadow
-          className="flex gap-2"
-          orientation="horizontal"
-          hideScrollBar
-        >
-          {tags.map((tag) => {
-            return (
-              <Chip variant="bordered" key={tag}>
-                {tag}
-              </Chip>
-            )
-          })}
+        <ScrollShadow orientation="horizontal" className="scrollbar-none">
+          <div className="flex gap-2">
+            {map(tags, (tag) => {
+              return (
+                <Chip variant="secondary" key={tag}>
+                  {tag}
+                </Chip>
+              )
+            })}
+          </div>
         </ScrollShadow>
       </div>
     </div>

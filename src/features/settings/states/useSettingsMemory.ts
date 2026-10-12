@@ -2,7 +2,6 @@
 
 import { useMaxMemoryMutation } from '@/cores/api-queries'
 import { useConfig } from '@/cores/hooks'
-import { SliderValue } from '@heroui/react'
 import { useCallback } from 'react'
 
 export const useSettingsMemory = () => {
@@ -10,11 +9,9 @@ export const useSettingsMemory = () => {
   const { mutate: setMaxMemory } = useMaxMemoryMutation()
 
   const onGpuChange = useCallback(
-    (value: SliderValue) => {
-      const numericValue = Number(value)
-
+    (gpuScaleFactor: number) => {
       setMaxMemory({
-        gpuScaleFactor: numericValue,
+        gpuScaleFactor,
         ramScaleFactor: ram_scale_factor
       })
     },
@@ -22,12 +19,10 @@ export const useSettingsMemory = () => {
   )
 
   const onRamChange = useCallback(
-    (value: SliderValue) => {
-      const numericValue = Number(value)
-
+    (ramScaleFactor: number) => {
       setMaxMemory({
         gpuScaleFactor: gpu_scale_factor,
-        ramScaleFactor: numericValue
+        ramScaleFactor
       })
     },
     [gpu_scale_factor, setMaxMemory]

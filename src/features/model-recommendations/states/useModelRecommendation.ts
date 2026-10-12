@@ -1,11 +1,13 @@
 import { useModelRecommendationsQuery } from '@/cores/api-queries'
 import { SocketEvents, useSocketEvent } from '@/cores/sockets'
+import { useDownloadWatcherStore } from '@/features/download-watcher'
 import { useRouter } from 'next/navigation'
 import { useCallback } from 'react'
 
 export const useModelRecommendation = () => {
   const router = useRouter()
   const { data } = useModelRecommendationsQuery()
+  const downloadingModelId = useDownloadWatcherStore((state) => state.model_id)
 
   const onNext = useCallback(() => {
     router.replace('/editor')
@@ -23,5 +25,11 @@ export const useModelRecommendation = () => {
     onDownloadCompleted
   ])
 
-  return { onNext, onSkip, data }
+  return {
+    onNext,
+    onSkip,
+    onBack: router.back,
+    isDownloading: !!downloadingModelId,
+    data
+  }
 }

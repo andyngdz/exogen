@@ -1,6 +1,6 @@
 import { AuthorAvatar } from '@/cores/presentations/AuthorAvatar'
 import { Button, Chip } from '@heroui/react'
-import { split, take } from 'es-toolkit/compat'
+import { map, split, take } from 'es-toolkit/compat'
 import { Orbit } from 'lucide-react'
 import { FC, useMemo, useState } from 'react'
 import { ModelSearchViewHeader } from './ModelSearchViewHeader'
@@ -26,23 +26,24 @@ export const ModelSearchViewSpaces: FC<ModelSearchViewSpacesProps> = ({
     <div className="flex flex-col gap-6">
       <ModelSearchViewHeader Icon={Orbit} title="Spaces" />
       <div className="flex flex-wrap gap-2">
-        {showSpaces.map((space) => {
+        {map(showSpaces, (space) => {
           return (
-            <Chip
-              variant="bordered"
-              avatar={<AuthorAvatar id={split(space, '/')[0]} />}
-              key={space}
-            >
-              <span>{space}</span>
+            <Chip variant="secondary" key={space}>
+              <span className="flex items-center gap-2">
+                <AuthorAvatar
+                  id={split(space, '/')[0]}
+                  size="sm"
+                  className="size-5"
+                />
+                <Chip.Label>{space}</Chip.Label>
+              </span>
             </Chip>
           )
         })}
         <Button
           onPress={() => setIsExpanded((prev) => !prev)}
-          className="h-7"
-          variant="bordered"
-          color="warning"
-          radius="full"
+          variant="outline"
+          className="text-warning"
           size="sm"
         >
           {showMoreText}

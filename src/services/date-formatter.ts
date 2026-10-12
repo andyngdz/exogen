@@ -9,6 +9,10 @@ class DateFormatter {
     return dayjs(new Date(value).toISOString()).format('HH:mm')
   }
 
+  timeWithSecondsFromTimestamp(value: number) {
+    return dayjs(value).format('HH:mm:ss')
+  }
+
   date(value: string) {
     return dayjs(value).format('MMM D, YYYY')
   }

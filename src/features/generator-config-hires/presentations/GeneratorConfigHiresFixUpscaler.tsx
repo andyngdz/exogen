@@ -1,62 +1,61 @@
 'use client'
 
-import { GeneratorConfigFormValues } from '@/features/generator-configs/types/generator-config'
-import { Select, SelectItem, SelectSection, Skeleton } from '@heroui/react'
-import { Controller, useFormContext } from 'react-hook-form'
-import { useGeneratorConfigHiresFixUpscaler } from '../states'
+import { useHiresFixUpscalerSelect } from '@/features/generator-config-hires/states/useHiresFixUpscalerSelect'
+import {
+  Description,
+  Header,
+  Label,
+  ListBox,
+  Select,
+  Separator
+} from '@heroui/react'
+import { map } from 'es-toolkit/compat'
+import { Fragment } from 'react'
+import { GeneratorConfigHiresFixSelectLoader } from './GeneratorConfigHiresFixSelectLoader'
 
 export const GeneratorConfigHiresFixUpscaler = () => {
-  const { control } = useFormContext<GeneratorConfigFormValues>()
-  const { upscalers, onUpscalerChange } = useGeneratorConfigHiresFixUpscaler()
+  const { upscalers, upscaler, onUpscalerSelect } = useHiresFixUpscalerSelect()
+
+  if (!upscaler) return <GeneratorConfigHiresFixSelectLoader />
+
+  const lastSectionIndex = upscalers.length - 1
 
   return (
-    <Controller
-      name="hires_fix.upscaler"
-      control={control}
-      render={({ field }) => {
-        if (!field.value) {
-          return <Skeleton className="h-14 rounded-medium" />
-        }
-
-        return (
-          <Select
-            label="Upscaler"
-            selectedKeys={[field.value]}
-            onSelectionChange={(keys) => {
-              const selectedKey = keys.currentKey
-              if (selectedKey) {
-                field.onChange(selectedKey)
-                onUpscalerChange(selectedKey)
-              }
-            }}
-            aria-label="Upscaler"
-            size="sm"
-          >
-            {upscalers.map((section, index) => (
-              <SelectSection
-                key={section.method}
-                title={section.title}
-                showDivider={index < upscalers.length - 1}
-              >
-                {section.options.map((option) => (
-                  <SelectItem
+    <Select value={upscaler} onChange={onUpscalerSelect}>
+      <Label>Upscaler</Label>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {map(upscalers, (section, sectionIndex) => (
+            <Fragment key={section.method}>
+              <ListBox.Section>
+                <Header>{section.title}</Header>
+                {map(section.options, (option) => (
+                  <ListBox.Item
                     key={option.value}
-                    description={
-                      option.is_recommended && (
-                        <span className="text-xs text-success">
-                          Recommended
-                        </span>
-                      )
-                    }
+                    id={option.value}
+                    textValue={option.name}
                   >
-                    {option.name}
-                  </SelectItem>
+                    <div className="flex flex-col gap-1">
+                      <Label>{option.name}</Label>
+                      {option.is_recommended && (
+                        <Description className="text-success">
+                          Recommended
+                        </Description>
+                      )}
+                    </div>
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
                 ))}
-              </SelectSection>
-            ))}
-          </Select>
-        )
-      }}
-    />
+              </ListBox.Section>
+              {sectionIndex < lastSectionIndex && <Separator />}
+            </Fragment>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
   )
 }

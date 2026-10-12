@@ -1,4 +1,4 @@
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 
 export const useDownloadImages = () => {
   const onDownloadImage = async (url: string) => {
@@ -8,11 +8,7 @@ export const useDownloadImages = () => {
       const description =
         error instanceof Error ? error.message : 'Unknown error occurred'
 
-      addToast({
-        title: 'Failed to download image',
-        description,
-        color: 'warning'
-      })
+      toast.warning('Failed to download image', { description })
     }
   }
 

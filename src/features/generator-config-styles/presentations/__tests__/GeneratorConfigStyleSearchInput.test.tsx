@@ -3,54 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { GeneratorConfigStyleSearchInput } from '../GeneratorConfigStyleSearchInput'
 
-vi.mock('lucide-react', () => ({
-  Search: ({ size }: { size: number }) => (
-    <svg data-testid="search-icon" width={size} height={size}>
-      <title>Search</title>
-    </svg>
-  )
-}))
-
-vi.mock('@heroui/react', () => ({
-  Input: vi.fn(
-    ({
-      value,
-      onValueChange,
-      onClear,
-      isClearable,
-      placeholder,
-      startContent,
-      ...props
-    }: {
-      value: string
-      onValueChange: (value: string) => void
-      onClear: VoidFunction
-      isClearable: boolean
-      placeholder: string
-      startContent: React.ReactNode
-      variant?: string
-    }) => (
-      <div data-slot="input-wrapper">
-        {startContent}
-        <input
-          data-testid="hero-input"
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onValueChange(e.target.value)}
-          {...props}
-        />
-        {isClearable && (
-          <button aria-label="clear" onClick={onClear}>
-            Clear
-          </button>
-        )}
-      </div>
-    )
-  )
-}))
+const getSearchBox = () =>
+  screen.getByRole('searchbox', { name: 'Search styles' })
 
 describe('GeneratorConfigStyleSearchInput', () => {
-  it('renders search input with placeholder', () => {
+  it('renders a labelled search box with placeholder', () => {
     render(
       <GeneratorConfigStyleSearchInput
         value=""
@@ -59,24 +16,10 @@ describe('GeneratorConfigStyleSearchInput', () => {
       />
     )
 
-    expect(
-      screen.getByPlaceholderText(
-        'Search styles by name, category, or keywords...'
-      )
-    ).toBeInTheDocument()
-  })
-
-  it('displays search icon', () => {
-    render(
-      <GeneratorConfigStyleSearchInput
-        value=""
-        onChange={vi.fn()}
-        onClear={vi.fn()}
-      />
+    expect(getSearchBox()).toHaveAttribute(
+      'placeholder',
+      'Search styles by name, category, or keywords...'
     )
-
-    const searchIcon = screen.getByTestId('search-icon')
-    expect(searchIcon).toBeInTheDocument()
   })
 
   it('displays current value', () => {
@@ -88,8 +31,7 @@ describe('GeneratorConfigStyleSearchInput', () => {
       />
     )
 
-    const input = screen.getByDisplayValue('portrait')
-    expect(input).toBeInTheDocument()
+    expect(getSearchBox()).toHaveValue('portrait')
   })
 
   it('calls onChange when user types', async () => {
@@ -104,39 +46,9 @@ describe('GeneratorConfigStyleSearchInput', () => {
       />
     )
 
-    const input = screen.getByPlaceholderText(
-      'Search styles by name, category, or keywords...'
-    )
-    await user.type(input, 'anime')
+    await user.type(getSearchBox(), 'a')
 
-    expect(handleChange).toHaveBeenCalled()
-    expect(handleChange.mock.calls.length).toBeGreaterThan(0)
-  })
-
-  it('shows clear button when value is not empty', () => {
-    render(
-      <GeneratorConfigStyleSearchInput
-        value="portrait"
-        onChange={vi.fn()}
-        onClear={vi.fn()}
-      />
-    )
-
-    const clearButton = screen.getByRole('button', { name: /clear/i })
-    expect(clearButton).toBeInTheDocument()
-  })
-
-  it('hides clear button when value is empty', () => {
-    render(
-      <GeneratorConfigStyleSearchInput
-        value=""
-        onChange={vi.fn()}
-        onClear={vi.fn()}
-      />
-    )
-
-    const clearButton = screen.queryByRole('button', { name: /clear/i })
-    expect(clearButton).not.toBeInTheDocument()
+    expect(handleChange).toHaveBeenCalledWith('a')
   })
 
   it('calls onClear when clear button is clicked', async () => {
@@ -151,22 +63,25 @@ describe('GeneratorConfigStyleSearchInput', () => {
       />
     )
 
-    const clearButton = screen.getByRole('button', { name: /clear/i })
-    await user.click(clearButton)
+    await user.click(screen.getByRole('button', { name: 'Clear search' }))
 
     expect(handleClear).toHaveBeenCalledOnce()
   })
 
-  it('has bordered variant styling', () => {
-    const { container } = render(
+  it('calls onClear when Escape is pressed', async () => {
+    const user = userEvent.setup()
+    const handleClear = vi.fn()
+
+    render(
       <GeneratorConfigStyleSearchInput
-        value=""
+        value="portrait"
         onChange={vi.fn()}
-        onClear={vi.fn()}
+        onClear={handleClear}
       />
     )
 
-    const inputWrapper = container.querySelector('[data-slot="input-wrapper"]')
-    expect(inputWrapper).toBeInTheDocument()
+    await user.type(getSearchBox(), '{Escape}')
+
+    expect(handleClear).toHaveBeenCalledOnce()
   })
 })

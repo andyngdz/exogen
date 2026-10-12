@@ -1,17 +1,14 @@
-import { renderHook } from '@testing-library/react'
-import { useGeneratorPreviewer } from '../useGeneratorPreviewer'
-import { useUseImageGenerationStore } from '@/features/generators'
 import { SocketEvents } from '@/cores/sockets'
+import {
+  useGenerationStatusStore,
+  useUseImageGenerationStore
+} from '@/features/generators'
 import { ImageGenerationStepEndResponse } from '@/types'
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import type { UseImageGenerationStore } from '@/features/generators/states'
+import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useGeneratorPreviewer } from '../useGeneratorPreviewer'
 
-// Mock dependencies
-vi.mock('@/features/generators', () => ({
-  useUseImageGenerationStore: vi.fn()
-}))
-
-// Mock useSocketEvent to capture handlers
+// Capture the socket handler so tests can deliver step events
 let capturedHandlers: Record<string, (data: unknown) => void> = {}
 
 vi.mock('@/cores/sockets', async () => {
@@ -24,50 +21,46 @@ vi.mock('@/cores/sockets', async () => {
   }
 })
 
+const stepEnd = (index: number): ImageGenerationStepEndResponse => ({
+  index,
+  current_step: 20,
+  timestep: 0.8,
+  image_base64: `step-${index}`
+})
+
+const deliverStepEnd = (response: ImageGenerationStepEndResponse) => {
+  act(() => {
+    capturedHandlers[SocketEvents.IMAGE_GENERATION_STEP_END](response)
+  })
+}
+
 describe('useGeneratorPreviewer', () => {
-  // Mock store values and functions
-  const mockOnUpdateImageStepEnd = vi.fn()
-  const mockImageStepEnds = [
-    { index: 0, current_step: 10, timestep: 0.5, image_base64: 'base64data' }
-  ]
-  const mockItems = [{ path: '/path/to/image.png', file_name: 'image.png' }]
-
   beforeEach(() => {
-    vi.clearAllMocks()
     capturedHandlers = {}
-
-    // Setup mock return values
-    vi.mocked(useUseImageGenerationStore).mockReturnValue({
-      imageStepEnds: mockImageStepEnds,
-      onUpdateImageStepEnd: mockOnUpdateImageStepEnd,
-      items: mockItems,
-      // Add required properties from UseImageGenerationStore that aren't used in the test
-      nsfw_content_detected: [],
-      onInit: vi.fn(),
-      onCompleted: vi.fn(),
-      onRestore: vi.fn()
-    } as UseImageGenerationStore)
+    useGenerationStatusStore.getState().reset()
+    useUseImageGenerationStore.setState({
+      imageStepEnds: [],
+      items: [],
+      nsfw_content_detected: []
+    })
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
+  it('returns imageStepEnds and items from the store', () => {
+    act(() => {
+      useUseImageGenerationStore.getState().onInit(2)
+    })
 
-  it('should return imageStepEnds and items from the store', () => {
-    // Arrange & Act
     const { result } = renderHook(() => useGeneratorPreviewer())
 
-    // Assert
-    expect(result.current.imageStepEnds).toBe(mockImageStepEnds)
-    expect(result.current.items).toBe(mockItems)
+    expect(result.current.imageStepEnds).toHaveLength(2)
+    expect(result.current.items).toHaveLength(2)
   })
 
-  it('should subscribe to IMAGE_GENERATION_STEP_END event', async () => {
-    // Arrange & Act
+  it('subscribes to IMAGE_GENERATION_STEP_END', async () => {
     const { useSocketEvent } = vi.mocked(await import('@/cores/sockets'))
+
     renderHook(() => useGeneratorPreviewer())
 
-    // Assert
     expect(useSocketEvent).toHaveBeenCalledWith(
       SocketEvents.IMAGE_GENERATION_STEP_END,
       expect.any(Function),
@@ -75,20 +68,37 @@ describe('useGeneratorPreviewer', () => {
     )
   })
 
-  it('should call onUpdateImageStepEnd when receiving socket event', () => {
-    // Arrange
-    renderHook(() => useGeneratorPreviewer())
+  it('stores step previews for a generation this client started', () => {
+    act(() => {
+      useGenerationStatusStore.getState().onSetIsGenerating(true)
+      useUseImageGenerationStore.getState().onInit(2)
+    })
+    const { result } = renderHook(() => useGeneratorPreviewer())
 
-    // Act - Simulate socket event
-    const mockResponse: ImageGenerationStepEndResponse = {
-      index: 1,
-      current_step: 20,
-      timestep: 0.8,
-      image_base64: 'newBase64Data'
-    }
-    capturedHandlers[SocketEvents.IMAGE_GENERATION_STEP_END](mockResponse)
+    deliverStepEnd(stepEnd(1))
 
-    // Assert
-    expect(mockOnUpdateImageStepEnd).toHaveBeenCalledWith(mockResponse)
+    expect(result.current.imageStepEnds[1].image_base64).toBe('step-1')
+  })
+
+  it('ignores step previews that arrive before this client initializes its slots', () => {
+    act(() => {
+      useGenerationStatusStore.getState().onSetIsGenerating(true)
+    })
+    const { result } = renderHook(() => useGeneratorPreviewer())
+
+    deliverStepEnd(stepEnd(2))
+
+    expect(result.current.imageStepEnds).toHaveLength(0)
+    expect(result.current.items).toHaveLength(0)
+  })
+
+  it('ignores step previews from a generation another client started', () => {
+    const { result } = renderHook(() => useGeneratorPreviewer())
+
+    deliverStepEnd(stepEnd(0))
+    deliverStepEnd(stepEnd(3))
+
+    expect(result.current.imageStepEnds).toHaveLength(0)
+    expect(result.current.items).toHaveLength(0)
   })
 })

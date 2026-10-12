@@ -70,6 +70,10 @@ const runBackend = async ({ backendPath, emit }: RunBackendOptions) => {
     // which will then be captured by the log streamer
     process.chdir(backendPath)
 
+    // The backend stops itself once this PID is gone, so a crash or kill -9
+    // here never leaves it holding the port and GPU memory.
+    process.env.EXOGEN_PARENT_PID = String(process.pid)
+
     // Run uvicorn with the dynamically allocated port using uv run
     // This ensures uvicorn runs in the virtual environment created by uv sync
     backendProcess = $`uv run uvicorn main:app --host 127.0.0.1 --port ${port}`

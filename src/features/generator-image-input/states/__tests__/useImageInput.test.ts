@@ -2,12 +2,12 @@ import { renderHook } from '@testing-library/react'
 import { act } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { addToast } from '@heroui/react'
+import { toast } from '@heroui/react'
 import { imageInputService } from '../../services'
 import { useImageInputController } from '../useImageInputController'
 
 vi.mock('@heroui/react', () => ({
-  addToast: vi.fn(() => 'toast-key')
+  toast: { success: vi.fn(), danger: vi.fn(), warning: vi.fn() }
 }))
 
 describe('useImageInputController', () => {
@@ -29,12 +29,9 @@ describe('useImageInputController', () => {
       await result.current.onFile(file)
     })
 
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Input image',
-        description: 'Only image files are supported',
-        color: 'danger'
-      })
+    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+      'Input image',
+      expect.objectContaining({ description: 'Only image files are supported' })
     )
     expect(onImageDataUrl).not.toHaveBeenCalled()
   })
@@ -58,7 +55,9 @@ describe('useImageInputController', () => {
 
     expect(onImageDataUrl).toHaveBeenCalledWith('data:image/png;base64,abc')
     expect(result.current.isLoading).toBe(false)
-    expect(addToast).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.success)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.danger)).not.toHaveBeenCalled()
+    expect(vi.mocked(toast.warning)).not.toHaveBeenCalled()
   })
 
   it('surfaces file read errors and clears loading state', async () => {
@@ -80,12 +79,9 @@ describe('useImageInputController', () => {
 
     expect(onImageDataUrl).not.toHaveBeenCalled()
     expect(result.current.isLoading).toBe(false)
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Input image',
-        description: 'boom',
-        color: 'danger'
-      })
+    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+      'Input image',
+      expect.objectContaining({ description: 'boom' })
     )
   })
 
@@ -106,12 +102,9 @@ describe('useImageInputController', () => {
 
     expect(onImageDataUrl).not.toHaveBeenCalled()
     expect(result.current.isLoading).toBe(false)
-    expect(addToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Input image',
-        description: 'Failed to read file',
-        color: 'danger'
-      })
+    expect(vi.mocked(toast.danger)).toHaveBeenCalledWith(
+      'Input image',
+      expect.objectContaining({ description: 'Failed to read file' })
     )
   })
 })

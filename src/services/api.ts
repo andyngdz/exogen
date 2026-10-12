@@ -1,8 +1,9 @@
 import { DEFAULT_BACKEND_URL } from '@/cores/constants'
 import { GeneratorConfigFormValues } from '@/features/generator-configs'
-import axios from 'axios'
+import axios, { HttpStatusCode } from 'axios'
 import type {
   BackendConfig,
+  HardwareMemoryResponse,
   HardwareResponse,
   HealthResponse,
   HistoryItem,
@@ -11,7 +12,6 @@ import type {
   ImageGenerationResponse,
   LoadModelRequest,
   LoRA,
-  LoRADeleteResponse,
   LoRAListResponse,
   MaxMemoryRequest,
   ModelDetailsResponse,
@@ -22,7 +22,7 @@ import type {
   Sampler,
   SelectDeviceRequest,
   StyleSection
-} from '../types'
+} from '@/types'
 
 export const client = axios.create({
   baseURL: DEFAULT_BACKEND_URL,
@@ -40,6 +40,13 @@ class API {
 
   async getHardwareStatus() {
     const { data } = await client.get<HardwareResponse>('/hardware/')
+
+    return data
+  }
+
+  async getHardwareMemory() {
+    const { data } =
+      await client.get<HardwareMemoryResponse>('/hardware/memory')
 
     return data
   }
@@ -67,11 +74,17 @@ class API {
     return data
   }
 
-  async loadModel(request: LoadModelRequest) {
-    const { data } = await client.post<LoadModelResponse>(
+  /** Loads a model; undefined when another request already owns this load. */
+  async loadModel(
+    request: LoadModelRequest
+  ): Promise<LoadModelResponse | undefined> {
+    const { data, status } = await client.post<LoadModelResponse>(
       '/models/load',
       request
     )
+
+    // A duplicate or cancelled load answers 204 with an empty body.
+    if (status === HttpStatusCode.NoContent) return
 
     return data
   }
@@ -170,12 +183,6 @@ class API {
 
   async uploadLora(file_path: string) {
     const { data } = await client.post<LoRA>('/loras/upload', { file_path })
-
-    return data
-  }
-
-  async deleteLora(id: number) {
-    const { data } = await client.delete<LoRADeleteResponse>(`/loras/${id}`)
 
     return data
   }

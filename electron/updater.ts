@@ -1,5 +1,5 @@
-import { UpdateCheckResult } from '@types'
-import { app, BrowserWindow, dialog } from 'electron'
+import { UpdateCheckResult, UpdaterState } from '@types'
+import { app, BrowserWindow } from 'electron'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 
@@ -10,10 +10,23 @@ log.transports.file.level = 'info'
 // Enable auto-download for stable releases only
 autoUpdater.autoDownload = true
 
-let mainWindow: BrowserWindow
+// Kept here, not in the renderer, because the download can finish before
+// Settings ever mounts.
+let updaterState: UpdaterState = {}
 
-export function setMainWindow(win: BrowserWindow) {
-  mainWindow = win
+/** The current updater state, for a renderer that subscribes late. */
+export function getUpdaterState(): UpdaterState {
+  return updaterState
+}
+
+const setUpdaterState = (patch: UpdaterState) => {
+  updaterState = { ...updaterState, ...patch }
+
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (!window.isDestroyed()) {
+      window.webContents.send('updater:state', updaterState)
+    }
+  })
 }
 
 // Auto-updater event handlers
@@ -23,10 +36,12 @@ autoUpdater.on('checking-for-update', () => {
 
 autoUpdater.on('update-available', (info) => {
   log.info('Update available:', info.version)
+  setUpdaterState({ lastCheckedAt: Date.now() })
 })
 
 autoUpdater.on('update-not-available', (info) => {
   log.info('Update not available:', info.version)
+  setUpdaterState({ lastCheckedAt: Date.now() })
 })
 
 autoUpdater.on('error', (err) => {
@@ -40,24 +55,7 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   log.info('Update downloaded:', info.version)
-
-  // Show native dialog to install update
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return
-  }
-
-  dialog
-    .showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Update Ready',
-      message: `A new version (${info.version}) has been downloaded. Restart to apply the update?`,
-      buttons: ['Restart', 'Later']
-    })
-    .then((result) => {
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall()
-      }
-    })
+  setUpdaterState({ downloadedVersion: info.version })
 })
 
 class UpdateChecker {
@@ -124,6 +122,6 @@ export function checkForUpdates(): Promise<UpdateCheckResult> {
   })
 }
 
-export function installUpdate() {
+export const installUpdate = () => {
   autoUpdater.quitAndInstall()
 }

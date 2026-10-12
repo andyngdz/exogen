@@ -1,36 +1,29 @@
+import { imageInputService } from '@/features/generator-image-input/services'
+import { ValueChanged } from '@/types'
 import { useCallback } from 'react'
 
-import { imageInputService } from '../services'
-
-export type ImageFilePickerChangeEvent = {
-  target: HTMLInputElement
-}
-
 interface UseImageFilePickerParams {
-  onFile: (file: File) => Promise<void>
+  onFile: ValueChanged<File, Promise<void>>
 }
 
 export const useImageFilePicker = ({ onFile }: UseImageFilePickerParams) => {
-  const onFileChange = useCallback(
-    async (event: ImageFilePickerChangeEvent) => {
-      const input = event.target
-      const files = input.files
+  // FileTrigger clears its hidden input on each press, so the same file can be picked again.
+  const onFilesSelect: ValueChanged<
+    FileList | null,
+    Promise<void>
+  > = useCallback(
+    async (files) => {
       if (!files) return
 
       const file = imageInputService.firstFile(files)
       if (!file) return
 
-      try {
-        await onFile(file)
-      } finally {
-        // Allow re-uploading the same file consecutively.
-        input.value = ''
-      }
+      await onFile(file)
     },
     [onFile]
   )
 
   return {
-    onFileChange
+    onFilesSelect
   }
 }

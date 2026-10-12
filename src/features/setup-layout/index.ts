@@ -1,3 +1,2 @@
-export * from './presentations/SetupLayout'
-export * from './presentations/SetupLayoutBackground'
-export * from './presentations/SetupLayoutContent'
+export * from './presentations/OnboardingLayout'
+export * from './types'

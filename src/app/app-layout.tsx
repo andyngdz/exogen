@@ -5,7 +5,6 @@ import {
   useBackendInitStore
 } from '@/cores/backend-initialization'
 import { FullScreenLoader } from '@/cores/presentations'
-import { AppFooter } from '@/features/app-footer'
 import { usePathname } from 'next/navigation'
 import { FC, PropsWithChildren, useEffect, useMemo } from 'react'
 
@@ -26,10 +25,5 @@ export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
     initializeBackend()
   }, [])
 
-  return (
-    <div className="flex flex-col h-screen">
-      <main className="flex justify-center flex-1">{content}</main>
-      <AppFooter />
-    </div>
-  )
+  return <main className="flex h-screen justify-center">{content}</main>
 }

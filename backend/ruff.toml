@@ -1,0 +1,42 @@
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".pyright_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "./epay/tests",
+  ".pyenv",
+]
+
+builtins = ["_"]
+line-length = 120
+indent-width = 2
+
+[format]
+quote-style = "single"
+skip-magic-trailing-comma = false
+indent-style = "tab"
+line-ending = "auto"
+docstring-code-format = true
+
+[lint]
+select = ["E", "F", "I"]
+
+[lint.per-file-ignores]
+"app/constants/styles/*.py" = ["E501"]
