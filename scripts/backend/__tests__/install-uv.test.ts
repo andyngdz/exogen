@@ -20,6 +20,15 @@ const { mockEnsurePathIncludes } = vi.hoisted(() => ({
   mockEnsurePathIncludes: vi.fn<(directories: string[]) => void>()
 }))
 
+const { mockIsOnline } = vi.hoisted(() => ({
+  mockIsOnline: vi.fn<() => Promise<boolean>>()
+}))
+
+vi.mock('../network', async () => {
+  const actual = await vi.importActual('../network')
+  return { ...actual, isOnline: mockIsOnline }
+})
+
 let mockIsWindows = false
 
 vi.mock('../utils', async () => {
@@ -35,6 +44,7 @@ vi.mock('../utils', async () => {
 })
 
 import { installUv } from '../install-uv'
+import { OfflineError } from '../network'
 
 type ProcessResult = {
   exitCode: number
@@ -60,6 +70,8 @@ describe('installUv', () => {
     mock$.mockReset()
     mockNormalizeError.mockReset()
     mockEnsurePathIncludes.mockReset()
+    mockIsOnline.mockReset()
+    mockIsOnline.mockResolvedValue(true)
 
     mockIsWindows = false
     mockNormalizeError.mockImplementation(
@@ -95,13 +107,17 @@ describe('installUv', () => {
   })
 
   it('installs uv on Unix-like systems when missing', async () => {
-    const installShell = vi.fn(() => Promise.resolve())
+    const runScript = vi.fn(() => Promise.resolve())
+    const installShell = vi.fn(() => runScript)
 
     mock$
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
       .mockReturnValueOnce(installShell)
+      .mockReturnValueOnce(
+        Promise.resolve(makeProcessResult({ stdout: '#!/bin/sh\necho uv' }))
+      )
       .mockReturnValueOnce({
         nothrow: () =>
           Promise.resolve(makeProcessResult({ stdout: 'uv 0.9.0\n' }))
@@ -122,16 +138,43 @@ describe('installUv', () => {
     expect(mock$).toHaveBeenNthCalledWith(2, {
       env: expect.objectContaining({ UV_INSTALL_DIR: uvBinDir })
     })
-    // The pipeline must reach the shell through `sh -c`, not as one quoted word.
-    expect(installShell).toHaveBeenCalledWith(
-      ['sh -c ', ''],
-      'curl -LsSf https://astral.sh/uv/install.sh | sh'
+    // The script is downloaded on its own, so a failed download rejects
+    // instead of piping an empty script into sh.
+    expect(mock$).toHaveBeenNthCalledWith(
+      3,
+      ['curl -LsSf ', ''],
+      'https://astral.sh/uv/install.sh'
     )
+    expect(installShell).toHaveBeenCalledWith({ input: '#!/bin/sh\necho uv' })
+    expect(runScript).toHaveBeenCalledWith(['sh'])
     expect(mockEnsurePathIncludes).toHaveBeenCalledTimes(2)
     expect(mockEnsurePathIncludes).toHaveBeenNthCalledWith(2, [uvBinDir])
     expect(mockEnsurePathIncludes.mock.invocationCallOrder[1]).toBeGreaterThan(
-      installShell.mock.invocationCallOrder[0]
+      runScript.mock.invocationCallOrder[0]
     )
+  })
+
+  it('throws OfflineError without an error message when the download fails offline', async () => {
+    mockIsOnline.mockResolvedValue(false)
+
+    mock$
+      .mockReturnValueOnce({
+        nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
+      })
+      .mockReturnValueOnce(vi.fn())
+      .mockReturnValueOnce(
+        Promise.reject(new Error('curl: (6) Could not resolve host'))
+      )
+
+    const emit = vi.fn()
+
+    await expect(installUv({ emit })).rejects.toBeInstanceOf(OfflineError)
+
+    expect(emit).toHaveBeenCalledTimes(1)
+    expect(emit).toHaveBeenCalledWith({
+      level: BackendStatusLevel.Info,
+      message: 'Installing uv…'
+    })
   })
 
   it('uses the Windows installation command when running on Windows', async () => {
@@ -178,13 +221,13 @@ describe('installUv', () => {
 
   it('emits an error with manual commands when installation fails', async () => {
     const installError = new Error('install failed')
-    const installShell = vi.fn(() => Promise.reject(installError))
 
     mock$
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockReturnValueOnce(installShell)
+      .mockReturnValueOnce(vi.fn())
+      .mockReturnValueOnce(Promise.reject(installError))
 
     const normalizedError = new Error('normalized error')
     mockNormalizeError.mockReturnValue(normalizedError)
@@ -220,7 +263,8 @@ describe('installUv', () => {
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ exitCode: 1 }))
       })
-      .mockReturnValueOnce(vi.fn(() => Promise.resolve()))
+      .mockReturnValueOnce(vi.fn(() => vi.fn(() => Promise.resolve())))
+      .mockReturnValueOnce(Promise.resolve(makeProcessResult()))
       .mockReturnValueOnce({
         nothrow: () => Promise.resolve(makeProcessResult({ stdout: '' }))
       })

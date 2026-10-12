@@ -20,7 +20,7 @@ vi.mock('@/services', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services')>()),
   api: { downloadModel: vi.fn() }
 }))
-vi.mock('@/features/setup-layout/presentations/OnboardingLayout', () => ({
+vi.mock('@/cores/shared/onboarding/presentations/OnboardingLayout', () => ({
   OnboardingLayout: ({
     title,
     children,

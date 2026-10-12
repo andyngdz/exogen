@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { BackendStatusLevel, type BackendStatusPayload } from '@types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  BACKEND_SETUP_STATUS_ACTIONS,
   MAX_BACKEND_STATUS_MESSAGES,
   useBackendSetupStatusStore
 } from '../useBackendSetupStatusStore'
@@ -16,7 +17,7 @@ const makePayload = (
 
 const addEntry = (payload: BackendStatusPayload) => {
   act(() => {
-    useBackendSetupStatusStore.getState().addEntry(payload)
+    BACKEND_SETUP_STATUS_ACTIONS.addEntry(payload)
   })
 }
 
@@ -29,7 +30,7 @@ beforeEach(() => {
 
 afterEach(() => {
   act(() => {
-    useBackendSetupStatusStore.getState().clear()
+    BACKEND_SETUP_STATUS_ACTIONS.clear()
   })
   vi.useRealTimers()
 })
@@ -66,7 +67,7 @@ describe('useBackendSetupStatusStore', () => {
     addEntry(makePayload({ message: 'to be cleared' }))
 
     act(() => {
-      useBackendSetupStatusStore.getState().clear()
+      BACKEND_SETUP_STATUS_ACTIONS.clear()
     })
 
     expect(getEntries()).toHaveLength(0)

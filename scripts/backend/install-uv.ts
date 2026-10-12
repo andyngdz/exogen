@@ -6,6 +6,7 @@ import {
 import * as os from 'node:os'
 import * as path from 'node:path'
 import { $ } from '@scripts/zx-config'
+import { isOnline, OfflineError } from './network'
 import { ensurePathIncludes, isWindows, normalizeError } from './utils'
 
 interface InstallUvOptions {
@@ -56,12 +57,17 @@ const getInstallCommand = (installDir: string) => {
     } satisfies InstallCommand
   }
 
-  const command = 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+  const scriptUrl = 'https://astral.sh/uv/install.sh'
 
+  // Download first: in `curl | sh` the exit code is sh's, which is 0 when
+  // curl fails and sh reads an empty script.
   return {
     label: 'Install uv via shell script',
-    command,
-    run: () => installShell`sh -c ${command}`
+    command: `curl -LsSf ${scriptUrl} | sh`,
+    run: async () => {
+      const script = await $`curl -LsSf ${scriptUrl}`
+      return installShell({ input: script.stdout })`sh`
+    }
   } satisfies InstallCommand
 }
 
@@ -111,6 +117,10 @@ const installUv = async ({ emit }: InstallUvOptions) => {
   try {
     await install.run()
   } catch (error) {
+    if (!(await isOnline())) {
+      throw new OfflineError()
+    }
+
     const commands = installationCommandsByPlatform()
 
     emit({

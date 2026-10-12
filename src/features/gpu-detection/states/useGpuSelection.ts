@@ -1,9 +1,12 @@
+import { useHardwareQuery } from '@/cores/api-queries'
 import { GpuDetectionFormProps } from '@/features/gpu-detection/types/gpu-detection'
-import { GpuInfo } from '@/types'
 import { findIndex } from 'es-toolkit/compat'
 import { useController, useFormContext } from 'react-hook-form'
 
-export const useGpuSelection = (gpus: GpuInfo[]) => {
+/** The detected GPUs and the picked one, bound to the Hardware step's form. */
+export const useGpuSelection = () => {
+  const { data: hardware } = useHardwareQuery()
+  const gpus = hardware?.gpus ?? []
   const { control } = useFormContext<GpuDetectionFormProps>()
   const primaryGpuIndex = findIndex(gpus, (gpu) => gpu.is_primary)
   const { field } = useController({
@@ -18,5 +21,5 @@ export const useGpuSelection = (gpus: GpuInfo[]) => {
     field.onChange(Number(value))
   }
 
-  return { selectedValue: `${field.value}`, onSelectedValueChange }
+  return { gpus, selectedValue: `${field.value}`, onSelectedValueChange }
 }

@@ -3,9 +3,15 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { GpuDetectionCpuModeOnly } from '../GpuDetectionCpuModeOnly'
 
+const refetch = vi.fn()
+
+vi.mock('@/cores/api-queries', () => ({
+  useHardwareQuery: () => ({ refetch })
+}))
+
 describe('GpuDetectionCpuModeOnly', () => {
   it('renders CPU mode message', () => {
-    render(<GpuDetectionCpuModeOnly onCheckAgain={() => {}} />)
+    render(<GpuDetectionCpuModeOnly />)
 
     expect(screen.getByText('CPU Mode Only')).toBeInTheDocument()
     expect(screen.getByText(/ExoGen will run on CPU/)).toBeInTheDocument()
@@ -15,9 +21,7 @@ describe('GpuDetectionCpuModeOnly', () => {
   })
 
   it('has correct structure and classes', () => {
-    const { container } = render(
-      <GpuDetectionCpuModeOnly onCheckAgain={() => {}} />
-    )
+    const { container } = render(<GpuDetectionCpuModeOnly />)
 
     const mainDiv = container.firstChild as HTMLElement
     expect(mainDiv).toHaveClass('rounded-md')
@@ -29,15 +33,14 @@ describe('GpuDetectionCpuModeOnly', () => {
     expect(description).toHaveClass('text-center')
   })
 
-  it('calls onCheckAgain when button is clicked', async () => {
+  it('checks the hardware again when the button is clicked', async () => {
     const user = userEvent.setup()
-    const mockOnCheckAgain = vi.fn()
 
-    render(<GpuDetectionCpuModeOnly onCheckAgain={mockOnCheckAgain} />)
+    render(<GpuDetectionCpuModeOnly />)
 
     const button = screen.getByText("I've installed CUDA drivers. Check again")
     await user.click(button)
 
-    expect(mockOnCheckAgain).toHaveBeenCalledTimes(1)
+    expect(refetch).toHaveBeenCalledTimes(1)
   })
 })

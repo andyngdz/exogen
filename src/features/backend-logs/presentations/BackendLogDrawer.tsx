@@ -1,24 +1,24 @@
 'use client'
 
-import { useBackendFolder } from '@/features/backend-logs/states'
-import { Button, Drawer, DrawerBackdropProps } from '@heroui/react'
+import {
+  BACKEND_LOG_DRAWER_ACTIONS,
+  useBackendFolder,
+  useBackendLogDrawerStore
+} from '@/features/backend-logs/states'
+import { Button, Drawer } from '@heroui/react'
 import { FolderOpen } from 'lucide-react'
-import { FC } from 'react'
 import { BackendLogList } from './BackendLogList'
 
-export type BackendLogDrawerProps = Pick<
-  DrawerBackdropProps,
-  'isOpen' | 'onOpenChange'
->
-
-export const BackendLogDrawer: FC<BackendLogDrawerProps> = ({
-  isOpen,
-  onOpenChange
-}) => {
+/** The backend log drawer; open it with BACKEND_LOG_DRAWER_ACTIONS.open. */
+export const BackendLogDrawer = () => {
+  const isOpen = useBackendLogDrawerStore((state) => state.isOpen)
   const { onOpenBackendFolder } = useBackendFolder()
 
   return (
-    <Drawer.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Drawer.Backdrop
+      isOpen={isOpen}
+      onOpenChange={BACKEND_LOG_DRAWER_ACTIONS.setOpen}
+    >
       <Drawer.Content placement="right">
         <Drawer.Dialog className="w-full max-w-5xl">
           <Drawer.CloseTrigger />

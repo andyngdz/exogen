@@ -9,36 +9,24 @@ export interface BackendSetupStatusEntry extends BackendStatusPayload {
   timestamp: number
 }
 
-interface BackendSetupStatusStore {
+/** The setup messages of the current run, newest last. */
+export interface BackendSetupStatusState {
   entries: BackendSetupStatusEntry[]
-  addEntry: (payload: BackendStatusPayload) => void
-  clear: () => void
 }
 
-export const useBackendSetupStatusStore = create<BackendSetupStatusStore>(
-  (set) => ({
-    entries: [],
-    addEntry: (payload) => {
-      set((state) => {
-        const nextEntries = [
-          ...state.entries,
-          {
-            ...payload,
-            id: uniqueId(),
-            timestamp: Date.now()
-          }
-        ]
-
-        if (nextEntries.length > MAX_BACKEND_STATUS_MESSAGES) {
-          nextEntries.splice(
-            0,
-            nextEntries.length - MAX_BACKEND_STATUS_MESSAGES
-          )
-        }
-
-        return { entries: nextEntries }
-      })
-    },
-    clear: () => set({ entries: [] })
-  })
+export const useBackendSetupStatusStore = create<BackendSetupStatusState>()(
+  () => ({ entries: [] })
 )
+
+export const BACKEND_SETUP_STATUS_ACTIONS = {
+  /** Appends one message, keeping the newest MAX_BACKEND_STATUS_MESSAGES. */
+  addEntry: (payload: BackendStatusPayload) => {
+    useBackendSetupStatusStore.setState((state) => ({
+      entries: [
+        ...state.entries,
+        { ...payload, id: uniqueId(), timestamp: Date.now() }
+      ].slice(-MAX_BACKEND_STATUS_MESSAGES)
+    }))
+  },
+  clear: () => useBackendSetupStatusStore.setState({ entries: [] })
+}

@@ -8,7 +8,7 @@ vi.mock('../../states/useSettingsMemory', () => ({
   useSettingsMemory: useSettingsMemoryMock
 }))
 
-vi.mock('@/cores/presentations/memory-scale-factor', () => ({
+vi.mock('@/cores/shared/memory-scale-factor', () => ({
   MemoryScaleFactorItems: ({
     gpuScaleFactor,
     ramScaleFactor,

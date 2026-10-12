@@ -1,13 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useBackendSetupStatusStore } from './useBackendSetupStatusStore'
+import { BACKEND_SETUP_STATUS_ACTIONS } from './useBackendSetupStatusStore'
 
+/** Collects the setup messages main sends while this screen is mounted. */
 export const useBackendSetupStatus = () => {
-  const entries = useBackendSetupStatusStore((state) => state.entries)
-  const addEntry = useBackendSetupStatusStore((state) => state.addEntry)
-  const clear = useBackendSetupStatusStore((state) => state.clear)
-
   useEffect(() => {
     const api = globalThis.window.electronAPI
 
@@ -15,17 +12,13 @@ export const useBackendSetupStatus = () => {
       return
     }
 
-    const unsubscribe = api.onBackendSetupStatus((payload) => {
-      addEntry(payload)
-    })
+    const unsubscribe = api.onBackendSetupStatus(
+      BACKEND_SETUP_STATUS_ACTIONS.addEntry
+    )
 
     return () => {
       unsubscribe()
-      clear()
+      BACKEND_SETUP_STATUS_ACTIONS.clear()
     }
-  }, [addEntry, clear])
-
-  return {
-    entries
-  }
+  }, [])
 }

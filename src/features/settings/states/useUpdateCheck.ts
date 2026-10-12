@@ -2,29 +2,17 @@
 
 import { dateFormatter } from '@/services/date-formatter'
 import { toast } from '@heroui/react'
-import { useCallback, useEffect, useState } from 'react'
-import {
-  UPDATER_ACTIONS,
-  useHasPendingUpdate,
-  useUpdaterStore
-} from './useUpdaterStore'
+import { useState } from 'react'
+import { useAppVersion } from './useAppVersion'
+import { useUpdaterStore } from './useUpdaterStore'
 
-export const useUpdaterSettings = () => {
-  const [version, setVersion] = useState('Development Build')
+/** The Check for updates row: when it last checked, and a manual check. */
+export const useUpdateCheck = () => {
   const [isChecking, setIsChecking] = useState(false)
-  const downloadedVersion = useUpdaterStore((state) => state.downloadedVersion)
-  const hasPendingUpdate = useHasPendingUpdate()
+  const version = useAppVersion()
   const lastCheckedAt = useUpdaterStore((state) => state.lastCheckedAt)
 
-  const onGetVersion = useCallback(async () => {
-    const api = globalThis.window.electronAPI
-    if (!api) return
-
-    const version = await api.app.getVersion()
-    setVersion(version)
-  }, [])
-
-  const onCheck = useCallback(async () => {
+  const onCheck = async () => {
     setIsChecking(true)
 
     try {
@@ -44,26 +32,13 @@ export const useUpdaterSettings = () => {
     } finally {
       setIsChecking(false)
     }
-  }, [version])
-
-  useEffect(() => {
-    void onGetVersion()
-  }, [onGetVersion])
-
-  const onInstall = useCallback(async () => {
-    await globalThis.window.electronAPI.updater.installUpdate()
-  }, [])
+  }
 
   return {
-    downloadedVersion,
-    hasPendingUpdate,
     isChecking,
     ...(lastCheckedAt && {
       lastCheckedLabel: `Last checked at ${dateFormatter.timeFromTimestamp(lastCheckedAt)}`
     }),
-    onCheck,
-    onInstall,
-    onLater: UPDATER_ACTIONS.dismiss,
-    version
+    onCheck: () => void onCheck()
   }
 }

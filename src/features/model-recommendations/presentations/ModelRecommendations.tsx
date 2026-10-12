@@ -1,8 +1,11 @@
 'use client'
 
 import { useModelStep } from '@/features/model-recommendations/states/useModelStep'
-import { OnboardingLayout } from '@/features/setup-layout/presentations/OnboardingLayout'
-import { OnboardingStep, OnboardingWidth } from '@/features/setup-layout/types'
+import { OnboardingLayout } from '@/cores/shared/onboarding/presentations/OnboardingLayout'
+import {
+  OnboardingStep,
+  OnboardingWidth
+} from '@/cores/shared/onboarding/types'
 import {
   Button,
   RadioGroup,
@@ -44,7 +47,7 @@ export const ModelRecommendations = () => {
               Skip for now
             </Button>
           </div>
-          {step.model && <ModelStepDownloadButton model={step.model} />}
+          {step.model && <ModelStepDownloadButton />}
         </>
       }
     >

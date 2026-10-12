@@ -1,7 +1,7 @@
 import {
   OnboardingStep,
   OnboardingStepState
-} from '@/features/setup-layout/types'
+} from '@/cores/shared/onboarding/types'
 import { map } from 'es-toolkit/compat'
 import { describe, expect, it } from 'vitest'
 import { onboardingStepsService } from '../onboarding-steps'
