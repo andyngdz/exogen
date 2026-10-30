@@ -21,7 +21,7 @@ dependencies = [
     "bidict==0.23.1",
     "brotli==1.2.0",
     "brotlicffi==1.1.0.0",
-    "certifi==2025.8.3",
+    "certifi==2026.10.18",
     "cffi==1.17.1",
     "chardet==5.2.0",
     "charset-normalizer==3.4.3",
